@@ -19,3 +19,9 @@
 *.exe
 *.out
 *.app
+
+.gitignore
+Makefile
+model.lp
+tsppddl.dot
+tsppddl.png
