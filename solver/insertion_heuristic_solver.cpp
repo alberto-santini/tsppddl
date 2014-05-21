@@ -50,19 +50,19 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
         // (new_path, new_partial_load, new_load, new_length, new_metric)
         std::map<int, placement> best_placement;
 
-        std::cout << "** Insertion Heuristic - Partial path: ";
-        for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
-        std::cout << std::endl;
+        // std::cout << "** Insertion Heuristic - Partial path: ";
+        // for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
+        // std::cout << std::endl;
         
-        std::cout << "** Insertion Heuristic - Remaining requests: ";
-        for(int i = 0; i < remaining.size(); i++) { std::cout << remaining[i] << " "; }
-        std::cout << std::endl;
+        // std::cout << "** Insertion Heuristic - Remaining requests: ";
+        // for(int i = 0; i < remaining.size(); i++) { std::cout << remaining[i] << " "; }
+        // std::cout << std::endl;
 
         for(int i : remaining) {
             double best_metric = 0;
             bool insertable = false;
             
-            std::cout << "** Insertion Heuristic \t- Evaluating request " << i << std::endl;
+            //std::cout << "** Insertion Heuristic - Evaluating request " << i << std::endl;
             
             for(int x = 1; x < path.size(); x++) {
                 for(int y = x; y < path.size(); y++) {
@@ -74,7 +74,7 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
                     double new_metric;
                     bool feasible_and_improves;
                     
-                    std::cout << "** Insertion Heuristic \t\t- Trying to insert with x: " << x << ", y: " << y << std::endl;
+                    // std::cout << "** Insertion Heuristic \t\t- Trying to insert with x: " << x << ", y: " << y << std::endl;
                     
                     feasible_and_improves = new_path_if_feasible(x, y, i, length, load, best_metric, path, partial_load, new_path, new_partial_load, new_length, new_load, new_metric);
                         
@@ -173,7 +173,7 @@ bool InsertionHeuristicSolver::new_path_if_feasible(const int& x, const int& y, 
     new_load = load + demand[i];
     new_metric = new_load / new_length;
     
-    std::cout << "** Insertion Heuristic - Request " << i << " - Metric: " << new_metric << " (vs. previous best " << best_metric << ")" << std::endl;
+    //std::cout << "** Insertion Heuristic \t\t\t- Request " << i << " - Metric: " << new_metric << " (vs. previous best " << best_metric << ")" << std::endl;
     
     if(new_metric <= best_metric) {
         // Can't improve
