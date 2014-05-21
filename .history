@@ -1,8 +1,3 @@
-g
-ah
-l data/basic_example.json
-ah
-l data/basic_example.json
 ah
 l data/basic_example.json
 ah
@@ -97,4 +92,9 @@ mrh
 l data/bayg29_10_3.json
 mrh
 bih
+s
+l data/bayg29_10_4.json
+mrh
+bih
+mrh
 s

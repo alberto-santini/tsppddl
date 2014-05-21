@@ -49,7 +49,11 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
         // Placement:
         // (new_path, new_partial_load, new_load, new_length, new_metric)
         std::map<int, placement> best_placement;
-                
+
+        std::cout << "** Insertion Heuristic - Partial path: ";
+        for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
+        std::cout << std::endl;
+
         for(int i : remaining) {
             double best_metric = 0;
             bool insertable = false;
