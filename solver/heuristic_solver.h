@@ -16,7 +16,7 @@ class HeuristicSolver {
     int ship_capacity;
     int n;
     
-    bool new_path_if_feasible(const int& x, const int& y, const int& i, const double& length, const int& load, const double& second_best_metric, const std::vector<int>& path, const std::vector<int>& partial_load, std::vector<int>& new_path, std::vector<int>& new_partial_load, double& new_length, int& new_load, double& new_metric) const;
+    std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> new_path_if_feasible(const int& x, const int& y, const int& i, const double& length, const int& load, const double& second_best_metric, const std::vector<int>& path, const std::vector<int>& partial_load) const;
     double test_path_cost(const std::vector<int>& path) const;
 
 public:
