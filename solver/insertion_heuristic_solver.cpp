@@ -173,7 +173,7 @@ bool InsertionHeuristicSolver::new_path_if_feasible(const int& x, const int& y, 
     new_load = load + demand[i];
     new_metric = new_load / new_length;
     
-    //std::cout << "** Insertion Heuristic \t\t\t- Request " << i << " - Metric: " << new_metric << " (vs. previous best " << best_metric << ")" << std::endl;
+    std::cout << "** Insertion Heuristic \t\t\t- Request " << i << " - Metric: " << new_metric << " (vs. previous best " << best_metric << ")" << std::endl;
     
     if(new_metric <= best_metric) {
         // Can't improve
