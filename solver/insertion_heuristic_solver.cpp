@@ -62,6 +62,8 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
             double best_metric = 0;
             bool insertable = false;
             
+            std::cout << "** Insertion Heuristic \t- Evaluating request " << i << std::endl;
+            
             for(int x = 1; x < path.size(); x++) {
                 for(int y = x; y < path.size(); y++) {
                     std::vector<int> new_path(path.size() + 2);
@@ -71,7 +73,9 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
                     double new_length;
                     double new_metric;
                     bool feasible_and_improves;
-                        
+                    
+                    std::cout << "** Insertion Heuristic \t\t- Trying to insert with x: " << x << ", y: " << y << std::endl;
+                    
                     feasible_and_improves = new_path_if_feasible(x, y, i, length, load, best_metric, path, partial_load, new_path, new_partial_load, new_length, new_load, new_metric);
                         
                     if(feasible_and_improves) {
