@@ -171,6 +171,7 @@ bool InsertionHeuristicSolver::new_path_if_feasible(const int& x, const int& y, 
     
     if(new_metric <= best_metric) {
         // Can't improve
+        std::cout << "** Insertion Heuristic - Request " << i << " - Metric: " << new_matric << " (vs. previous best " << best_metric << ")" << std::endl;
         return false;
     }
     
