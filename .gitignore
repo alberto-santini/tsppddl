@@ -20,7 +20,7 @@
 *.out
 *.app
 
-.gitignore
+.history
 Makefile
 model.lp
 tsppddl.dot
