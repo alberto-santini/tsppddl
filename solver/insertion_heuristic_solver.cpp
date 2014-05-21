@@ -53,6 +53,10 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
         std::cout << "** Insertion Heuristic - Partial path: ";
         for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
         std::cout << std::endl;
+        
+        std::cout << "** Insertion Heuristic - Remaining requests: ";
+        for(int i = 0; i < remaining.size(); i++) { std::cout << remaining[i] << " "; }
+        std::cout << std::endl;
 
         for(int i : remaining) {
             double best_metric = 0;
