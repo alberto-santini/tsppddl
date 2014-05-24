@@ -51,9 +51,9 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
         std::map<int, placement> best_placement;
 
         // std::cout << "** Insertion Heuristic - Partial path: ";
-        // for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
+        // for(int i = 0; i < path.size(); i++) { std::cout << path[i] << "(" << partial_load[i] << ") "; }
         // std::cout << std::endl;
-        
+        // 
         // std::cout << "** Insertion Heuristic - Remaining requests: ";
         // for(int i = 0; i < remaining.size(); i++) { std::cout << remaining[i] << " "; }
         // std::cout << std::endl;
@@ -62,7 +62,7 @@ std::tuple<std::vector<int>, std::vector<int>, int> InsertionHeuristicSolver::so
             double best_metric = 0;
             bool insertable = false;
             
-            //std::cout << "** Insertion Heuristic - Evaluating request " << i << std::endl;
+            // std::cout << "** Insertion Heuristic - Evaluating request " << i << std::endl;
             
             for(int x = 1; x < path.size(); x++) {
                 for(int y = x; y < path.size(); y++) {
@@ -149,6 +149,7 @@ double InsertionHeuristicSolver::test_path_cost(const std::vector<int>& path) co
             }
         }
     }
+    std::cout << std::endl;
     
     return cost;
 }
@@ -183,6 +184,7 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
     
     if(new_metric <= best_metric) {
         // Can't improve
+        // std::cout << "** Insertion Heuristic \t\t\t\t- Doesn't improve: skipping" << std::endl;
         return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
     }
     
@@ -196,6 +198,7 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
         new_partial_load[x] = new_partial_load[x-1] + demand[i];
     
         if(new_partial_load[x] > std::min(std::min(draught[i], draught[path[x]]), ship_capacity)) {
+            // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
             return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
         }
     
@@ -203,9 +206,9 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
             new_path[j] = path[j-1];
             new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j]];
         
-            int next_port = (j < y ? path[j] : n+i);
             int next_port_draught = (j < y ? draught[path[j]] : draught[n+i]);
             if(new_partial_load[j] > std::min(std::min(draught[new_path[j]], next_port_draught), ship_capacity)) {
+                // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
                 return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
             }
         }
@@ -214,6 +217,7 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
         new_partial_load[y+1] = new_partial_load[y] + demand[n+i];
     
         if(new_partial_load[y+1] > std::min(std::min(draught[n+i], draught[path[y]]), ship_capacity)) {
+            // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
             return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
         }
     
@@ -221,9 +225,9 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
             new_path[j] = path[j-2];
             new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j]];
                 
-            int next_port = (j <= path.size() ? path[j-1] : -1);
             int next_port_draught = (j <= path.size() ? draught[path[j-1]] : std::numeric_limits<int>::max());
             if(new_partial_load[j] > std::min(std::min(draught[new_path[j]], next_port_draught), ship_capacity)) {
+                // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
                 return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
             }
         }
@@ -237,6 +241,7 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
         new_partial_load[x] = new_partial_load[x-1] + demand[i];
         
         if(new_partial_load[x] > std::min(std::min(draught[i], draught[n+i]), ship_capacity)) {
+            // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
             return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
         }
         
@@ -244,21 +249,23 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Insert
         new_partial_load[x+1] = new_partial_load[x] + demand[n+i];
         
         if(new_partial_load[x] > std::min(std::min(draught[n+i], draught[path[x]]), ship_capacity)) {
+            // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
             return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
         }
         
         for(int j = x + 2; j < path.size() + 2; j++) {
             new_path[j] = path[j-2];
-            new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j-1]];
+            new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j]];
             
-            int next_port = (j <= path.size() ? path[j-1] : -1);
             int next_port_draught = (j <= path.size() ? draught[path[j-1]] : std::numeric_limits<int>::max());
             if(new_partial_load[j] > std::min(std::min(draught[new_path[j]], next_port_draught), ship_capacity)) {
+                // std::cout << "** Insertion Heuristic \t\t\t\t- Not feasible" << std::endl;
                 return std::make_tuple(false, std::vector<int>(0), std::vector<int>(0), -1, -1, -1);
             }
         }
     }
     
+    // std::cout << "** Insertion Heuristic \t\t\t\t- Feasible" << std::endl;
     return std::make_tuple(true, new_path, new_partial_load, new_length, new_load, new_metric);
 }
 

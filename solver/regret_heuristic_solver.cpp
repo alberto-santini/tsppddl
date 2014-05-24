@@ -5,7 +5,7 @@
 #include <limits>
 #include <iostream>
 
-#include <solver/heuristic_solver.h>
+#include <solver/regret_heuristic_solver.h>
 
 RegretHeuristicSolver::RegretHeuristicSolver(const std::shared_ptr<Data> data, const std::shared_ptr<Graph> graph) : data(data), graph(graph) {
     ship_capacity = data->capacity;
@@ -329,7 +329,7 @@ std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> Regret
         
         for(int j = x + 2; j < path.size() + 2; j++) {
             new_path[j] = path[j-2];
-            new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j-1]];
+            new_partial_load[j] = new_partial_load[j-1] + demand[new_path[j]];
             
             int next_port = (j <= path.size() ? path[j-1] : -1);
             int next_port_draught = (j <= path.size() ? draught[path[j-1]] : std::numeric_limits<int>::max());

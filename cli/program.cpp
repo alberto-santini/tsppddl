@@ -10,7 +10,7 @@
 #include <solver/mip_solver.h>
 #include <solver/greedy_solver.h>
 #include <solver/regret_heuristic_solver.h>
-#include <solver/regret_insertion_heuristic_solver.h>
+#include <solver/insertion_heuristic_solver.h>
 #include <solver/labelling_solver.h>
 
 Program::Program() {

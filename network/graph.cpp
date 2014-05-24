@@ -85,10 +85,9 @@ Graph::Graph(std::shared_ptr<Data> data) {
                 continue; // No arcs n+i -> i
             }
             
-            if( (i->id <= n && i->demand > std::min(std::min(i->port->draught, j->port->draught), g[graph_bundle].ship_capacity)) ||
+            if( (i->id <= n && i->demand > std::min(j->port->draught, g[graph_bundle].ship_capacity)) ||
                 (i->id <= n && i->demand + j->demand > std::min(j->port->draught, g[graph_bundle].ship_capacity)) ||
-                (i->id > n && -i->demand > std::min(std::min(i->port->draught, j->port->draught), g[graph_bundle].ship_capacity)) ||
-                (i->id > n && -i->demand - j->demand > std::min(j->port->draught, g[graph_bundle].ship_capacity))) {
+                (j->id > n && j->demand > std::min(i->port->draught, g[graph_bundle].ship_capacity))) {
                     continue; // No arcs violating capacity or draught constraints
                 }
             
