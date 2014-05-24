@@ -148,9 +148,7 @@ double InsertionHeuristicSolver::test_path_cost(const std::vector<int>& path) co
                 }
             }
         }
-    }
-    std::cout << std::endl;
-    
+    }    
     return cost;
 }
 
