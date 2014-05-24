@@ -1,5 +1,5 @@
-#ifndef HEURISTIC_SOLVER_CPP
-#define HEURISTIC_SOLVER_CPP
+#ifndef REGRET_HEURISTIC_SOLVER_CPP
+#define REGRET_HEURISTIC_SOLVER_CPP
 
 #include <algorithm>
 #include <limits>
@@ -7,7 +7,7 @@
 
 #include <solver/heuristic_solver.h>
 
-HeuristicSolver::HeuristicSolver(const std::shared_ptr<Data> data, const std::shared_ptr<Graph> graph) : data(data), graph(graph) {
+RegretHeuristicSolver::RegretHeuristicSolver(const std::shared_ptr<Data> data, const std::shared_ptr<Graph> graph) : data(data), graph(graph) {
     ship_capacity = data->capacity;
     n = data->num_requests;
     distance = std::vector<std::vector<double>>(2 * n + 2, std::vector<double>(2 * n + 2));
@@ -28,7 +28,7 @@ HeuristicSolver::HeuristicSolver(const std::shared_ptr<Data> data, const std::sh
     }
 }
 
-std::tuple<std::vector<int>, std::vector<int>, int> HeuristicSolver::solve() const {
+std::tuple<std::vector<int>, std::vector<int>, int> RegretHeuristicSolver::solve() const {
     typedef std::tuple<std::vector<int>, std::vector<int>, int, double, double> placement;
     
     std::vector<int> path; path.reserve(2 * n + 1);
@@ -174,7 +174,7 @@ std::tuple<std::vector<int>, std::vector<int>, int> HeuristicSolver::solve() con
     return std::make_tuple(path, partial_load, length);
 }
 
-double HeuristicSolver::test_path_cost(const std::vector<int>& path) const {
+double RegretHeuristicSolver::test_path_cost(const std::vector<int>& path) const {
     double cost = 0; double load = 0;
     for(int i = 0; i < path.size() - 1; i++) {
         eit ei, ei_end;
@@ -200,7 +200,7 @@ double HeuristicSolver::test_path_cost(const std::vector<int>& path) const {
     return cost;
 }
 
-std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> HeuristicSolver::new_path_if_feasible(const int& x, const int& y, const int& i, const double& length, const int& load, const double& second_best_metric, const std::vector<int>& path, const std::vector<int>& partial_load) const {
+std::tuple<bool, std::vector<int>, std::vector<int>, double, int, double> RegretHeuristicSolver::new_path_if_feasible(const int& x, const int& y, const int& i, const double& length, const int& load, const double& second_best_metric, const std::vector<int>& path, const std::vector<int>& partial_load) const {
     std::vector<int> new_path(path.size() + 2);
     std::vector<int> new_partial_load(partial_load.size() + 2);
     double new_length = 0;

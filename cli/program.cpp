@@ -9,8 +9,8 @@
 #include <cli/program.h>
 #include <solver/mip_solver.h>
 #include <solver/greedy_solver.h>
-#include <solver/heuristic_solver.h>
-#include <solver/insertion_heuristic_solver.h>
+#include <solver/regret_heuristic_solver.h>
+#include <solver/regret_insertion_heuristic_solver.h>
 #include <solver/labelling_solver.h>
 
 Program::Program() {
@@ -116,7 +116,7 @@ void Program::prompt() {
         
         if(cmd_tokens[0] == "maxregret" || cmd_tokens[0] == "mrh") {
             if(graph != nullptr) {
-                HeuristicSolver mrhs(data, graph);
+                RegretHeuristicSolver mrhs(data, graph);
                 initial_solution = mrhs.solve();
             } else {
                 std::cout << "No graph generated!" << std::endl;

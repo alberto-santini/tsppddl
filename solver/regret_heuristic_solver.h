@@ -1,5 +1,5 @@
-#ifndef HEURISTIC_SOLVER_H
-#define HEURISTIC_SOLVER_H
+#ifndef REGRET_HEURISTIC_SOLVER_H
+#define REGRET_HEURISTIC_SOLVER_H
 
 #include <vector>
 #include <memory>
@@ -7,7 +7,7 @@
 #include <parser/data.h>
 #include <network/graph.h>
 
-class HeuristicSolver {
+class RegretHeuristicSolver {
     std::shared_ptr<Data> data;
     std::shared_ptr<Graph> graph;
     
@@ -22,7 +22,7 @@ class HeuristicSolver {
 public:
     std::vector<int> demand;
     
-    HeuristicSolver(const std::shared_ptr<Data> data, const std::shared_ptr<Graph> graph);
+    RegretHeuristicSolver(const std::shared_ptr<Data> data, const std::shared_ptr<Graph> graph);
     std::tuple<std::vector<int>, std::vector<int>, int> solve() const;
 };
 
