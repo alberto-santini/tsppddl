@@ -6,11 +6,13 @@
 
 #include <network/graph.h>
 #include <parser/parser.h>
+#include <solver/heuristic_helper.h>
 
 class Program {
     std::shared_ptr<Data> data;
     std::shared_ptr<Graph> graph;
-    std::tuple<std::vector<int>, std::vector<int>, int> initial_solution;
+    std::shared_ptr<HeuristicHelper> hh;
+    HeuristicSolution initial_solution;
     
 public:
     Program();

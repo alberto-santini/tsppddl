@@ -16,6 +16,7 @@
 Program::Program() {
     data = nullptr;
     graph = nullptr;
+    hh = nullptr;
     initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
 }
 
@@ -43,6 +44,7 @@ void Program::prompt() {
                 Parser parser(cmd_tokens[1]);
                 data = parser.get_data();
                 graph = std::make_shared<Graph>(data);
+                hh = std::make_shared<HeuristicHelper>(data, graph);
                 initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
             } catch(const std::exception& e) {
                 std::cout << "An error occurred!" << std::endl;
@@ -116,7 +118,7 @@ void Program::prompt() {
         
         if(cmd_tokens[0] == "maxregret" || cmd_tokens[0] == "mrh") {
             if(graph != nullptr) {
-                RegretHeuristicSolver mrhs(data, graph);
+                RegretHeuristicSolver mrhs(data, graph, hh);
                 initial_solution = mrhs.solve();
             } else {
                 std::cout << "No graph generated!" << std::endl;
@@ -126,8 +128,18 @@ void Program::prompt() {
         
         if(cmd_tokens[0] == "bestinsertion" || cmd_tokens[0] == "bih") {
             if(graph != nullptr) {
-                InsertionHeuristicSolver bihs(data, graph);
+                InsertionHeuristicSolver bihs(data, graph, hh);
                 initial_solution = bihs.solve();
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
+        }
+        
+        if(cmd_tokens[0] == "mindistance" || cmd_tokens[0] == "mdh") {
+            if(graph != nullptr) {
+                MinDistanceHeuristicSolver mdhs(data, graph, hh);
+                initial_solution = mdhs.solve();
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
@@ -162,6 +174,7 @@ void Program::prompt() {
             std::cout << "\tgreedy [gh] <int:run_numbers> <int:best_arcs>: launches the greedy heuristic solver" << std::endl;
             std::cout << "\tbestinsertion [bih]: launches the best insertion heuristic solver" << std::endl;
             std::cout << "\tmaxregret [mrh]: launches the max-regret heuristic solver" << std::endl;
+            std::cout << "\tmindistance [mdh]: launches the min-distance heuristic solver" << std::endl;
             std::cout << "\tlabelling [b]: launches the reduced state space labelling algorithm" << std::endl; 
             std::cout << "\thelp [?]: shows this help" << std::endl;
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
