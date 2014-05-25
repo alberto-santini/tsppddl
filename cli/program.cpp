@@ -11,6 +11,7 @@
 #include <solver/greedy_solver.h>
 #include <solver/regret_heuristic_solver.h>
 #include <solver/insertion_heuristic_solver.h>
+#include <solver/min_distance_heuristic_solver.h>
 #include <solver/labelling_solver.h>
 
 Program::Program() {
@@ -49,8 +50,6 @@ void Program::prompt() {
             } catch(const std::exception& e) {
                 std::cout << "An error occurred!" << std::endl;
                 std::cout << e.what() << std::endl;
-                linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-                continue;
             }
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
@@ -91,8 +90,6 @@ void Program::prompt() {
                 } catch(const std::exception& e) {
                     std::cout << "An error occurred!" << std::endl;
                     std::cout << e.what() << std::endl;
-                    linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-                    continue;
                 }
             } else {
                 std::cout << "No graph generated!" << std::endl;
@@ -104,8 +101,6 @@ void Program::prompt() {
             if(graph != nullptr) {
                 if(cmd_tokens.size() < 4) {
                     std::cout << "Not enough parameters!" << std::endl;
-                    linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-                    continue;
                 } else {
                     GreedySolver gs(std::stoi(cmd_tokens[1]), std::stoi(cmd_tokens[2]), std::stod(cmd_tokens[3]), graph);
                     gs.solve();
@@ -136,10 +131,18 @@ void Program::prompt() {
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
         
-        if(cmd_tokens[0] == "mindistance" || cmd_tokens[0] == "mdh") {
+        if(cmd_tokens[0] == "mmdistance" || cmd_tokens[0] == "mdh") {
             if(graph != nullptr) {
-                MinDistanceHeuristicSolver mdhs(data, graph, hh);
-                initial_solution = mdhs.solve();
+                if(cmd_tokens.size() < 2) {
+                    std::cout << "Not enough parameters!" << std::endl;
+                } else {
+                    if(cmd_tokens[1] != "min" && cmd_tokens[1] != "max") {
+                        std::cout << "Wrong parameter: " << cmd_tokens[1] << "!" << std::endl;
+                    } else {
+                        MinDistanceHeuristicSolver mdhs(data, graph, hh);
+                        initial_solution = mdhs.solve(cmd_tokens[1] == "max");
+                    }
+                }
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
@@ -154,8 +157,6 @@ void Program::prompt() {
                 } catch(const std::exception& e) {
                     std::cout << "An error occurred!" << std::endl;
                     std::cout << e.what() << std::endl;
-                    linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-                    continue;
                 }
             } else {
                 std::cout << "No graph generated!" << std::endl;
@@ -171,10 +172,10 @@ void Program::prompt() {
             std::cout << "\tgraph [g]: displays information about the generated graph" << std::endl;
             std::cout << "\tviz [v]: opens a graphviz representation of the graph" << std::endl;
             std::cout << "\tsolve [s]: launches the MIP solver" << std::endl;
-            std::cout << "\tgreedy [gh] <int:run_numbers> <int:best_arcs>: launches the greedy heuristic solver" << std::endl;
+            std::cout << "\tgreedy [gh] <int:run_numbers> <int:best_arcs> <double:visitable_coeff>: launches the greedy heuristic solver" << std::endl;
             std::cout << "\tbestinsertion [bih]: launches the best insertion heuristic solver" << std::endl;
             std::cout << "\tmaxregret [mrh]: launches the max-regret heuristic solver" << std::endl;
-            std::cout << "\tmindistance [mdh]: launches the min-distance heuristic solver" << std::endl;
+            std::cout << "\tmmdistance [mdh] <min|max>: launches the min/max-distance heuristic solver" << std::endl;
             std::cout << "\tlabelling [b]: launches the reduced state space labelling algorithm" << std::endl; 
             std::cout << "\thelp [?]: shows this help" << std::endl;
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
