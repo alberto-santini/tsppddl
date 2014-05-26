@@ -60,12 +60,12 @@ HeuristicSolution MinDistanceHeuristicSolver::solve(bool inverse_order) const {
         }
     }
     
-    std::cout << "PATH GENERATED: ";
-    for(const int& n_id : path) { std::cout << n_id << " "; }
-    std::cout << std::endl << "COST: " << length << std::endl;
-    
-    double tested_length = hh->test_path_cost(path);
-    std::cout << "RECOMPUTED COST: " << tested_length << std::endl;
+    // std::cout << "PATH GENERATED: ";
+    // for(const int& n_id : path) { std::cout << n_id << " "; }
+    // std::cout << std::endl << "COST: " << length << std::endl;
+    // 
+    // double tested_length = hh->test_path_cost(path);
+    // std::cout << "RECOMPUTED COST: " << tested_length << std::endl;
     
     return std::make_tuple(path, partial_load, length);
 }

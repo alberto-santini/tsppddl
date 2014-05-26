@@ -21,6 +21,40 @@ Program::Program() {
     initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
 }
 
+void Program::load(std::string instance_file) {
+    try {
+        Parser parser(instance_file);
+        data = parser.get_data();
+        graph = std::make_shared<Graph>(data);
+        hh = std::make_shared<HeuristicHelper>(data, graph);
+        initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
+    } catch(const std::exception& e) {
+        std::cout << "An error occurred!" << std::endl;
+        std::cout << e.what() << std::endl;
+    }
+}
+
+void Program::allheur(std::string instance_name) {
+    std::string data_prefix = "data/";
+    std::string data_suffix = ".json";
+    
+    for(int i : {10, 25, 50}) {
+        for(int j = 1; j <= 10; j++) {
+            std::stringstream file_name;
+            file_name << data_prefix << instance_name << "_" << i << "_" << j << data_suffix;
+            load(file_name.str());
+            MinDistanceHeuristicSolver mdhs(data, graph, hh);
+            HeuristicSolution s;
+            s = mdhs.solve(false); std::cout << std::get<2>(s) << "\t";
+            s = mdhs.solve(true); std::cout << std::get<2>(s) << "\t";
+            RegretHeuristicSolver mrhs(data, graph, hh);
+            s = mrhs.solve(); std::cout << std::get<2>(s) << "\t";
+            InsertionHeuristicSolver bihs(data, graph, hh);
+            s = bihs.solve();  std::cout << std::get<2>(s) << std::endl;
+        }
+    }
+}
+
 void Program::prompt() {
     char* line;
     
@@ -41,17 +75,12 @@ void Program::prompt() {
         }
         
         if(cmd_tokens[0] == "load" || cmd_tokens[0] == "l") {
-            try {
-                Parser parser(cmd_tokens[1]);
-                data = parser.get_data();
-                graph = std::make_shared<Graph>(data);
-                hh = std::make_shared<HeuristicHelper>(data, graph);
-                initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
-            } catch(const std::exception& e) {
-                std::cout << "An error occurred!" << std::endl;
-                std::cout << e.what() << std::endl;
+            if(cmd_tokens.size() < 2) {
+                std::cout << "Not enough parameters!" << std::endl;
+            } else {
+                load(cmd_tokens[1]);
+                linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
         
         if(cmd_tokens[0] == "info" || cmd_tokens[0] == "i") {
@@ -115,6 +144,7 @@ void Program::prompt() {
             if(graph != nullptr) {
                 RegretHeuristicSolver mrhs(data, graph, hh);
                 initial_solution = mrhs.solve();
+                std::cout << std::get<2>(initial_solution);
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
@@ -125,6 +155,7 @@ void Program::prompt() {
             if(graph != nullptr) {
                 InsertionHeuristicSolver bihs(data, graph, hh);
                 initial_solution = bihs.solve();
+                std::cout << std::get<2>(initial_solution);
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
@@ -141,10 +172,20 @@ void Program::prompt() {
                     } else {
                         MinDistanceHeuristicSolver mdhs(data, graph, hh);
                         initial_solution = mdhs.solve(cmd_tokens[1] == "max");
+                        std::cout << std::get<2>(initial_solution);
                     }
                 }
             } else {
                 std::cout << "No graph generated!" << std::endl;
+            }
+            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
+        }
+        
+        if(cmd_tokens[0] == "allheur" || cmd_tokens[0] == "ah") {
+            if(cmd_tokens.size() < 2) {
+                std::cout << "Not enough parameters!" << std::endl;
+            } else {
+                allheur(cmd_tokens[1]);
             }
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
@@ -176,6 +217,7 @@ void Program::prompt() {
             std::cout << "\tbestinsertion [bih]: launches the best insertion heuristic solver" << std::endl;
             std::cout << "\tmaxregret [mrh]: launches the max-regret heuristic solver" << std::endl;
             std::cout << "\tmmdistance [mdh] <min|max>: launches the min/max-distance heuristic solver" << std::endl;
+            std::cout << "\tallheur [ah] <instance>: prints the results of all heuristics for an instance set" << std::endl;
             std::cout << "\tlabelling [b]: launches the reduced state space labelling algorithm" << std::endl; 
             std::cout << "\thelp [?]: shows this help" << std::endl;
             linenoiseHistoryAdd(line); linenoiseHistorySave(".history");

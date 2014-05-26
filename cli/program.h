@@ -14,6 +14,9 @@ class Program {
     std::shared_ptr<HeuristicHelper> hh;
     HeuristicSolution initial_solution;
     
+    void load(std::string instance_file);
+    void allheur(std::string instance_name);
+    
 public:
     Program();
     void prompt();

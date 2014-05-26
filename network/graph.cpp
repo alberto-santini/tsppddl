@@ -9,10 +9,10 @@
 #include <network/graph.h>
 
 Graph::Graph(std::shared_ptr<Data> data) {
-    std::cout << "Creating graph" << std::endl;
+    // std::cout << "Creating graph" << std::endl;
     
     data->check_port_ids_consistent_with_depot();
-    std::cout << "\tPort ids are consistent" << std::endl;
+    // std::cout << "\tPort ids are consistent" << std::endl;
     
     name = "Graph for " + data->data_file_name;
     g[graph_bundle].num_requests = data->num_requests;
@@ -22,7 +22,7 @@ Graph::Graph(std::shared_ptr<Data> data) {
     
     handy_dt = std::vector<std::vector<double>>();
     
-    std::cout << "\tCreated graph with name: " << name << std::endl;
+    // std::cout << "\tCreated graph with name: " << name << std::endl;
     
     Vertex start_depot, end_depot;
     std::shared_ptr<Port> depot = data->port_by_id(0);
@@ -33,7 +33,7 @@ Graph::Graph(std::shared_ptr<Data> data) {
     end_depot = add_vertex(g);
     g[end_depot] = std::make_shared<Node>(2 * n + 1, depot, 0);
     
-    std::cout << "\tDepots created" << std::endl;
+    // std::cout << "\tDepots created" << std::endl;
     
     int node_id = 1;
     
@@ -49,7 +49,7 @@ Graph::Graph(std::shared_ptr<Data> data) {
         node_id++;
     }
     
-    std::cout << "\tNodes created" << std::endl;
+    // std::cout << "\tNodes created" << std::endl;
     
     int arc_id = 0;
     
@@ -97,11 +97,11 @@ Graph::Graph(std::shared_ptr<Data> data) {
         }
     }
     
-    std::cout << "\tArcs created" << std::endl;
+    // std::cout << "\tArcs created" << std::endl;
     
     generate_distance_table();
     
-    std::cout << "\tDistance table generated" << std::endl;
+    // std::cout << "\tDistance table generated" << std::endl;
 }
 
 void Graph::generate_distance_table() {
