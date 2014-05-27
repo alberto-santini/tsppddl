@@ -20,13 +20,13 @@ MipSolver::MipSolver(std::shared_ptr<Graph> graph, std::tuple<std::vector<int>, 
     n = graph->g[graph_bundle].num_requests;
     
     if(cost >= 0) {
-        std::cout << "** Initial solution present. Loading it." << std::endl;
+        std::cout << "CPLEX Initial solution present. Loading it." << std::endl;
         initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
         initial_y = std::vector<int>(2 * n + 2, 0);
         initial_t = std::vector<int>(2 * n + 2, 0);
     
         for(int l = 0; l < 2 * n + 2; l++) {
-            initial_x[initial_path[l]][initial_path[l+1]] = 1;
+            if(l < 2 * n + 2 - 1) { initial_x[initial_path[l]][initial_path[l+1]] = 1; }
             initial_y[initial_path[l]] = partial_load[l];
             initial_t[initial_path[l]] = l;
         }
