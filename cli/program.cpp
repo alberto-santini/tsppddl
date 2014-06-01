@@ -9,6 +9,7 @@
 #include <cli/program.h>
 #include <solver/mip_solver.h>
 #include <solver/labelling_solver.h>
+#include <heuristics/heuristic_helper.h>
 
 Program::Program() {
     data = nullptr;
@@ -169,6 +170,14 @@ void Program::prompt() {
             }
         }
         
+        if(cmd_tokens[0] == "check" || cmd_tokens[0] == "c") {
+            if(graph != nullptr) {
+                std::cout << HeuristicHelper::test_path_cost(initial_solution, data, graph) << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
         if(cmd_tokens[0] == "help" || cmd_tokens[0] == "?") {
             std::cout << "Commands:" << std::endl;
             std::cout << "\tquit [q]: quits the program" << std::endl;
@@ -182,6 +191,7 @@ void Program::prompt() {
             std::cout << "\th2maxdistance [h2Md]: launches the 2-phases min-distance heuristic" << std::endl;
             std::cout << "\thRminLD [hRmLD]: launches the max-regret min-(load*distance) heuristic" << std::endl;
             std::cout << "\thRmaxLD [hRMLD]: launches the max-regret max-(load/distance) heuristic" << std::endl;
+            std::cout << "\tcheck [c]: checks the correctness of the last generated heuristic solution" << std::endl;
             std::cout << "\thall [hall] <instances_prefix>: runs all the known heuristics over a set of instances" << std::endl;
             std::cout << "\thelp [?]: shows this help" << std::endl;
         }
