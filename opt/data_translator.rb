@@ -52,12 +52,18 @@ end
 
 ports = Array.new
 requests = Array.new
+origins = Array.new
+capacity = 0
 
 0.upto(num_ports - 1) do |i|
   ports[i] = {:id => i, :draught => draught[i], :depot => (i == 0 ? true : false), :x => posx[i], :y => posy[i]}
   
+  capacity = 2 * num_ports
+  origins[i] = ((1..num_ports-1).to_a - [i]).sample
+  demand[i] = [draught[origins[i]], draught[i], (num_ports/4) + Random.rand(0..(num_ports/8))].min
+  
   unless i == 0
-    requests[i-1] = {:origin => ((1..num_ports-1).to_a - [i]).sample, :destination => i, :demand => demand[i]}
+    requests[i-1] = {:origin => origins[i], :destination => i, :demand => demand[i]}
   end
 end
 
@@ -66,7 +72,7 @@ data = {
   :ports => ports,
   :num_requests => num_ports - 1,
   :requests => requests,
-  :capacity => num_ports,
+  :capacity => capacity,
   :distances => distances
 }
 
