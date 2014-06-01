@@ -157,13 +157,13 @@ void Program::prompt() {
                         file << "data/" << cmd_tokens[1] << "_" << i << "_" << j << ".json";
                         load(file.str());
                         solution = hs->solve_two_phases_min_distance();
-                        std::cout << initial_solution.cost << " ";
+                        std::cout << solution.cost << " ";
                         solution = hs->solve_two_phases_max_distance();
-                        std::cout << initial_solution.cost << " ";
+                        std::cout << solution.cost << " ";
                         solution = hs->solve_max_regret_max_load_over_distance();
-                        std::cout << initial_solution.cost << " ";
+                        std::cout << solution.cost << " ";
                         solution = hs->solve_max_regret_min_load_times_distance();
-                        std::cout << initial_solution.cost << std::endl;
+                        std::cout << solution.cost << std::endl;
                     }
                 }
             }
