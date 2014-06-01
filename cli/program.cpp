@@ -8,17 +8,13 @@
 
 #include <cli/program.h>
 #include <solver/mip_solver.h>
-#include <solver/greedy_solver.h>
-#include <solver/regret_heuristic_solver.h>
-#include <solver/insertion_heuristic_solver.h>
-#include <solver/min_distance_heuristic_solver.h>
 #include <solver/labelling_solver.h>
 
 Program::Program() {
     data = nullptr;
     graph = nullptr;
-    hh = nullptr;
-    initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
+    hs = nullptr;
+    initial_solution = GenericPath();
 }
 
 void Program::load(std::string instance_file) {
@@ -26,32 +22,11 @@ void Program::load(std::string instance_file) {
         Parser parser(instance_file);
         data = parser.get_data();
         graph = std::make_shared<Graph>(data);
-        hh = std::make_shared<HeuristicHelper>(data, graph);
-        initial_solution = std::make_tuple(std::vector<int>(0), std::vector<int>(0), -1);
+        hs = std::make_shared<HeuristicSolver>(data, graph);
+        initial_solution = GenericPath();
     } catch(const std::exception& e) {
         std::cout << "An error occurred!" << std::endl;
         std::cout << e.what() << std::endl;
-    }
-}
-
-void Program::allheur(std::string instance_name) {
-    std::string data_prefix = "data/";
-    std::string data_suffix = ".json";
-    
-    for(int i : {10, 25, 50}) {
-        for(int j = 1; j <= 10; j++) {
-            std::stringstream file_name;
-            file_name << data_prefix << instance_name << "_" << i << "_" << j << data_suffix;
-            load(file_name.str());
-            MinDistanceHeuristicSolver mdhs(data, graph, hh);
-            HeuristicSolution s;
-            s = mdhs.solve(false); std::cout << std::get<2>(s) << "\t";
-            s = mdhs.solve(true); std::cout << std::get<2>(s) << "\t";
-            RegretHeuristicSolver mrhs(data, graph, hh);
-            s = mrhs.solve(); std::cout << std::get<2>(s) << "\t";
-            InsertionHeuristicSolver bihs(data, graph, hh);
-            s = bihs.solve();  std::cout << std::get<2>(s) << std::endl;
-        }
     }
 }
 
@@ -79,7 +54,6 @@ void Program::prompt() {
                 std::cout << "Not enough parameters!" << std::endl;
             } else {
                 load(cmd_tokens[1]);
-                linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
             }
         }
         
@@ -89,7 +63,6 @@ void Program::prompt() {
             } else {
                 std::cout << "No data file loaded!" << std::endl;
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
         
         if(cmd_tokens[0] == "graph" || cmd_tokens[0] == "g") {
@@ -98,7 +71,6 @@ void Program::prompt() {
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
         
         if(cmd_tokens[0] == "viz" || cmd_tokens[0] == "v") {
@@ -108,7 +80,6 @@ void Program::prompt() {
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
         
         if(cmd_tokens[0] == "solve" || cmd_tokens[0] == "s") {
@@ -123,73 +94,8 @@ void Program::prompt() {
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
-        
-        if(cmd_tokens[0] == "greedy" || cmd_tokens[0] == "gh") {
-            if(graph != nullptr) {
-                if(cmd_tokens.size() < 4) {
-                    std::cout << "Not enough parameters!" << std::endl;
-                } else {
-                    GreedySolver gs(std::stoi(cmd_tokens[1]), std::stoi(cmd_tokens[2]), std::stod(cmd_tokens[3]), graph);
-                    gs.solve();
-                }
-            } else {
-                std::cout << "No graph generated!" << std::endl;
-            }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-        }
-        
-        if(cmd_tokens[0] == "maxregret" || cmd_tokens[0] == "mrh") {
-            if(graph != nullptr) {
-                RegretHeuristicSolver mrhs(data, graph, hh);
-                initial_solution = mrhs.solve();
-                std::cout << std::get<2>(initial_solution);
-            } else {
-                std::cout << "No graph generated!" << std::endl;
-            }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-        }
-        
-        if(cmd_tokens[0] == "bestinsertion" || cmd_tokens[0] == "bih") {
-            if(graph != nullptr) {
-                InsertionHeuristicSolver bihs(data, graph, hh);
-                initial_solution = bihs.solve();
-                std::cout << std::get<2>(initial_solution);
-            } else {
-                std::cout << "No graph generated!" << std::endl;
-            }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-        }
-        
-        if(cmd_tokens[0] == "mmdistance" || cmd_tokens[0] == "mdh") {
-            if(graph != nullptr) {
-                if(cmd_tokens.size() < 2) {
-                    std::cout << "Not enough parameters!" << std::endl;
-                } else {
-                    if(cmd_tokens[1] != "min" && cmd_tokens[1] != "max") {
-                        std::cout << "Wrong parameter: " << cmd_tokens[1] << "!" << std::endl;
-                    } else {
-                        MinDistanceHeuristicSolver mdhs(data, graph, hh);
-                        initial_solution = mdhs.solve(cmd_tokens[1] == "max");
-                        std::cout << std::get<2>(initial_solution);
-                    }
-                }
-            } else {
-                std::cout << "No graph generated!" << std::endl;
-            }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-        }
-        
-        if(cmd_tokens[0] == "allheur" || cmd_tokens[0] == "ah") {
-            if(cmd_tokens.size() < 2) {
-                std::cout << "Not enough parameters!" << std::endl;
-            } else {
-                allheur(cmd_tokens[1]);
-            }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
-        }
-        
+                
         if(cmd_tokens[0] == "labelling" || cmd_tokens[0] == "b") {
             if(graph != nullptr) {
                 try {
@@ -202,7 +108,65 @@ void Program::prompt() {
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
+        }
+        
+        if(cmd_tokens[0] == "h2mindistance" || cmd_tokens[0] == "h2md") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_two_phases_min_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
+        if(cmd_tokens[0] == "h2maxdistance" || cmd_tokens[0] == "h2Md") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_two_phases_max_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
+        if(cmd_tokens[0] == "hRmaxLD" || cmd_tokens[0] == "hRMLD") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_max_regret_max_load_over_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
+        if(cmd_tokens[0] == "hRminLD" || cmd_tokens[0] == "hRmLD") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_max_regret_min_load_times_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
+        if(cmd_tokens[0] == "hall") {
+            if(cmd_tokens.size() < 2) {
+                std::cout << "Not enough parameters!" << std::endl;
+            } else {
+                GenericPath solution;
+                for(int i : {10, 25, 50}) {
+                    for(int j = 1; j <= 10; j++) {
+                        std::stringstream file;
+                        file << "data/" << cmd_tokens[1] << "_" << i << "_" << j << ".json";
+                        load(file.str());
+                        solution = hs->solve_two_phases_min_distance();
+                        std::cout << initial_solution.cost << " ";
+                        solution = hs->solve_two_phases_max_distance();
+                        std::cout << initial_solution.cost << " ";
+                        solution = hs->solve_max_regret_max_load_over_distance();
+                        std::cout << initial_solution.cost << " ";
+                        solution = hs->solve_max_regret_min_load_times_distance();
+                        std::cout << initial_solution.cost << std::endl;
+                    }
+                }
+            }
         }
         
         if(cmd_tokens[0] == "help" || cmd_tokens[0] == "?") {
@@ -213,15 +177,16 @@ void Program::prompt() {
             std::cout << "\tgraph [g]: displays information about the generated graph" << std::endl;
             std::cout << "\tviz [v]: opens a graphviz representation of the graph" << std::endl;
             std::cout << "\tsolve [s]: launches the MIP solver" << std::endl;
-            std::cout << "\tgreedy [gh] <int:run_numbers> <int:best_arcs> <double:visitable_coeff>: launches the greedy heuristic solver" << std::endl;
-            std::cout << "\tbestinsertion [bih]: launches the best insertion heuristic solver" << std::endl;
-            std::cout << "\tmaxregret [mrh]: launches the max-regret heuristic solver" << std::endl;
-            std::cout << "\tmmdistance [mdh] <min|max>: launches the min/max-distance heuristic solver" << std::endl;
-            std::cout << "\tallheur [ah] <instance>: prints the results of all heuristics for an instance set" << std::endl;
-            std::cout << "\tlabelling [b]: launches the reduced state space labelling algorithm" << std::endl; 
+            std::cout << "\tlabelling [b]: launches the reduced state space labelling algorithm" << std::endl;
+            std::cout << "\th2mindistance [h2md]: launches the 2-phases min-distance heuristic" << std::endl;
+            std::cout << "\th2maxdistance [h2Md]: launches the 2-phases min-distance heuristic" << std::endl;
+            std::cout << "\thRminLD [hRmLD]: launches the max-regret min-(load*distance) heuristic" << std::endl;
+            std::cout << "\thRmaxLD [hRMLD]: launches the max-regret max-(load/distance) heuristic" << std::endl;
+            std::cout << "\thall [hall] <instances_prefix>: runs all the known heuristics over a set of instances" << std::endl;
             std::cout << "\thelp [?]: shows this help" << std::endl;
-            linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
         }
+        
+        linenoiseHistoryAdd(line); linenoiseHistorySave(".history");
     }
 }
 

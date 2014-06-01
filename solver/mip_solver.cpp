@@ -10,16 +10,14 @@
 
 #include <solver/mip_solver.h>
 
-MipSolver::MipSolver(std::shared_ptr<Graph> graph, std::tuple<std::vector<int>, std::vector<int>, int> initial_solution) : graph(graph), initial_solution(initial_solution) {
-    std::vector<int> initial_path;
-    std::vector<int> partial_load;
-    int cost;
-    
-    std::tie(initial_path, partial_load, cost) = initial_solution;
-    
+MipSolver::MipSolver(std::shared_ptr<Graph> graph, GenericPath initial_solution) : graph(graph), initial_solution(initial_solution) {
+    std::vector<int> initial_path = initial_solution.path;
+    std::vector<int> partial_load = initial_solution.load;
+    int cost = initial_solution.cost;
+        
     n = graph->g[graph_bundle].num_requests;
     
-    if(cost >= 0) {
+    if(cost > 0) {
         std::cout << "CPLEX Initial solution present. Loading it." << std::endl;
         initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
         initial_y = std::vector<int>(2 * n + 2, 0);
@@ -385,7 +383,7 @@ void MipSolver::solve() const {
     IloCplex cplex(model);
     // cplex.setOut(env.getNullStream());
     
-    if(std::get<2>(initial_solution) >= 0) {
+    if(initial_solution.cost > 0) {
         // Add initial integer solution
         IloNumVarArray initial_vars_x(env);
         IloNumArray initial_values_x(env);
