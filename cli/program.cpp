@@ -147,6 +147,24 @@ void Program::prompt() {
             }
         }
         
+        if(cmd_tokens[0] == "hBmaxLD" || cmd_tokens[0] == "hBMLD") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_best_insertion_load_over_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
+        if(cmd_tokens[0] == "hBminLD" || cmd_tokens[0] == "hBmLD") {
+            if(graph != nullptr) {
+                initial_solution = hs->solve_best_insertion_load_times_distance();
+                std::cout << initial_solution.cost << std::endl;
+            } else {
+                std::cout << "No graph generated!" << std::endl;
+            }
+        }
+        
         if(cmd_tokens[0] == "hall") {
             if(cmd_tokens.size() < 2) {
                 std::cout << "Not enough parameters!" << std::endl;
@@ -164,6 +182,10 @@ void Program::prompt() {
                         solution = hs->solve_max_regret_max_load_over_distance();
                         std::cout << solution.cost << "\t";
                         solution = hs->solve_max_regret_min_load_times_distance();
+                        std::cout << solution.cost << "\t";
+                        solution = hs->solve_best_insertion_load_over_distance();
+                        std::cout << solution.cost << "\t";
+                        solution = hs->solve_best_insertion_load_times_distance();
                         std::cout << solution.cost << std::endl;
                     }
                 }
@@ -191,6 +213,8 @@ void Program::prompt() {
             std::cout << "\th2maxdistance [h2Md]: launches the 2-phases min-distance heuristic" << std::endl;
             std::cout << "\thRminLD [hRmLD]: launches the max-regret min-(load*distance) heuristic" << std::endl;
             std::cout << "\thRmaxLD [hRMLD]: launches the max-regret max-(load/distance) heuristic" << std::endl;
+            std::cout << "\thBminLD [hBmLD]: launches the best-insertion min-(load*distance) heuristic" << std::endl;
+            std::cout << "\thBmaxLD [hBMLD]: launches the best-insertion max-(load/distance) heuristic" << std::endl;
             std::cout << "\tcheck [c]: checks the correctness of the last generated heuristic solution" << std::endl;
             std::cout << "\thall [hall] <instances_prefix>: runs all the known heuristics over a set of instances" << std::endl;
             std::cout << "\thelp [?]: shows this help" << std::endl;

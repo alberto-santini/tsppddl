@@ -7,6 +7,7 @@
 #include <heuristics/generic_path.h>
 #include <heuristics/raw_data.h>
 #include <heuristics/two_phases_heuristic.h>
+#include <heuristics/best_insertion_heuristic.h>
 
 class HeuristicSolver {
     std::shared_ptr<Data> data;
@@ -20,6 +21,8 @@ public:
     GenericPath solve_two_phases_max_distance() const;
     GenericPath solve_max_regret_max_load_over_distance() const;
     GenericPath solve_max_regret_min_load_times_distance() const;
+    GenericPath solve_best_insertion_load_over_distance() const;
+    GenericPath solve_best_insertion_load_times_distance() const;
 };
 
 #endif

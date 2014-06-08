@@ -93,4 +93,38 @@ GenericPath HeuristicSolver::solve_max_regret_min_load_times_distance() const {
     return mrh.solve();
 }
 
+GenericPath HeuristicSolver::solve_best_insertion_load_over_distance() const {
+    auto insertion_pricer = [this] (const int cost, const int load) -> double {
+        return ((double)load / (double)cost);
+    };
+    
+    auto insertion_comparator = [this, insertion_pricer] (const int cost1, const int load1, const int cost2, const int load2) -> bool {
+        return (insertion_pricer(cost1, load1) > insertion_pricer(cost2, load2));
+    };
+    
+    BestInsertionHeuristic<decltype(insertion_pricer), decltype(insertion_comparator)> bih(rd, insertion_pricer, insertion_comparator);
+    return bih.solve();
+}
+
+GenericPath HeuristicSolver::solve_best_insertion_load_times_distance() const {
+    auto insertion_pricer = [this] (const int cost, const int load) -> double {
+        return ((double)load * (double)cost);
+    };
+    
+    auto insertion_comparator = [this, insertion_pricer] (const int cost1, const int load1, const int cost2, const int load2) -> bool {
+        if(insertion_pricer(cost1, load1) == 0) {
+            return false;
+        }
+        
+        if(insertion_pricer(cost2, load2) == 0) {
+            return true;
+        }
+
+        return (insertion_pricer(cost1, load1) < insertion_pricer(cost2, load2));
+    };
+    
+    BestInsertionHeuristic<decltype(insertion_pricer), decltype(insertion_comparator)> bih(rd, insertion_pricer, insertion_comparator);
+    return bih.solve();
+}
+
 #endif

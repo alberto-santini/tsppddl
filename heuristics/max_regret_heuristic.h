@@ -13,18 +13,6 @@
 #include <network/graph.h>
 #include <parser/data.h>
 
-struct DefaultRequestPricer {
-    int operator()(const int r) {
-        return r;
-    }
-};
-
-struct DefaultRequestComparator {
-    bool operator()(const int r1, const int r2) {
-        return (r1 > r2);
-    }
-};
-
 template<typename InsertionPricer, typename InsertionComparator, typename RegretCalculator>
 class MaxRegretHeuristic : public GenericHeuristic<DefaultRequestPricer, DefaultRequestComparator, InsertionPricer, InsertionComparator> {
     RegretCalculator regret_calculator;
