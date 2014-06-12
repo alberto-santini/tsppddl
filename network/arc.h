@@ -1,12 +1,12 @@
 #ifndef ARC_H
 #define ARC_H
 
-class Arc {
-public:
+struct Arc {
     int id;
-    double cost;
+    int cost;
     
-    Arc(const int id, const double cost) : id(id), cost(cost) {}
+    Arc() {}
+    Arc(const int id, const int cost) : id{id}, cost{cost} {}
 };
 
 #endif

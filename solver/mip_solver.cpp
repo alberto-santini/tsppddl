@@ -1,38 +1,71 @@
-#ifndef MIP_SOLVER_CPP
-#define MIP_SOLVER_CPP
-
-#include <algorithm>
-#include <iostream>
-#include <cstring>
-#include <utility>
+#include <solver/flow_cut_callback.h>
+#include <solver/mip_solver.h>
 
 #include <ilcplex/ilocplex.h>
 
-#include <solver/mip_solver.h>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
 
-MipSolver::MipSolver(std::shared_ptr<Graph> graph, GenericPath initial_solution) : graph(graph), initial_solution(initial_solution) {
-    std::vector<int> initial_path = initial_solution.path;
-    std::vector<int> partial_load = initial_solution.load;
-    int cost = initial_solution.cost;
-        
-    n = graph->g[graph_bundle].num_requests;
+MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path> initial_solutions) : g{g}, initial_solutions{initial_solutions} {
+    find_best_initial_solution();
+    find_fixable_arcs();
     
-    if(cost > 0) {
-        std::cout << "CPLEX Initial solution present. Loading it." << std::endl;
+    std::vector<int> ip {initial_solution.path}, il {initial_solution.load};
+    int n {g->g[graph_bundle].n};
+    
+    if(initial_solution.total_cost > 0) {
         initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
         initial_y = std::vector<int>(2 * n + 2, 0);
         initial_t = std::vector<int>(2 * n + 2, 0);
-    
+        
         for(int l = 0; l < 2 * n + 2; l++) {
-            if(l < 2 * n + 2 - 1) { initial_x[initial_path[l]][initial_path[l+1]] = 1; }
-            initial_y[initial_path[l]] = partial_load[l];
-            initial_t[initial_path[l]] = l;
+            if(l < 2 * n + 2 - 1) { initial_x[ip[l]][ip[l+1]] = 1; }
+            initial_y[ip[l]] = il[l];
+            initial_t[ip[l]] = l;
         }
         initial_t[2 * n + 2] = 2 * n + 2;
     }
 }
 
+void MipSolver::find_best_initial_solution() {
+    initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+}
+
+void MipSolver::find_fixable_arcs() {
+    std::vector<int>::const_iterator it;
+    std::vector<int> bsol {initial_solutions.back().path};
+    
+    for(it = bsol.begin(); it != std::prev(bsol.end()); ++it) {
+        int i {*it}, j {*std::next(it)};
+        bool fixable {true};
+        
+        for(const Path& sol : initial_solutions) {
+            std::vector<int>::const_iterator jt;
+            for(jt = sol.path.begin(); jt != std::prev(sol.path.end()); ++jt) {
+                if(*jt == i && *std::next(jt) != j) {
+                    fixable = false;
+                    break;
+                }
+            }
+            if(!fixable) {
+                break;
+            }
+        }
+        
+        if(fixable) {
+            fixable_arcs.push_back(std::make_pair(i, j));
+        }
+    }
+}
+
 void MipSolver::solve() const {
+    int n {g->g[graph_bundle].n};
+    int Q {g->g[graph_bundle].capacity};
+    demand_t d {g->demand};
+    draught_t l {g->draught};
+    cost_t c {g->cost};
+        
     IloEnv env;
     IloModel model(env);
     
@@ -46,25 +79,12 @@ void MipSolver::solve() const {
     IloRangeArray initial_load_constraint(env);
     IloRangeArray mtz_constraints(env);
     IloRangeArray precedence_constraints(env);
+    IloRangeArray fix_x(env); // Fixes x(i,j) to 1 if arc (i,j) has been selected by all heuristics
     IloRangeArray fix_t(env); // Fixes t(0) to 0
     
-    IloObjective obj = IloMinimize(env);
+    IloObjective obj = IloMinimize(env);    
     
-    std::cout << "CPLEX Creating auxiliary data" << std::endl;
-    
-    int Q = graph->g[graph_bundle].ship_capacity;
-    std::vector<int> l = std::vector<int>(2 * n + 2, 1000); // Default draught if not specified: 1000
-    std::vector<int> d = std::vector<int>(2 * n + 2, 0); // Default demand if not specified: 0
-    vit vi, vi_end;
-    for(std::tie(vi, vi_end) = vertices(graph->g); vi != vi_end; ++vi) {
-        std::shared_ptr<Node> node = graph->g[*vi];
-        l[node->id] = node->port->draught;
-        d[node->id] = node->demand;
-    }
-    
-    std::cout << "CPLEX Constructing the model" << std::endl;
-    
-    // ROWS
+    /******************************** ROWS ********************************/
     
     for(int i = 0; i <= 2 * n; i++) {
         // 1.0 <= sum(j in i+, x(i,j)) <= 1.0
@@ -76,7 +96,7 @@ void MipSolver::solve() const {
     }
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(graph->handy_dt[i][j] >= 0) {
+            if(c[i][j] >= 0) {
                 // y(i,j) - min(Q, l(i), l(j)) x(i,j) <=  0.0
                 capacity_constraints.add(IloRange(env, -IloInfinity, 0.0));
             }
@@ -90,7 +110,7 @@ void MipSolver::solve() const {
     initial_load_constraint.add(IloRange(env, 0.0, 0.0));
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(graph->handy_dt[i][j] >= 0) {
+            if(c[i][j] >= 0) {
                 // t(i) - t(j) + (2n+1) x(i,j) <= 2n
                 mtz_constraints.add(IloRange(env, -IloInfinity, 2 * n));
             }
@@ -100,19 +120,25 @@ void MipSolver::solve() const {
         // 1.0 <= t(n+i) - t(i)
         precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
     }
+    for(int i = 0; i <= 2 * n + 1; i++) {
+        for(int j = 0; j <= 2 * n + 1; j++) {
+            if(c[i][j] >= 0) {
+                // 1.0 <= x(i,j) <= 1.0
+                fix_x.add(IloRange(env, 1.0, 1.0));
+            }
+        }
+    }
     // 0.0 <= t(0) <= 0.0
     fix_t.add(IloRange(env, 0.0, 0.0));
     
-    std::cout << "CPLEX rows added" << std::endl;
-    
-    // COLUMNS x
+    /******************************** COLUMNS X ********************************/
     
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(graph->handy_dt[i][j] >= 0) {
+            if(c[i][j] >= 0) {
                 // Set coefficient values for x(i, j) where (i, j) is an arc
             
-                double arc_cost = graph->handy_dt[i][j]; // c(i, j)
+                int arc_cost = c[i][j]; // c(i, j)
                 IloNumColumn col = obj(arc_cost);
             
                 // Out degree
@@ -137,7 +163,7 @@ void MipSolver::solve() const {
                 int c_number = 0;
                 for(int ii = 0; ii <= 2 * n + 1; ii++) {
                     for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(graph->handy_dt[ii][jj] >= 0) {
+                        if(c[ii][jj] >= 0) {
                             // Set the coefficient value for the constraint associated with arc (ii, jj)
                         
                             int c_coeff = 0;
@@ -163,7 +189,7 @@ void MipSolver::solve() const {
                 c_number = 0;
                 for(int ii = 0; ii <= 2 * n + 1; ii++) {
                     for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(graph->handy_dt[ii][jj] >= 0) {
+                        if(c[ii][jj] >= 0) {
                             // Set the coefficient value for the constraint associated to arc (ii, jj)
                         
                             int mtz_coeff = 0;
@@ -181,6 +207,26 @@ void MipSolver::solve() const {
                     col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
                 }
                 
+                // Fix x
+                c_number = 0;
+                for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                        if(c[ii][jj] >= 0) {
+                            // Set the coefficient value for the constraint associated to arc (ii, jj)
+                            
+                            int fx_coeff = 0;
+                            if(i == ii && j == jj) {
+                                for(const auto& f : fixable_arcs) {
+                                    if(f.first == i && f.second == j) {
+                                        fx_coeff = 1;
+                                    }
+                                }
+                            }                            
+                            col += fix_x[c_number++](fx_coeff);
+                        }
+                    }
+                }
+                
                 // Fix t
                 int ft_coeff = 0; // x(i,j) is not involved in fixing t
                 col += fix_t[0](ft_coeff);
@@ -192,13 +238,11 @@ void MipSolver::solve() const {
         }
     }
     
-    std::cout << "CPLEX x columns added" << std::endl;
-    
-    // COLUMNS y
+    /******************************** COLUMNS Y ********************************/
     
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(graph->handy_dt[i][j] >= 0) {
+            if(c[i][j] >= 0) {
                 // Set coefficient values for y(i, j) where (i, j) is an arc
             
                 double arc_cost = 0; // y columns don't contribute to the obj cost
@@ -224,7 +268,7 @@ void MipSolver::solve() const {
                 int c_number = 0;
                 for(int ii = 0; ii <= 2 * n + 1; ii++) {
                     for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(graph->handy_dt[ii][jj] >= 0) {
+                        if(c[ii][jj] >= 0) {
                             // Set the coefficient value for the constraint associated with arc (ii, jj)
                         
                             int c_coeff = 0;
@@ -253,7 +297,7 @@ void MipSolver::solve() const {
                 c_number = 0;
                 for(int ii = 0; ii <= 2 * n + 1; ii++) {
                     for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(graph->handy_dt[ii][jj] >= 0) {
+                        if(c[ii][jj] >= 0) {
                             // Set the coefficient value for the constraint associated to arc (ii, jj)
                         
                             int mtz_coeff = 0; // y(i, j) is not involved in mtz constraints
@@ -270,6 +314,19 @@ void MipSolver::solve() const {
                     col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
                 }
                 
+                // Fix x
+                c_number = 0;
+                for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                        if(c[ii][jj] >= 0) {
+                            // Set the coefficient value for the constraint associated to arc (ii, jj)
+                            
+                            int fx_coeff = 0; // y(i,j) is not involved in fixing x
+                            col += fix_x[c_number++](fx_coeff);
+                        }
+                    }
+                }
+                
                 // Fix t
                 int ft_coeff = 0; // y(i,j) is not involved in fixing t
                 col += fix_t[0](ft_coeff);
@@ -281,9 +338,8 @@ void MipSolver::solve() const {
         }
     }
     
-    std::cout << "CPLEX y columns added" << std::endl;
+    /******************************** COLUMNS T ********************************/
     
-    // COLUMNS t
     for(int i = 0; i <= 2 * n + 1; i++) {
         // Set coefficient values for t(i)
     
@@ -310,7 +366,7 @@ void MipSolver::solve() const {
         int c_number = 0;
         for(int ii = 0; ii <= 2 * n + 1; ii++) {
             for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                if(graph->handy_dt[ii][jj] >= 0) {
+                if(c[ii][jj] >= 0) {
                     // Set the coefficient value for the constraint associated with arc (ii, jj)
                 
                     int c_coeff = 0; // t(i) is not involved in capacity constraints
@@ -335,7 +391,7 @@ void MipSolver::solve() const {
         c_number = 0;
         for(int ii = 0; ii <= 2 * n + 1; ii++) {
             for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                if(graph->handy_dt[ii][jj] >= 0) {
+                if(c[ii][jj] >= 0) {
                     // Set the coefficient value for the constraint associated to arc (ii, jj)
                 
                     int mtz_coeff = 0;
@@ -356,6 +412,19 @@ void MipSolver::solve() const {
             col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
         }
         
+        // Fix x
+        c_number = 0;
+        for(int ii = 0; ii <= 2 * n + 1; ii++) {
+            for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                if(c[ii][jj] >= 0) {
+                    // Set the coefficient value for the constraint associated to arc (ii, jj)
+                    
+                    int fx_coeff = 0; // t(i) is not involved in fixing x
+                    col += fix_x[c_number++](fx_coeff);
+                }
+            }
+        }
+        
         // Fix t
         int ft_coeff = 0;
         if(i == 0) { ft_coeff = 1; }
@@ -366,7 +435,7 @@ void MipSolver::solve() const {
         variables_t.add(v);
     }
     
-    std::cout << "CPLEX t columns added" << std::endl;
+    /****************************************************************/
     
     model.add(obj);
     model.add(outdegree_constraints);
@@ -378,13 +447,10 @@ void MipSolver::solve() const {
     model.add(precedence_constraints);
     model.add(fix_t); // Fixes t(0) to 0
     
-    std::cout << "CPLEX model ready" << std::endl;
-    
     IloCplex cplex(model);
-    // cplex.setOut(env.getNullStream());
     
-    if(initial_solution.cost > 0) {
-        // Add initial integer solution
+    // Add initial integer solution, if present
+    if(initial_solution.total_cost > 0) {
         IloNumVarArray initial_vars_x(env);
         IloNumArray initial_values_x(env);
         IloNumVarArray initial_vars_y(env);
@@ -395,7 +461,7 @@ void MipSolver::solve() const {
         int x_idx = 0;
         for(int i = 0; i <= 2 * n + 1; i++) {
             for(int j = 0; j <= 2 * n + 1; j++) {
-                if(graph->handy_dt[i][j] >= 0) {
+                if(c[i][j] >= 0) {
                     initial_vars_x.add(variables_x[x_idx++]);
                     initial_values_x.add(initial_x[i][j]);
                 }
@@ -411,15 +477,15 @@ void MipSolver::solve() const {
         cplex.addMIPStart(initial_vars_t, initial_values_t);
         
         initial_vars_x.end(); initial_vars_y.end(); initial_vars_t.end();
-        
-        std::cout << "CPLEX added initial MIP solution" << std::endl;
     }
+    
+    std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
+    cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
     
     cplex.exportModel("model.lp");
     cplex.setParam(IloCplex::TiLim, 3600);
-    
-    std::cout << "CPLEX solving" << std::endl;
-    
+    cplex.setParam(IloCplex::CutsFactor, 10);
+        
     if(!cplex.solve()) {
         IloAlgorithm::Status status = cplex.getStatus();
         std::cout << "CPLEX status: " << status << std::endl;
@@ -441,14 +507,12 @@ void MipSolver::solve() const {
     std::cout << "CPLEX problem solved" << std::endl;
     
     // Print variables and path
-    int col_index = 0;
-    Path up;
+    int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(graph->handy_dt[i][j] >= 0) {
+            if(c[i][j] >= 0) {
                 if(x[col_index] > 0) {
                     std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl;
-                    up.push_back(graph->get_edge(i, j));
                 }
                 if(y[col_index] > 0) {
                     std::cout << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl;
@@ -459,11 +523,6 @@ void MipSolver::solve() const {
          std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
     }
     
-    std::cout << "The solution (port visit order) is: ";
-    graph->print_unordered_path(up);
-    
     x.end(); y.end(); t.end();
     env.end();
 }
-
-#endif

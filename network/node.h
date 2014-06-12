@@ -1,17 +1,14 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include <memory>
-
-#include <network/port.h>
-
-class Node {
-public:
+struct Node {
     int id;
-    std::shared_ptr<Port> port;
     int demand;
+    int draught;
+    bool depot;
     
-    Node(const int id, std::shared_ptr<Port> port, const int demand) : id(id), port(port), demand(demand) {}
+    Node() {}
+    Node(const int id, const int demand, const int draught) : id{id}, demand{demand}, draught{draught}, depot{id == 0} {}
 };
 
 #endif

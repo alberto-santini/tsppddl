@@ -1,71 +1,84 @@
-#ifndef PARSER_CPP
-#define PARSER_CPP
-
-#include <stdexcept>
-#include <iostream>
-#include <string>
-#include <algorithm>
-
 #include <parser/parser.h>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
-std::shared_ptr<Data> Parser::get_data() const {
+Graph Parser::generate_graph() const {
     using namespace boost::property_tree;
     
+    struct port {
+        int pid;
+        int draught;
+        port() {}
+        port(const int pid, const int draught) : pid{pid}, draught{draught} {}
+    };
+    
+    struct request {
+        int origin;
+        int destination;
+        int demand;
+        request() {}
+        request(const int origin, const int destination, const int demand) : origin{origin}, destination{destination}, demand{demand} {}
+    };
+        
     ptree pt;
-    read_json(data_file_name, pt);
+    read_json(file_name, pt);
     
-    int num_ports = pt.get<int>("num_ports");
+    int np {pt.get<int>("num_ports")};
+    int n {pt.get<int>("num_requests")};
+    int capacity {pt.get<int>("capacity")};
     
-    std::vector<std::shared_ptr<Port>> ports;
-    BOOST_FOREACH(const ptree::value_type& port, pt.get_child("ports")) {
-        ports.push_back(std::make_shared<Port>(
-            port.second.get<int>("id"),
-            port.second.get<int>("draught"),
-            port.second.get<bool>("depot"),
-            port.second.get<int>("x"),
-            port.second.get<int>("y")
-        ));
+    std::vector<port> ports;
+    std::vector<request> requests;
+    cost_t port_cost;
+    
+    BOOST_FOREACH(const ptree::value_type& port_child, pt.get_child("ports")) {
+        ports.push_back(port(port_child.second.get<int>("id"), port_child.second.get<int>("draught")));
     }
     
-    int num_requests = pt.get<int>("num_requests");
-    
-    std::vector<std::shared_ptr<Request>> requests;
-    BOOST_FOREACH(const ptree::value_type& request, pt.get_child("requests")) {
-        requests.push_back(std::make_shared<Request>(
-            port_by_id(ports, request.second.get<int>("origin")),
-            port_by_id(ports, request.second.get<int>("destination")),
-            request.second.get<int>("demand")
-        ));
+    BOOST_FOREACH(const ptree::value_type& request_child, pt.get_child("requests")) {
+        requests.push_back(request(request_child.second.get<int>("origin"), request_child.second.get<int>("destination"), request_child.second.get<int>("demand")));
     }
     
-    int capacity = pt.get<int>("capacity");
-    
-    std::vector<std::vector<double>> distances;
-    BOOST_FOREACH(const ptree::value_type& distances_row, pt.get_child("distances")) {
-        std::vector<double> distances_r;
-        BOOST_FOREACH(const ptree::value_type& distance, distances_row.second.get_child("")) {
-            distances_r.push_back(distance.second.get<double>(""));
+    BOOST_FOREACH(const ptree::value_type& cost_row, pt.get_child("distances")) {
+        cost_row_t port_cost_row;
+        BOOST_FOREACH(const ptree::value_type& cost_val, cost_row.second.get_child("")) {
+            port_cost_row.push_back(cost_val.second.get<cost_val_t>(""));
         }
-        distances.push_back(distances_r);
+        port_cost.push_back(port_cost_row);
     }
     
-    return std::make_shared<Data>(num_ports, num_requests, capacity, ports, requests, distances, data_file_name);
-}
+    assert(ports[0].id == 0);
+    assert(ports[0].depot == true);
+        
+    demand_t demand(2*n+2, 0);
+    draught_t draught(2*n+2, 0);
+    demand[0] = 0; demand[2*n+1] = 0;
+    draught[0] = ports[0].draught; draught[2*n+1] = ports[0].draught;
 
-std::shared_ptr<Port> Parser::port_by_id(const std::vector<std::shared_ptr<Port>>& ports, const int id) const {
-    auto port_iterator = std::find_if(ports.begin(), ports.end(),
-        [&id] (const std::shared_ptr<Port>& p) { return (p->id == id); }
-    );
-    
-    if(port_iterator == ports.end()) {
-        throw std::runtime_error("Can't find port with id: " + std::to_string(id) + ".");
-    } else {
-        return *port_iterator;
+    for(int i = 1; i <= n; i++) {
+        demand[i] = requests[i-1].demand;
+        demand[n+i] = -requests[i-1].demand;
+        draught[i] = ports[requests[i-1].origin].draught;
+        draught[n+i] = ports[requests[i-1].destination].draught;
     }
+        
+    cost_t cost(2*n+2, cost_row_t(2*n+2, -1));
+    cost[0][0] = 0; cost[2*n+1][2*n+1] = 0; cost[0][2*n+1] = 0; cost[2*n+1][0] = 0;
+    
+    for(int i = 1; i <= n; i++) {
+        cost[0][i] = port_cost[0][requests[i-1].origin];
+        cost[i][2*n+1] = port_cost[requests[i-1].origin][0];
+        cost[0][n+i] = port_cost[0][requests[i-1].destination];
+        cost[n+i][2*n+1] = port_cost[requests[i-1].destination][0];
+        for(int j = 1; j <= n; j++) {
+            cost[i][j] = port_cost[requests[i-1].origin][requests[j-1].origin];
+            cost[i][n+j] = port_cost[requests[i-1].origin][requests[j-1].destination];
+            cost[n+i][j] = port_cost[requests[i-1].destination][requests[j-1].origin];
+            cost[n+i][n+j] = port_cost[requests[i-1].destination][requests[j-1].destination];
+        }
+    }
+    
+    return Graph {demand, draught, cost, capacity};
 }
-
-#endif

@@ -1,22 +1,25 @@
-template<typename InsertionPricer, typename InsertionComparator>
-GenericPath BestInsertionHeuristic<InsertionPricer, InsertionComparator>::solve() {
-    while(this->unevaded_requests.size() > 0) {
-        int best_cost = std::numeric_limits<int>::max();
-        int best_load = 0;
-        int best_request = this->unevaded_requests.at(0);
-        bool managed_to_insert = false;
-        GenericPath new_path;
+template<class IC>
+BestInsertionHeuristic<IC>::BestInsertionHeuristic(const std::shared_ptr<const Graph> g, const IC ic) : Heuristic{g}, insertion_comparator{ic} {}
+
+template<class IC>
+Path BestInsertionHeuristic<IC>::solve() {
+    while(this->remaining_requests.size() > 0) {
+        int best_cost {std::numeric_limits<int>::max()};
+        int best_load {0};
+        int best_request {this->remaining_requests.at(0)};
+        bool managed_to_insert {false};
+        Path new_path;
         
-        for(int i : this->unevaded_requests) {
+        for(int req : this->remaining_requests) {
             for(int x = 1; x < this->p.path.size(); x++) {
                 for(int y = x; y < this->p.path.size(); y++) {
-                    auto result = HeuristicHelper::feasible_and_improves<InsertionPricer, InsertionComparator>(i, x, y, best_cost, best_load, this->p, this->rd, this->insertion_pricer, this->insertion_comparator);
+                    auto result = HeuristicHelper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, best_cost, best_load);
                     if(result.first) {
                         managed_to_insert = true;
                         new_path = result.second;
-                        best_cost = new_path.cost;
+                        best_cost = new_path.total_cost;
                         best_load = new_path.total_load;
-                        best_request = i;
+                        best_request = req;
                     }
                 }
             }
@@ -24,7 +27,7 @@ GenericPath BestInsertionHeuristic<InsertionPricer, InsertionComparator>::solve(
         
         if(managed_to_insert) {
             this->p = new_path;
-            this->unevaded_requests.erase(std::remove(this->unevaded_requests.begin(), this->unevaded_requests.end(), best_request), this->unevaded_requests.end());
+            this->remaining_requests.erase(std::remove(this->remaining_requests.begin(), this->remaining_requests.end(), best_request), this->remaining_requests.end());
         } else {
             throw std::runtime_error("Can't insert any request");
         }
