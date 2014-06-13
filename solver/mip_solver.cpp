@@ -60,6 +60,9 @@ void MipSolver::find_fixable_arcs() {
 }
 
 void MipSolver::solve() const {
+    extern unsigned int g_node_number;
+    g_node_number = 0;
+    
     int n {g->g[graph_bundle].n};
     int Q {g->g[graph_bundle].capacity};
     demand_t d {g->demand};
