@@ -13,7 +13,7 @@ IloCplex::CallbackI* FlowCutCallback::duplicateCallback() const {
 void FlowCutCallback::main() {
     extern unsigned int g_node_number;
     
-    if(g_node_number++ % 100 == 0) {
+    if(g_node_number++ % 300 == 0) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
