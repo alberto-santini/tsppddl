@@ -35,7 +35,7 @@ void Program::autorun(const std::vector<std::string> args) {
     extern int g_search_for_cuts_every_n_nodes;
     
     std::string file_name {args[0]};
-    g_search_for_cuts_every_n_nodes = std::stoi(args[1])
+    g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
     
     // 1) Load data
     load(file_name);
