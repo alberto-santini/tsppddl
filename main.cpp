@@ -17,7 +17,7 @@ double g_total_cplex_time {0};
 int g_search_for_cuts_every_n_nodes {100};
 
 int main(int argc, char* argv[]) {
-    if(argc != 2) {
+    if(argc != 3) {
         std::cout << "Not enough parameters!" << std::endl;
         return -1;
     }

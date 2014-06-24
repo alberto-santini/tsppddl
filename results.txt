@@ -1,0 +1,3 @@
+data/basic_example.json	100	    0.052919	0.000101	2e-05	0.052553	6	6	6	6	2	2	1
+data/basic_example.json	200	    0.024323	0.000101	3.3e-05	0.023949	6	6	6	6	2	2	2
+data/basic_example.json	300	    0.012518	0.000101	5.4e-05	0.011909	6	6	6	6	2	2	3
