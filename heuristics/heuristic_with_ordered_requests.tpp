@@ -6,6 +6,11 @@ HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const std::sh
 
 template<class RC, class IC>
 Path HeuristicWithOrderedRequests<RC, IC>::solve() {
+    using namespace std::chrono;
+    extern double g_total_time_spent_by_heuristics;
+    
+    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    
     while(this->remaining_requests.size() > 0) {
         int req {remaining_requests.back()};
         if(insert(req)) {
@@ -14,6 +19,10 @@ Path HeuristicWithOrderedRequests<RC, IC>::solve() {
             throw std::runtime_error("Can't insert the request anywhere!");
         }
     }
+    
+    high_resolution_clock::time_point t_end {high_resolution_clock::now()};
+    duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+    g_total_time_spent_by_heuristics += time_span.count();
     
     return this->p;
 }

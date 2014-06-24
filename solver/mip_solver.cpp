@@ -3,8 +3,11 @@
 
 #include <ilcplex/ilocplex.h>
 
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <iterator>
+#include <ratio>
 #include <stdexcept>
 
 MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path> initial_solutions) : g{g}, initial_solutions{initial_solutions} {
@@ -60,8 +63,23 @@ void MipSolver::find_fixable_arcs() {
 }
 
 void MipSolver::solve() const {
-    extern unsigned int g_node_number;
+    using namespace std::chrono;
+    
+    extern long g_node_number;
+    extern long g_total_number_of_cuts_added;
+    extern long g_number_of_cuts_added_at_root;
+    extern double g_time_spent_at_root;
+    extern double g_ub_at_root;
+    extern double g_lb_at_root;
+    extern double g_ub;
+    extern double g_lb;
+    extern double g_total_cplex_time;
+    
     g_node_number = 0;
+    g_total_number_of_cuts_added = 0;
+    g_number_of_cuts_added_at_root = 0;
+    g_time_spent_at_root = 0;
+    g_total_cplex_time = 0;
     
     int n {g->g[graph_bundle].n};
     int Q {g->g[graph_bundle].capacity};
@@ -484,20 +502,47 @@ void MipSolver::solve() const {
     
     std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
     cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-    
+        
     cplex.exportModel("model.lp");
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::CutsFactor, 10);
-        
-    if(!cplex.solve()) {
+    cplex.setParam(IloCplex::Threads, 4);
+    cplex.setParam(IloCplex::NodeLim, 0); // Solve only the root node at first
+
+    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    
+    if(!cplex.solve()) {        
         IloAlgorithm::Status status = cplex.getStatus();
+        std::cout << "CPLEX problem encountered at root node." << std::endl;
         std::cout << "CPLEX status: " << status << std::endl;
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
+    } else {
+        high_resolution_clock::time_point t_end {high_resolution_clock::now()};
+        duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+        
+        g_time_spent_at_root = time_span.count();
+        g_number_of_cuts_added_at_root = g_total_number_of_cuts_added;
+        g_lb_at_root = cplex.getBestObjValue();
+        g_ub_at_root = cplex.getObjValue();
+        
+        cplex.setParam(IloCplex::NodeLim, 2100000000);
+        if(!cplex.solve()) {
+            IloAlgorithm::Status status = cplex.getStatus();
+            std::cout << "CPLEX status: " << status << std::endl;
+            throw std::runtime_error("Some error occurred or the problem is infeasible.");
+        }
     }
+    
+    high_resolution_clock::time_point t_end_total {high_resolution_clock::now()};
+    duration<double> time_span_total {duration_cast<duration<double>>(t_end_total - t_start)};
     
     IloAlgorithm::Status status = cplex.getStatus();
     std::cout << "CPLEX status: " << status << std::endl;
     std::cout << "\tObjective value: " << cplex.getObjValue() << std::endl;
+    
+    g_lb = cplex.getBestObjValue();
+    g_ub = cplex.getObjValue();
+    g_total_cplex_time = time_span_total.count();
     
     IloNumArray x(env);
     IloNumArray y(env);

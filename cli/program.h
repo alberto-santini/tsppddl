@@ -17,6 +17,7 @@ class Program {
 public:
     Program();
     void prompt();
+    void autorun(const std::vector<std::string> args);
 };
 
 #endif

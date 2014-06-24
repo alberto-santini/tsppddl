@@ -4,8 +4,11 @@
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 
+#include <chrono>
+#include <ctime>
 #include <limits>
 #include <memory>
+#include <ratio>
 
 template<class IC>
 class BestInsertionHeuristic : public Heuristic {

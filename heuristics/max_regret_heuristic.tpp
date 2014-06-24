@@ -1,5 +1,10 @@
 template<class IC, class RG>
 Path MaxRegretHeuristic<IC, RG>::solve() {
+    using namespace std::chrono;
+    extern double g_total_time_spent_by_heuristics;
+    
+    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    
     int rs;
     
     while((rs = this->remaining_requests.size()) > 0) {
@@ -55,6 +60,10 @@ Path MaxRegretHeuristic<IC, RG>::solve() {
             throw std::runtime_error("Can't insert any request!");
         }
     }
+    
+    high_resolution_clock::time_point t_end {high_resolution_clock::now()};
+    duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+    g_total_time_spent_by_heuristics += time_span.count();
     
     return this->p;
 }

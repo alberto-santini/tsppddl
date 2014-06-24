@@ -3,7 +3,10 @@
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/property_map/property_map.hpp>
 
+#include <chrono>
+#include <ctime>
 #include <iostream>
+#include <ratio>
 #include <vector>
 
 IloCplex::CallbackI* FlowCutCallback::duplicateCallback() const {
@@ -11,9 +14,18 @@ IloCplex::CallbackI* FlowCutCallback::duplicateCallback() const {
 }
 
 void FlowCutCallback::main() {
-    extern unsigned int g_node_number;
+    using namespace std::chrono;
     
-    if(g_node_number++ % 300 == 0) {
+    extern long g_node_number;
+    extern double g_total_time_spent_separating_cuts;
+    extern int g_search_for_cuts_every_n_nodes;
+    extern long g_total_bb_nodes_explored;
+    extern long g_total_number_of_cuts_added;
+    extern long g_number_of_cuts_added_at_root;
+    
+    g_total_bb_nodes_explored++;
+    
+    if(g_node_number++ % g_search_for_cuts_every_n_nodes == 0) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
@@ -45,6 +57,8 @@ void FlowCutCallback::main() {
                 }
             }
 
+            high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+
             double flow = boykov_kolmogorov_max_flow(gr->g,
                 make_iterator_property_map(capacity.begin(), get(&Arc::id, gr->g)),
                 make_iterator_property_map(residual_capacity.begin(), get(&Arc::id, gr->g)),
@@ -54,6 +68,10 @@ void FlowCutCallback::main() {
                 source_v,
                 sink_v
             );
+                
+            high_resolution_clock::time_point t_end {high_resolution_clock::now()};
+            duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+            g_total_time_spent_separating_cuts += time_span.count();
         
             if(flow < 1 - eps) {
                 // std::cout << "Violated flow: " << i << " -> " << n+i << std::endl;
@@ -103,7 +121,11 @@ void FlowCutCallback::main() {
                         
                 try {
                     cut = (lhs >= rhs);
-                    add(cut).end();
+                    add(cut, IloCplex::UseCutFilter).end();
+                    g_total_number_of_cuts_added++;
+                    if(g_total_bb_nodes_explored == 1) {
+                        g_number_of_cuts_added_at_root++;
+                    }
                 } catch (...) {
                     cut.end();
                     throw;
