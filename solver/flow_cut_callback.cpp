@@ -18,7 +18,7 @@ void FlowCutCallback::main() {
     
     extern long g_node_number;
     extern double g_total_time_spent_separating_cuts;
-    extern int g_search_for_cuts_every_n_nodes;
+    extern long g_search_for_cuts_every_n_nodes;
     extern long g_total_bb_nodes_explored;
     extern long g_total_number_of_cuts_added;
     extern long g_number_of_cuts_added_at_root;

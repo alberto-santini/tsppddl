@@ -32,7 +32,7 @@ void Program::autorun(const std::vector<std::string> args) {
     extern double g_ub;
     extern double g_lb;
     extern double g_total_cplex_time;
-    extern int g_search_for_cuts_every_n_nodes;
+    extern long g_search_for_cuts_every_n_nodes;
     
     std::string file_name {args[0]};
     g_search_for_cuts_every_n_nodes = std::stoi(args[1]);

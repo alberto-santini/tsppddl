@@ -14,7 +14,7 @@ double g_lb_at_root {0};
 double g_ub {0};
 double g_lb {0};
 double g_total_cplex_time {0};
-int g_search_for_cuts_every_n_nodes {100};
+long g_search_for_cuts_every_n_nodes {100};
 
 int main(int argc, char* argv[]) {
     if(argc != 3) {
