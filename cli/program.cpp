@@ -40,9 +40,13 @@ void Program::autorun(const std::vector<std::string> args) {
     // 1) Load data
     load(file_name);
     
+    std::cout << "***** Data loaded" << std::endl;
+    
     // 2) Run the heuristics
     HeuristicSolver hsolv {g};
     heuristic_solutions = hsolv.solve();
+    
+    std::cout << "***** Heuristics run" << std::endl;
     
     // 3) Run CPLEX
     MipSolver msolv {g, heuristic_solutions};
