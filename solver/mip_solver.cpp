@@ -12,8 +12,7 @@
 
 MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path> initial_solutions) : g{g}, initial_solutions{initial_solutions} {
     find_best_initial_solution();
-    find_fixable_arcs();
-    
+        
     std::vector<int> ip {initial_solution.path}, il {initial_solution.load};
     int n {g->g[graph_bundle].n};
     
@@ -35,33 +34,6 @@ void MipSolver::find_best_initial_solution() {
     initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-void MipSolver::find_fixable_arcs() {
-    std::vector<int>::const_iterator it;
-    std::vector<int> bsol {initial_solutions.back().path};
-    
-    for(it = bsol.begin(); it != std::prev(bsol.end()); ++it) {
-        int i {*it}, j {*std::next(it)};
-        bool fixable {true};
-        
-        for(const Path& sol : initial_solutions) {
-            std::vector<int>::const_iterator jt;
-            for(jt = sol.path.begin(); jt != std::prev(sol.path.end()); ++jt) {
-                if(*jt == i && *std::next(jt) != j) {
-                    fixable = false;
-                    break;
-                }
-            }
-            if(!fixable) {
-                break;
-            }
-        }
-        
-        if(fixable) {
-            fixable_arcs.push_back(std::make_pair(i, j));
-        }
-    }
-}
-
 void MipSolver::solve() const {
     using namespace std::chrono;
     
@@ -74,6 +46,7 @@ void MipSolver::solve() const {
     extern double g_ub;
     extern double g_lb;
     extern double g_total_cplex_time;
+    extern long g_search_for_cuts_every_n_nodes;
     
     g_node_number = 0;
     g_total_number_of_cuts_added = 0;
@@ -100,7 +73,6 @@ void MipSolver::solve() const {
     IloRangeArray initial_load_constraint(env);
     IloRangeArray mtz_constraints(env);
     IloRangeArray precedence_constraints(env);
-    IloRangeArray fix_x(env); // Fixes x(i,j) to 1 if arc (i,j) has been selected by all heuristics
     IloRangeArray fix_t(env); // Fixes t(0) to 0
     
     IloObjective obj = IloMinimize(env);    
@@ -140,14 +112,6 @@ void MipSolver::solve() const {
     for(int i = 1; i <= n; i++) {
         // 1.0 <= t(n+i) - t(i)
         precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
-    }
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(c[i][j] >= 0) {
-                // 1.0 <= x(i,j) <= 1.0
-                fix_x.add(IloRange(env, 1.0, 1.0));
-            }
-        }
     }
     // 0.0 <= t(0) <= 0.0
     fix_t.add(IloRange(env, 0.0, 0.0));
@@ -226,26 +190,6 @@ void MipSolver::solve() const {
                 
                     int p_coeff = 0; // x(i,j) is not involved in precedence constraints
                     col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
-                }
-                
-                // Fix x
-                c_number = 0;
-                for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(c[ii][jj] >= 0) {
-                            // Set the coefficient value for the constraint associated to arc (ii, jj)
-                            
-                            int fx_coeff = 0;
-                            if(i == ii && j == jj) {
-                                for(const auto& f : fixable_arcs) {
-                                    if(f.first == i && f.second == j) {
-                                        fx_coeff = 1;
-                                    }
-                                }
-                            }                            
-                            col += fix_x[c_number++](fx_coeff);
-                        }
-                    }
                 }
                 
                 // Fix t
@@ -335,19 +279,6 @@ void MipSolver::solve() const {
                     col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
                 }
                 
-                // Fix x
-                c_number = 0;
-                for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(c[ii][jj] >= 0) {
-                            // Set the coefficient value for the constraint associated to arc (ii, jj)
-                            
-                            int fx_coeff = 0; // y(i,j) is not involved in fixing x
-                            col += fix_x[c_number++](fx_coeff);
-                        }
-                    }
-                }
-                
                 // Fix t
                 int ft_coeff = 0; // y(i,j) is not involved in fixing t
                 col += fix_t[0](ft_coeff);
@@ -433,19 +364,6 @@ void MipSolver::solve() const {
             col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
         }
         
-        // Fix x
-        c_number = 0;
-        for(int ii = 0; ii <= 2 * n + 1; ii++) {
-            for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                if(c[ii][jj] >= 0) {
-                    // Set the coefficient value for the constraint associated to arc (ii, jj)
-                    
-                    int fx_coeff = 0; // t(i) is not involved in fixing x
-                    col += fix_x[c_number++](fx_coeff);
-                }
-            }
-        }
-        
         // Fix t
         int ft_coeff = 0;
         if(i == 0) { ft_coeff = 1; }
@@ -496,18 +414,21 @@ void MipSolver::solve() const {
         cplex.addMIPStart(initial_vars_x, initial_values_x);
         cplex.addMIPStart(initial_vars_y, initial_values_y);
         cplex.addMIPStart(initial_vars_t, initial_values_t);
-        
-        initial_vars_x.end(); initial_vars_y.end(); initial_vars_t.end();
     }
     
-    std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
-    cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+    if(g_search_for_cuts_every_n_nodes > 0) {
+        std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
+        cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+    }
         
     cplex.exportModel("model.lp");
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::CutsFactor, 10);
     cplex.setParam(IloCplex::Threads, 4);
     cplex.setParam(IloCplex::NodeLim, 0); // Solve only the root node at first
+    
+    // DEBUG ONLY:
+    // cplex.setParam(IloCplex::DataCheck, 1);
 
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};
     
@@ -570,7 +491,10 @@ void MipSolver::solve() const {
          }
          std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
     }
-    
-    x.end(); y.end(); t.end();
-    env.end();
+
+    try {
+        env.end();
+    } catch(...) {
+        std::cout << "Maybe it's my fault, but I feel like CPLEX's memory management sucks!" << std::endl;
+    }
 }
