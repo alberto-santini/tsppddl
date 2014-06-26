@@ -40,6 +40,7 @@ void MipSolver::solve() const {
     extern long g_node_number;
     extern long g_total_number_of_cuts_added;
     extern long g_number_of_cuts_added_at_root;
+    extern long g_total_bb_nodes_explored;
     extern double g_time_spent_at_root;
     extern double g_ub_at_root;
     extern double g_lb_at_root;
@@ -460,6 +461,10 @@ void MipSolver::solve() const {
     IloAlgorithm::Status status = cplex.getStatus();
     std::cout << "CPLEX status: " << status << std::endl;
     std::cout << "\tObjective value: " << cplex.getObjValue() << std::endl;
+    
+    if(g_search_for_cuts_every_n_nodes < 0) {
+        g_total_bb_nodes_explored = cplex.getNnodes();
+    }
     
     g_lb = cplex.getBestObjValue();
     g_ub = cplex.getObjValue();
