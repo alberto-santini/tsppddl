@@ -415,6 +415,8 @@ void MipSolver::solve() const {
         cplex.addMIPStart(initial_vars_x, initial_values_x);
         cplex.addMIPStart(initial_vars_y, initial_values_y);
         cplex.addMIPStart(initial_vars_t, initial_values_t);
+        
+        initial_values_x.end(); initial_values_y.end(); initial_values_t.end();
     }
     
     if(g_search_for_cuts_every_n_nodes > 0) {
@@ -496,6 +498,8 @@ void MipSolver::solve() const {
          }
          std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
     }
+
+    x.end(); y.end(); t.end();
 
     try {
         env.end();
