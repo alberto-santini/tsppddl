@@ -393,6 +393,8 @@ void MipSolver::solve() const {
     
     IloCplex cplex(model);
     
+    std::cout << "***** CPLEX model created" << std::endl;
+    
     // Add initial integer solution, if present
     if(initial_solution.total_cost > 0) {
         IloNumVarArray initial_vars_x(env);
@@ -421,11 +423,14 @@ void MipSolver::solve() const {
         cplex.addMIPStart(initial_vars_t, initial_values_t);
         
         initial_values_x.end(); initial_values_y.end(); initial_values_t.end();
+        
+        std::cout << "***** Initial solution added" << std::endl;
     }
     
     if(g_search_for_cuts_every_n_nodes > 0) {
         std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
         cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        std::cout << "***** Branch and cut callback added" << std::endl;
     }
         
     cplex.exportModel("model.lp");
