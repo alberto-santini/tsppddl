@@ -49,29 +49,29 @@ void Program::autorun(const std::vector<std::string> args) {
     std::cout << "***** Heuristics run" << std::endl;
     
     // 3) Run CPLEX
-    MipSolver msolv {g, heuristic_solutions};
+    MipSolver msolv {g, heuristic_solutions, args[0]};
     msolv.solve();
 
-    std::ofstream results_file;
-    results_file.open("results.txt", std::ios::out | std::ios::app);
-    
-    // 4) Print statistics
-    results_file << args[0] << "\t";
-    results_file << g_search_for_cuts_every_n_nodes << "\t";
-    results_file << std::setw(12);
-    results_file << g_total_cplex_time << "\t";
-    results_file << g_total_time_spent_by_heuristics << "\t";
-    results_file << g_total_time_spent_separating_cuts << "\t";
-    results_file << g_time_spent_at_root << "\t";
-    results_file << g_ub << "\t";
-    results_file << g_lb << "\t";
-    results_file << g_ub_at_root << "\t";
-    results_file << g_lb_at_root << "\t";
-    results_file << g_total_number_of_cuts_added << "\t";
-    results_file << g_number_of_cuts_added_at_root << "\t";
-    results_file << g_total_bb_nodes_explored << std::endl;
-    
-    results_file.close();
+    // std::ofstream results_file;
+    // results_file.open("results.txt", std::ios::out | std::ios::app);
+    //
+    // // 4) Print statistics
+    // results_file << args[0] << "\t";
+    // results_file << g_search_for_cuts_every_n_nodes << "\t";
+    // results_file << std::setw(12);
+    // results_file << g_total_cplex_time << "\t";
+    // results_file << g_total_time_spent_by_heuristics << "\t";
+    // results_file << g_total_time_spent_separating_cuts << "\t";
+    // results_file << g_time_spent_at_root << "\t";
+    // results_file << g_ub << "\t";
+    // results_file << g_lb << "\t";
+    // results_file << g_ub_at_root << "\t";
+    // results_file << g_lb_at_root << "\t";
+    // results_file << g_total_number_of_cuts_added << "\t";
+    // results_file << g_number_of_cuts_added_at_root << "\t";
+    // results_file << g_total_bb_nodes_explored << std::endl;
+    //
+    // results_file.close();
 }
 
 void Program::prompt() {
