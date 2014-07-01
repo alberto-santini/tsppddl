@@ -221,6 +221,7 @@ void FlowCutCallback::main() {
                     throw;
                 }
             }
+            cuts_file.close();
         }
     }
 }
