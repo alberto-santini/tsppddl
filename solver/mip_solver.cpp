@@ -36,7 +36,7 @@ void MipSolver::find_best_initial_solution() {
     initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-void MipSolver::solve() const {
+void MipSolver::solve(const bool include_mtz) const {
     using namespace std::chrono;
     
     extern long g_node_number;
@@ -106,20 +106,23 @@ void MipSolver::solve() const {
     }
     // 0.0 <= sum(i in 0+, y(0,i)) <= 0.0
     initial_load_constraint.add(IloRange(env, 0.0, 0.0));
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(c[i][j] >= 0) {
-                // t(i) - t(j) + (2n+1) x(i,j) <= 2n
-                mtz_constraints.add(IloRange(env, -IloInfinity, 2 * n));
+    
+    if(include_mtz) {
+        for(int i = 0; i <= 2 * n + 1; i++) {
+            for(int j = 0; j <= 2 * n + 1; j++) {
+                if(c[i][j] >= 0) {
+                    // t(i) - t(j) + (2n+1) x(i,j) <= 2n
+                    mtz_constraints.add(IloRange(env, -IloInfinity, 2 * n));
+                }
             }
         }
+        for(int i = 1; i <= n; i++) {
+            // 1.0 <= t(n+i) - t(i)
+            precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
+        }
+        // 0.0 <= t(0) <= 0.0
+        fix_t.add(IloRange(env, 0.0, 0.0));
     }
-    for(int i = 1; i <= n; i++) {
-        // 1.0 <= t(n+i) - t(i)
-        precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
-    }
-    // 0.0 <= t(0) <= 0.0
-    fix_t.add(IloRange(env, 0.0, 0.0));
     
     /******************************** COLUMNS X ********************************/
     
@@ -175,31 +178,33 @@ void MipSolver::solve() const {
                 int il_coeff = 0; // x(i,j) is not involved in initial load constraints
                 col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
             
-                // MTZ
-                c_number = 0;
-                for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(c[ii][jj] >= 0) {
-                            // Set the coefficient value for the constraint associated to arc (ii, jj)
+                if(include_mtz) {
+                    // MTZ
+                    c_number = 0;
+                    for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                        for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                            if(c[ii][jj] >= 0) {
+                                // Set the coefficient value for the constraint associated to arc (ii, jj)
                         
-                            int mtz_coeff = 0;
-                            if(i == ii && j == jj) { mtz_coeff = 2 * n + 1; }
-                            col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                int mtz_coeff = 0;
+                                if(i == ii && j == jj) { mtz_coeff = 2 * n + 1; }
+                                col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                            }
                         }
                     }
-                }
             
-                // Precedence
-                for(int ii = 1; ii <= n; ii++) {
-                    // Set the coefficient value for the constraint associated with ii
+                    // Precedence
+                    for(int ii = 1; ii <= n; ii++) {
+                        // Set the coefficient value for the constraint associated with ii
                 
-                    int p_coeff = 0; // x(i,j) is not involved in precedence constraints
-                    col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                        int p_coeff = 0; // x(i,j) is not involved in precedence constraints
+                        col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                    }
+                
+                    // Fix t
+                    int ft_coeff = 0; // x(i,j) is not involved in fixing t
+                    col += fix_t[0](ft_coeff);
                 }
-                
-                // Fix t
-                int ft_coeff = 0; // x(i,j) is not involved in fixing t
-                col += fix_t[0](ft_coeff);
                         
                 // Create the column
                 IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, ("x_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
@@ -263,30 +268,32 @@ void MipSolver::solve() const {
                 if(i == 0) { il_coeff = 1; }
                 col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
             
-                // MTZ
-                c_number = 0;
-                for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                        if(c[ii][jj] >= 0) {
-                            // Set the coefficient value for the constraint associated to arc (ii, jj)
+                if(include_mtz) {
+                    // MTZ
+                    c_number = 0;
+                    for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                        for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                            if(c[ii][jj] >= 0) {
+                                // Set the coefficient value for the constraint associated to arc (ii, jj)
                         
-                            int mtz_coeff = 0; // y(i, j) is not involved in mtz constraints
-                            col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                int mtz_coeff = 0; // y(i, j) is not involved in mtz constraints
+                                col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                            }
                         }
                     }
-                }
             
-                // Precedence
-                for(int ii = 1; ii <= n; ii++) {
-                    // Set the coefficient value for the constraint associated with ii
+                    // Precedence
+                    for(int ii = 1; ii <= n; ii++) {
+                        // Set the coefficient value for the constraint associated with ii
                 
-                    int p_coeff = 0; // y(i,j) is not involved in precedence constraints
-                    col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                        int p_coeff = 0; // y(i,j) is not involved in precedence constraints
+                        col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                    }
+                
+                    // Fix t
+                    int ft_coeff = 0; // y(i,j) is not involved in fixing t
+                    col += fix_t[0](ft_coeff);
                 }
-                
-                // Fix t
-                int ft_coeff = 0; // y(i,j) is not involved in fixing t
-                col += fix_t[0](ft_coeff);
                         
                 // Create the column
                 IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
@@ -297,86 +304,88 @@ void MipSolver::solve() const {
     
     /******************************** COLUMNS T ********************************/
     
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        // Set coefficient values for t(i)
+    if(include_mtz) {
+        for(int i = 0; i <= 2 * n + 1; i++) {
+            // Set coefficient values for t(i)
     
-        double arc_cost = 0; // t columns don't contribute to the obj cost
-        IloNumColumn col = obj(arc_cost);
+            double arc_cost = 0; // t columns don't contribute to the obj cost
+            IloNumColumn col = obj(arc_cost);
     
-        // Out degree
-        for(int ii = 0; ii < 2 * n + 1; ii++) {
-            // Set coefficient value for the constraint associated to ii
+            // Out degree
+            for(int ii = 0; ii < 2 * n + 1; ii++) {
+                // Set coefficient value for the constraint associated to ii
         
-            int od_coeff = 0; // t(i) is not involved in out degree constraints
-            col += outdegree_constraints[ii](od_coeff); // There are constraints 0...2n, corresponding to 0...2n
-        }
+                int od_coeff = 0; // t(i) is not involved in out degree constraints
+                col += outdegree_constraints[ii](od_coeff); // There are constraints 0...2n, corresponding to 0...2n
+            }
     
-        // In degree
-        for(int jj = 1; jj <= 2 * n + 1; jj++) {
-            // Set the coefficient value for the constraint associated to jj
+            // In degree
+            for(int jj = 1; jj <= 2 * n + 1; jj++) {
+                // Set the coefficient value for the constraint associated to jj
         
-            int id_coeff = 0; // t(i) is not involved in out degree constraints
-            col += indegree_constraints[jj - 1](id_coeff); // There are constraints 0...2n, corresponding to 1...2n+1
-        }
+                int id_coeff = 0; // t(i) is not involved in out degree constraints
+                col += indegree_constraints[jj - 1](id_coeff); // There are constraints 0...2n, corresponding to 1...2n+1
+            }
     
-        // Capacity
-        int c_number = 0;
-        for(int ii = 0; ii <= 2 * n + 1; ii++) {
-            for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                if(c[ii][jj] >= 0) {
-                    // Set the coefficient value for the constraint associated with arc (ii, jj)
+            // Capacity
+            int c_number = 0;
+            for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                    if(c[ii][jj] >= 0) {
+                        // Set the coefficient value for the constraint associated with arc (ii, jj)
                 
-                    int c_coeff = 0; // t(i) is not involved in capacity constraints
-                    col += capacity_constraints[c_number++](c_coeff); // There are constraints 0...number_of_arcs
+                        int c_coeff = 0; // t(i) is not involved in capacity constraints
+                        col += capacity_constraints[c_number++](c_coeff); // There are constraints 0...number_of_arcs
+                    }
                 }
             }
-        }
     
-        // Load
-        for(int ii = 1; ii < 2 * n + 1; ii++) {
-            // Set the coefficient value for the constraint associated to ii
+            // Load
+            for(int ii = 1; ii < 2 * n + 1; ii++) {
+                // Set the coefficient value for the constraint associated to ii
         
-            int l_coeff = 0; // t(i) is not involved in load constraints
-            col += load_constraints[ii - 1](l_coeff); // There are constraints 0...2n-1, corresponding to 1...2n
-        }
+                int l_coeff = 0; // t(i) is not involved in load constraints
+                col += load_constraints[ii - 1](l_coeff); // There are constraints 0...2n-1, corresponding to 1...2n
+            }
     
-        // Initial load
-        int il_coeff = 0; // t(i) is not involved in initial load constraints
-        col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
+            // Initial load
+            int il_coeff = 0; // t(i) is not involved in initial load constraints
+            col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
     
-        // MTZ
-        c_number = 0;
-        for(int ii = 0; ii <= 2 * n + 1; ii++) {
-            for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                if(c[ii][jj] >= 0) {
-                    // Set the coefficient value for the constraint associated to arc (ii, jj)
+            // MTZ
+            c_number = 0;
+            for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                    if(c[ii][jj] >= 0) {
+                        // Set the coefficient value for the constraint associated to arc (ii, jj)
                 
-                    int mtz_coeff = 0;
-                    if(i == ii) { mtz_coeff = 1; }
-                    if(i == jj) { mtz_coeff = -1; }
-                    col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                        int mtz_coeff = 0;
+                        if(i == ii) { mtz_coeff = 1; }
+                        if(i == jj) { mtz_coeff = -1; }
+                        col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                    }
                 }
             }
-        }
     
-        // Precedence
-        for(int ii = 1; ii <= n; ii++) {
-            // Set the coefficient value for the constraint associated with ii
+            // Precedence
+            for(int ii = 1; ii <= n; ii++) {
+                // Set the coefficient value for the constraint associated with ii
         
-            int p_coeff = 0;
-            if(i == ii) { p_coeff = -1; }
-            if(i == ii + n) { p_coeff = 1; }
-            col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
-        }
+                int p_coeff = 0;
+                if(i == ii) { p_coeff = -1; }
+                if(i == ii + n) { p_coeff = 1; }
+                col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+            }
         
-        // Fix t
-        int ft_coeff = 0;
-        if(i == 0) { ft_coeff = 1; }
-        col += fix_t[0](ft_coeff);
+            // Fix t
+            int ft_coeff = 0;
+            if(i == 0) { ft_coeff = 1; }
+            col += fix_t[0](ft_coeff);
                 
-        // Create the column
-        IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int, ("t_{" + std::to_string(i) + "}").c_str());
-        variables_t.add(v);
+            // Create the column
+            IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int, ("t_{" + std::to_string(i) + "}").c_str());
+            variables_t.add(v);
+        }
     }
     
     /****************************************************************/
@@ -387,9 +396,11 @@ void MipSolver::solve() const {
     model.add(capacity_constraints);
     model.add(load_constraints);
     model.add(initial_load_constraint);
-    model.add(mtz_constraints);
-    model.add(precedence_constraints);
-    model.add(fix_t); // Fixes t(0) to 0
+    if(include_mtz) {
+        model.add(mtz_constraints);
+        model.add(precedence_constraints);
+        model.add(fix_t); // Fixes t(0) to 0
+    }
     
     IloCplex cplex(model);
     
@@ -414,13 +425,17 @@ void MipSolver::solve() const {
             }
             initial_vars_y.add(variables_y[i]);
             initial_values_y.add(initial_y[i]);
-            initial_vars_t.add(variables_t[i]);
-            initial_values_t.add(initial_t[i]);
+            if(include_mtz) {
+                initial_vars_t.add(variables_t[i]);
+                initial_values_t.add(initial_t[i]);
+            }
         }
         
         cplex.addMIPStart(initial_vars_x, initial_values_x);
         cplex.addMIPStart(initial_vars_y, initial_values_y);
-        cplex.addMIPStart(initial_vars_t, initial_values_t);
+        if(include_mtz) {
+            cplex.addMIPStart(initial_vars_t, initial_values_t);
+        }
         
         initial_values_x.end(); initial_values_y.end(); initial_values_t.end();
         
@@ -429,7 +444,7 @@ void MipSolver::solve() const {
     
     if(g_search_for_cuts_every_n_nodes > 0) {
         std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
-        cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
         std::cout << "***** Branch and cut callback added" << std::endl;
     }
         
@@ -487,7 +502,9 @@ void MipSolver::solve() const {
     
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
-    cplex.getValues(t, variables_t);
+    if(include_mtz) {
+        cplex.getValues(t, variables_t);
+    }
     
     std::cout << "CPLEX problem solved" << std::endl;
     
@@ -505,15 +522,17 @@ void MipSolver::solve() const {
                 col_index++;
             }
          }
-         std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
+         if(include_mtz) {
+             std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
+         }
     }
     
-    // *** REMOVE THIS FROM HERE ONCE THE MEM PROBLEMS ARE SOLVED ***
+    // *** MOVE THIS FROM HERE ONCE THE MEM PROBLEMS ARE SOLVED ***
     std::ofstream results_file;
     results_file.open("results.txt", std::ios::out | std::ios::app);
     results_file << instance_name << "\t";
     results_file << g_search_for_cuts_every_n_nodes << "\t";
-    results_file << std::setw(12);
+    results_file << std::setw(12) << std::setprecision(8);
     results_file << g_total_cplex_time << "\t";
     results_file << g_total_time_spent_by_heuristics << "\t";
     results_file << g_total_time_spent_separating_cuts << "\t";
@@ -526,7 +545,7 @@ void MipSolver::solve() const {
     results_file << g_number_of_cuts_added_at_root << "\t";
     results_file << g_total_bb_nodes_explored << std::endl;
     results_file.close();
-    // *** END OF THE PART TO REMOVE ***
+    // *** END OF THE PART TO MOVE ***
 
     x.end(); y.end(); t.end();
 
