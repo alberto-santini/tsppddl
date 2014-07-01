@@ -110,11 +110,11 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                std::cout << "PREC CUT: ";
-                for(int ii : source_nodes) { std::cout << ii << " "; }
-                std::cout << " | ";
-                for(int jj : sink_nodes) { std::cout << jj << " "; }
-                std::cout << std::endl;
+                // std::cout << "PREC CUT: ";
+                // for(int ii : source_nodes) { std::cout << ii << " "; }
+                // std::cout << " | ";
+                // for(int jj : sink_nodes) { std::cout << jj << " "; }
+                // std::cout << std::endl;
             
                 IloRange cut;
                 IloExpr lhs;
@@ -163,11 +163,11 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                std::cout << "CYCLES CUT: ";
-                for(int ii : source_nodes) { std::cout << ii << " "; }
-                std::cout << " | ";
-                for(int jj : sink_nodes) { std::cout << jj << " "; }
-                std::cout << std::endl;
+                // std::cout << "CYCL CUT: ";
+                // for(int ii : source_nodes) { std::cout << ii << " "; }
+                // std::cout << " | ";
+                // for(int jj : sink_nodes) { std::cout << jj << " "; }
+                // std::cout << std::endl;
         
                 IloRange cut;
                 IloExpr lhs;
