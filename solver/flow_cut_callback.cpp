@@ -25,12 +25,16 @@ void FlowCutCallback::main() {
     
     g_total_bb_nodes_explored++;
     
+    auto integer_and_vals = compute_x_values();
+    bool is_integer_solution {integer_and_vals.first};
+    
     if(g_node_number++ % g_search_for_cuts_every_n_nodes == 0) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
     
-        auto xvals = compute_x_values();
+        auto xvals = integer_and_vals.second;
+    
         std::vector<double> capacity(num_edges(gr->g), 0);
         std::vector<edge_t> reverse_edge(num_edges(gr->g));
     
@@ -208,17 +212,22 @@ void FlowCutCallback::main() {
     }
 }
 
-std::vector<std::vector<double>> FlowCutCallback::compute_x_values() const {
+std::pair<bool, std::vector<std::vector<double>>> FlowCutCallback::compute_x_values() const {
     int n {g->g[graph_bundle].n};
     cost_t c {g->cost};
     std::vector<std::vector<double>> xvals(2*n+2, std::vector<double>(2*n+2, 0));
+    bool is_integer {true};
     
     int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
                 IloNum n = getValue(x[col_index++]);
+                
                 if(n > eps) {
+                    if(n < 1 - eps) {
+                        is_integer = false;
+                    }
                     xvals[i][j] = n;
                 } else {
                     xvals[i][j] = 0;
@@ -227,5 +236,5 @@ std::vector<std::vector<double>> FlowCutCallback::compute_x_values() const {
          }
     }
     
-    return xvals;
+    return std::make_pair(is_integer, xvals);
 }

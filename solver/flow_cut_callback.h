@@ -13,6 +13,7 @@
 #include <ilcplex/ilocplexi.h>
 
 #include <memory>
+#include <utility>
 
 class FlowCutCallback : public IloCplex::UserCutCallbackI {
     IloNumVarArray x;
@@ -21,7 +22,7 @@ class FlowCutCallback : public IloCplex::UserCutCallbackI {
     double eps;
     bool separate_all;
     
-    std::vector<std::vector<double>> compute_x_values() const;
+    std::pair<bool, std::vector<std::vector<double>>> compute_x_values() const;
     
 public:
     FlowCutCallback(IloEnv env, const IloNumVarArray x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps, const bool separate_all) : IloCplex::UserCutCallbackI{env}, x{x}, g{g}, gr{gr}, eps{eps}, separate_all{separate_all} {}
