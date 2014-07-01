@@ -450,7 +450,7 @@ void MipSolver::solve(const bool include_mtz) const {
         
     cplex.exportModel("model.lp");
     cplex.setParam(IloCplex::TiLim, 3600);
-    cplex.setParam(IloCplex::CutsFactor, 10);
+    // cplex.setParam(IloCplex::CutsFactor, 10);
     cplex.setParam(IloCplex::Threads, 4);
     cplex.setParam(IloCplex::NodeLim, 0); // Solve only the root node at first
     

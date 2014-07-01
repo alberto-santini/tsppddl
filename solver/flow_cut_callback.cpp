@@ -19,16 +19,15 @@ void FlowCutCallback::main() {
     extern long g_node_number;
     extern double g_total_time_spent_separating_cuts;
     extern long g_search_for_cuts_every_n_nodes;
-    extern long g_total_bb_nodes_explored;
     extern long g_total_number_of_cuts_added;
     extern long g_number_of_cuts_added_at_root;
     
-    g_total_bb_nodes_explored++;
+    g_node_number++;
     
     auto integer_and_vals = compute_x_values();
     bool is_integer_solution {integer_and_vals.first};
     
-    if(is_integer_solution || (g_node_number++ % g_search_for_cuts_every_n_nodes == 0)) {
+    if(is_integer_solution || (g_node_number % g_search_for_cuts_every_n_nodes == 0)) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
@@ -121,7 +120,7 @@ void FlowCutCallback::main() {
                 if(is_integer_solution) {
                     cuts_file << "(ON INTEGER): ";
                 } else {
-                    cuts_file << "(" << std::setw(10) << g_total_bb_nodes_explored << "): ";
+                    cuts_file << "(" << std::setw(10) << g_node_number << "): ";
                 }
                 for(int ii : source_nodes) { cuts_file << ii << " "; }
                 cuts_file << " | ";
@@ -153,9 +152,9 @@ void FlowCutCallback::main() {
                         
                 try {
                     cut = (lhs >= rhs);
-                    add(cut, IloCplex::UseCutFilter).end();
+                    add(cut, IloCplex::UseCutForce).end();
                     g_total_number_of_cuts_added++;
-                    if(g_total_bb_nodes_explored == 1) {
+                    if(g_node_number == 1) {
                         g_number_of_cuts_added_at_root++;
                     }
                 } catch (...) {
@@ -179,7 +178,7 @@ void FlowCutCallback::main() {
                 if(is_integer_solution) {
                     cuts_file << "(ON INTEGER): ";
                 } else {
-                    cuts_file << "(" << std::setw(10) << g_total_bb_nodes_explored << "): ";
+                    cuts_file << "(" << std::setw(10) << g_node_number << "): ";
                 }
                 for(int ii : source_nodes) { cuts_file << ii << " "; }
                 cuts_file << " | ";
@@ -211,9 +210,9 @@ void FlowCutCallback::main() {
                     
                 try {
                     cut = (lhs >= rhs);
-                    add(cut, IloCplex::UseCutFilter).end();
+                    add(cut, IloCplex::UseCutForce).end();
                     g_total_number_of_cuts_added++;
-                    if(g_total_bb_nodes_explored == 1) {
+                    if(g_node_number == 1) {
                         g_number_of_cuts_added_at_root++;
                     }
                 } catch (...) {
