@@ -26,3 +26,5 @@ model.lp
 tsppddl.dot
 tsppddl.png
 tsppddl
+results.txt
+cuts.txt

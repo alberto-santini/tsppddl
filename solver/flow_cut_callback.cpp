@@ -28,7 +28,7 @@ void FlowCutCallback::main() {
     auto integer_and_vals = compute_x_values();
     bool is_integer_solution {integer_and_vals.first};
     
-    if(g_node_number++ % g_search_for_cuts_every_n_nodes == 0) {
+    if(is_integer_solution || (g_node_number++ % g_search_for_cuts_every_n_nodes == 0)) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
@@ -101,6 +101,9 @@ void FlowCutCallback::main() {
             duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
             g_total_time_spent_separating_cuts += time_span.count();
         
+            std::ofstream cuts_file;
+            cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
+        
             if(flow_prec < 1 - eps) {
                 std::vector<int> source_nodes, sink_nodes;
             
@@ -114,11 +117,16 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                // std::cout << "PREC CUT: ";
-                // for(int ii : source_nodes) { std::cout << ii << " "; }
-                // std::cout << " | ";
-                // for(int jj : sink_nodes) { std::cout << jj << " "; }
-                // std::cout << std::endl;
+                cuts_file << "PREC CUT ";
+                if(is_integer_solution) {
+                    cuts_file << "(ON INTEGER): ";
+                } else {
+                    cuts_file << "(" << std::setw(10) << g_total_bb_nodes_explored << "): ";
+                }
+                for(int ii : source_nodes) { cuts_file << ii << " "; }
+                cuts_file << " | ";
+                for(int jj : sink_nodes) { cuts_file << jj << " "; }
+                cuts_file << std::endl;
             
                 IloRange cut;
                 IloExpr lhs;
@@ -167,11 +175,16 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                // std::cout << "CYCL CUT: ";
-                // for(int ii : source_nodes) { std::cout << ii << " "; }
-                // std::cout << " | ";
-                // for(int jj : sink_nodes) { std::cout << jj << " "; }
-                // std::cout << std::endl;
+                cuts_file << "CYCL CUT ";
+                if(is_integer_solution) {
+                    cuts_file << "(ON INTEGER): ";
+                } else {
+                    cuts_file << "(" << std::setw(10) << g_total_bb_nodes_explored << "): ";
+                }
+                for(int ii : source_nodes) { cuts_file << ii << " "; }
+                cuts_file << " | ";
+                for(int jj : sink_nodes) { cuts_file << jj << " "; }
+                cuts_file << std::endl;
         
                 IloRange cut;
                 IloExpr lhs;
