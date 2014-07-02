@@ -21,17 +21,6 @@ void Program::load(const std::string filename) {
 }
 
 void Program::autorun(const std::vector<std::string> args) {
-    extern double g_total_time_spent_by_heuristics;
-    extern double g_total_time_spent_separating_cuts;
-    extern long g_total_bb_nodes_explored;
-    extern long g_total_number_of_cuts_added;
-    extern long g_number_of_cuts_added_at_root;
-    extern double g_time_spent_at_root;
-    extern double g_ub_at_root;
-    extern double g_lb_at_root;
-    extern double g_ub;
-    extern double g_lb;
-    extern double g_total_cplex_time;
     extern long g_search_for_cuts_every_n_nodes;
     
     std::string file_name {args[0]};

@@ -1,3 +1,4 @@
+#include <solver/check_incumbent_callback.h>
 #include <solver/flow_cut_callback.h>
 #include <solver/mip_solver.h>
 
@@ -17,6 +18,8 @@ MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Pat
         
     std::vector<int> ip {initial_solution.path}, il {initial_solution.load};
     int n {g->g[graph_bundle].n};
+    
+    initial_solution.verify_feasible(g);
     
     if(initial_solution.total_cost > 0) {
         initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
@@ -39,26 +42,23 @@ void MipSolver::find_best_initial_solution() {
 void MipSolver::solve(const bool include_mtz) const {
     using namespace std::chrono;
     
-    extern long g_node_number;
     extern long g_total_number_of_cuts_added;
-    extern long g_number_of_cuts_added_at_root;
-    extern long g_total_bb_nodes_explored;
-    extern double g_time_spent_at_root;
-    extern double g_ub_at_root;
-    extern double g_lb_at_root;
-    extern double g_ub;
-    extern double g_lb;
-    extern double g_total_cplex_time;
     extern double g_total_time_spent_by_heuristics;
     extern double g_total_time_spent_separating_cuts;
     extern long g_search_for_cuts_every_n_nodes;
+
+    long total_bb_nodes_explored;
+    long number_of_cuts_added_at_root;
+    double time_spent_at_root;
+    double ub_at_root;
+    double lb_at_root;
+    double ub;
+    double lb;
+    double total_cplex_time;
     
-    g_node_number = 0;
     g_total_number_of_cuts_added = 0;
-    g_number_of_cuts_added_at_root = 0;
-    g_time_spent_at_root = 0;
-    g_total_cplex_time = 0;
-    
+    g_total_time_spent_separating_cuts = 0;
+        
     int n {g->g[graph_bundle].n};
     int Q {g->g[graph_bundle].capacity};
     demand_t d {g->demand};
@@ -442,10 +442,16 @@ void MipSolver::solve(const bool include_mtz) const {
         std::cout << "***** Initial solution added" << std::endl;
     }
     
+    std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
+    
     if(g_search_for_cuts_every_n_nodes > 0) {
-        std::shared_ptr<const Graph> g_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
-        cplex.use(FlowCutCallbackHandle(env, variables_x, g, g_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
+        cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
         std::cout << "***** Branch and cut callback added" << std::endl;
+    }
+    
+    if(!include_mtz) {
+        cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        std::cout << "***** Incumbent check callback added" << std::endl;
     }
         
     cplex.exportModel("model.lp");
@@ -468,10 +474,10 @@ void MipSolver::solve(const bool include_mtz) const {
         high_resolution_clock::time_point t_end {high_resolution_clock::now()};
         duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
         
-        g_time_spent_at_root = time_span.count();
-        g_number_of_cuts_added_at_root = g_total_number_of_cuts_added;
-        g_lb_at_root = cplex.getBestObjValue();
-        g_ub_at_root = cplex.getObjValue();
+        time_spent_at_root = time_span.count();
+        number_of_cuts_added_at_root = g_total_number_of_cuts_added;
+        lb_at_root = cplex.getBestObjValue();
+        ub_at_root = cplex.getObjValue();
         
         cplex.setParam(IloCplex::NodeLim, 2100000000);
         if(!cplex.solve()) {
@@ -488,13 +494,10 @@ void MipSolver::solve(const bool include_mtz) const {
     std::cout << "CPLEX status: " << status << std::endl;
     std::cout << "\tObjective value: " << cplex.getObjValue() << std::endl;
     
-    if(g_search_for_cuts_every_n_nodes < 0) {
-        g_total_bb_nodes_explored = cplex.getNnodes();
-    }
-    
-    g_lb = cplex.getBestObjValue();
-    g_ub = cplex.getObjValue();
-    g_total_cplex_time = time_span_total.count();
+    total_bb_nodes_explored = cplex.getNnodes();
+    lb = cplex.getBestObjValue();
+    ub = cplex.getObjValue();
+    total_cplex_time = time_span_total.count();
     
     IloNumArray x(env);
     IloNumArray y(env);
@@ -533,17 +536,17 @@ void MipSolver::solve(const bool include_mtz) const {
     results_file << instance_name << "\t";
     results_file << g_search_for_cuts_every_n_nodes << "\t";
     results_file << std::setw(12) << std::setprecision(8);
-    results_file << g_total_cplex_time << "\t";
+    results_file << total_cplex_time << "\t";
     results_file << g_total_time_spent_by_heuristics << "\t";
     results_file << g_total_time_spent_separating_cuts << "\t";
-    results_file << g_time_spent_at_root << "\t";
-    results_file << g_ub << "\t";
-    results_file << g_lb << "\t";
-    results_file << g_ub_at_root << "\t";
-    results_file << g_lb_at_root << "\t";
+    results_file << time_spent_at_root << "\t";
+    results_file << ub << "\t";
+    results_file << lb << "\t";
+    results_file << ub_at_root << "\t";
+    results_file << lb_at_root << "\t";
     results_file << g_total_number_of_cuts_added << "\t";
-    results_file << g_number_of_cuts_added_at_root << "\t";
-    results_file << g_total_bb_nodes_explored << std::endl;
+    results_file << number_of_cuts_added_at_root << "\t";
+    results_file << total_bb_nodes_explored << std::endl;
     results_file.close();
     // *** END OF THE PART TO MOVE ***
 

@@ -16,18 +16,15 @@ IloCplex::CallbackI* FlowCutCallback::duplicateCallback() const {
 void FlowCutCallback::main() {
     using namespace std::chrono;
     
-    extern long g_node_number;
+    long node_number = getNnodes();
     extern double g_total_time_spent_separating_cuts;
     extern long g_search_for_cuts_every_n_nodes;
     extern long g_total_number_of_cuts_added;
-    extern long g_number_of_cuts_added_at_root;
-    
-    g_node_number++;
     
     auto integer_and_vals = compute_x_values();
     bool is_integer_solution {integer_and_vals.first};
     
-    if(is_integer_solution || (g_node_number % g_search_for_cuts_every_n_nodes == 0)) {
+    if(is_integer_solution || (node_number % g_search_for_cuts_every_n_nodes == 0)) {
         int n {g->g[graph_bundle].n};
         vi_t vi, vi_end;
         ei_t ei, ei_end;
@@ -107,20 +104,18 @@ void FlowCutCallback::main() {
                 std::vector<int> source_nodes, sink_nodes;
             
                 for(int j = 0; j < colour_prec.size(); j++) {
-                    if(j != 0 && j != 2*n+1) {
-                        if(colour_prec[j] == colour_prec[i]) {
-                            source_nodes.push_back(j);
-                        } else {
-                            sink_nodes.push_back(j);
-                        }
+                    if(colour_prec[j] == colour_prec[i]) {
+                        source_nodes.push_back(j);
+                    } else {
+                        sink_nodes.push_back(j);
                     }
                 }
                 
                 cuts_file << "PREC CUT ";
                 if(is_integer_solution) {
-                    cuts_file << "(ON INTEGER): ";
+                    cuts_file << "(ON*INTEGER): ";
                 } else {
-                    cuts_file << "(" << std::setw(10) << g_node_number << "): ";
+                    cuts_file << "(" << std::setw(10) << node_number << "): ";
                 }
                 for(int ii : source_nodes) { cuts_file << ii << " "; }
                 cuts_file << " | ";
@@ -154,9 +149,6 @@ void FlowCutCallback::main() {
                     cut = (lhs >= rhs);
                     add(cut, IloCplex::UseCutForce).end();
                     g_total_number_of_cuts_added++;
-                    if(g_node_number == 1) {
-                        g_number_of_cuts_added_at_root++;
-                    }
                 } catch (...) {
                     cut.end();
                     throw;
@@ -176,9 +168,9 @@ void FlowCutCallback::main() {
                 
                 cuts_file << "CYCL CUT ";
                 if(is_integer_solution) {
-                    cuts_file << "(ON INTEGER): ";
+                    cuts_file << "(ON*INTEGER): ";
                 } else {
-                    cuts_file << "(" << std::setw(10) << g_node_number << "): ";
+                    cuts_file << "(" << std::setw(10) << node_number << "): ";
                 }
                 for(int ii : source_nodes) { cuts_file << ii << " "; }
                 cuts_file << " | ";
@@ -212,9 +204,6 @@ void FlowCutCallback::main() {
                     cut = (lhs >= rhs);
                     add(cut, IloCplex::UseCutForce).end();
                     g_total_number_of_cuts_added++;
-                    if(g_node_number == 1) {
-                        g_number_of_cuts_added_at_root++;
-                    }
                 } catch (...) {
                     cut.end();
                     throw;
@@ -236,7 +225,6 @@ std::pair<bool, std::vector<std::vector<double>>> FlowCutCallback::compute_x_val
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
                 IloNum n = getValue(x[col_index++]);
-                
                 if(n > eps) {
                     if(n < 1 - eps) {
                         is_integer = false;
@@ -248,6 +236,6 @@ std::pair<bool, std::vector<std::vector<double>>> FlowCutCallback::compute_x_val
             }
          }
     }
-    
+        
     return std::make_pair(is_integer, xvals);
 }

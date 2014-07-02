@@ -1,6 +1,8 @@
 #ifndef PATH_H
 #define PATH_H
 
+#include <network/graph.h>
+
 #include <vector>
 
 class Path {
@@ -12,6 +14,8 @@ public:
     
     Path() {}
     Path(unsigned int expected_length);
+    
+    void verify_feasible(std::shared_ptr<const Graph> g);
 };
 
 #endif
