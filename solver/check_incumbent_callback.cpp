@@ -114,8 +114,8 @@ void CheckIncumbentCallback::main() {
         duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
         g_total_time_spent_separating_cuts += time_span.count();
         
-        std::ofstream cuts_file;
-        cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
+        // std::ofstream cuts_file;
+        // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
         
         if(flow_prec < 1 - eps) {
             std::vector<int> source_nodes, sink_nodes;
@@ -128,12 +128,12 @@ void CheckIncumbentCallback::main() {
                 }
             }
                 
-            cuts_file << "PREC CUT ";
-            cuts_file << "(ON INTEGER): ";
-            for(int ii : source_nodes) { cuts_file << ii << " "; }
-            cuts_file << " | ";
-            for(int jj : sink_nodes) { cuts_file << jj << " "; }
-            cuts_file << std::endl;
+            // cuts_file << "PREC CUT ";
+            // cuts_file << "(ON INTEGER): ";
+            // for(int ii : source_nodes) { cuts_file << ii << " "; }
+            // cuts_file << " | ";
+            // for(int jj : sink_nodes) { cuts_file << jj << " "; }
+            // cuts_file << std::endl;
             
             IloRange cut;
             IloExpr lhs;
@@ -179,12 +179,12 @@ void CheckIncumbentCallback::main() {
                 }
             }
             
-            cuts_file << "CYCL CUT ";
-            cuts_file << "(ON INTEGER): ";
-            for(int ii : source_nodes) { cuts_file << ii << " "; }
-            cuts_file << " | ";
-            for(int jj : sink_nodes) { cuts_file << jj << " "; }
-            cuts_file << std::endl;
+            // cuts_file << "CYCL CUT ";
+            // cuts_file << "(ON INTEGER): ";
+            // for(int ii : source_nodes) { cuts_file << ii << " "; }
+            // cuts_file << " | ";
+            // for(int jj : sink_nodes) { cuts_file << jj << " "; }
+            // cuts_file << std::endl;
     
             IloRange cut;
             IloExpr lhs;
@@ -219,6 +219,6 @@ void CheckIncumbentCallback::main() {
             }
         }
         
-        cuts_file.close();
+        // cuts_file.close();
     }
 }

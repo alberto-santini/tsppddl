@@ -97,8 +97,8 @@ void FlowCutCallback::main() {
             duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
             g_total_time_spent_separating_cuts += time_span.count();
         
-            std::ofstream cuts_file;
-            cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
+            // std::ofstream cuts_file;
+            // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
         
             if(flow_prec < 1 - eps) {
                 std::vector<int> source_nodes, sink_nodes;
@@ -111,16 +111,16 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                cuts_file << "PREC CUT ";
-                if(is_integer_solution) {
-                    cuts_file << "(ON*INTEGER): ";
-                } else {
-                    cuts_file << "(" << std::setw(10) << node_number << "): ";
-                }
-                for(int ii : source_nodes) { cuts_file << ii << " "; }
-                cuts_file << " | ";
-                for(int jj : sink_nodes) { cuts_file << jj << " "; }
-                cuts_file << std::endl;
+                // cuts_file << "PREC CUT ";
+                // if(is_integer_solution) {
+                //     cuts_file << "(ON*INTEGER): ";
+                // } else {
+                //     cuts_file << "(" << std::setw(10) << node_number << "): ";
+                // }
+                // for(int ii : source_nodes) { cuts_file << ii << " "; }
+                // cuts_file << " | ";
+                // for(int jj : sink_nodes) { cuts_file << jj << " "; }
+                // cuts_file << std::endl;
             
                 IloRange cut;
                 IloExpr lhs;
@@ -166,16 +166,16 @@ void FlowCutCallback::main() {
                     }
                 }
                 
-                cuts_file << "CYCL CUT ";
-                if(is_integer_solution) {
-                    cuts_file << "(ON*INTEGER): ";
-                } else {
-                    cuts_file << "(" << std::setw(10) << node_number << "): ";
-                }
-                for(int ii : source_nodes) { cuts_file << ii << " "; }
-                cuts_file << " | ";
-                for(int jj : sink_nodes) { cuts_file << jj << " "; }
-                cuts_file << std::endl;
+                // cuts_file << "CYCL CUT ";
+                // if(is_integer_solution) {
+                //     cuts_file << "(ON*INTEGER): ";
+                // } else {
+                //     cuts_file << "(" << std::setw(10) << node_number << "): ";
+                // }
+                // for(int ii : source_nodes) { cuts_file << ii << " "; }
+                // cuts_file << " | ";
+                // for(int jj : sink_nodes) { cuts_file << jj << " "; }
+                // cuts_file << std::endl;
         
                 IloRange cut;
                 IloExpr lhs;
@@ -209,7 +209,7 @@ void FlowCutCallback::main() {
                     throw;
                 }
             }
-            cuts_file.close();
+            // cuts_file.close();
         }
     }
 }
