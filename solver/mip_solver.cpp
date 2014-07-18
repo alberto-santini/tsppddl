@@ -74,6 +74,7 @@ void MipSolver::solve(const bool include_mtz) const {
     IloRangeArray outdegree_constraints(env);
     IloRangeArray indegree_constraints(env);
     IloRangeArray capacity_constraints(env);
+    IloRangeArray valid_y_ineq(env);
     IloRangeArray load_constraints(env);
     IloRangeArray initial_load_constraint(env);
     IloRangeArray mtz_constraints(env);
@@ -97,6 +98,13 @@ void MipSolver::solve(const bool include_mtz) const {
             if(c[i][j] >= 0) {
                 // y(i,j) - min(Q, l(i), l(j)) x(i,j) <=  0.0
                 capacity_constraints.add(IloRange(env, -IloInfinity, 0.0));
+            }
+        }
+    }
+    for(int i = 1; i <= 2 * n; i++) {
+        for(int j = 1; j <= 2 * n; j++) {
+            if(c[i][j] > 0 && (i <= n || j > n)) {
+                valid_y_ineq.add(IloRange(env, 0.0, IloInfinity));
             }
         }
     }
@@ -165,6 +173,23 @@ void MipSolver::solve(const bool include_mtz) const {
                         }
                     }
                 }
+                
+                c_number = 0;
+                for(int ii = 1; ii <= 2 * n; ii++) {
+                    for(int jj = 1; jj <= 2 * n; jj++) {
+                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                            int my_coeff {0};
+                            
+                            if(i == ii && j == jj) {
+                                if(ii <= n) { my_coeff = -d[ii]; }
+                                if(jj > n && my_coeff < -d[jj]) { my_coeff = d[jj]; }
+                            }
+                            
+                            col += valid_y_ineq[c_number++](my_coeff);
+                        }
+                    }
+                }
+                            
 
                 // Load
                 for(int ii = 1; ii < 2 * n + 1; ii++) {
@@ -249,6 +274,21 @@ void MipSolver::solve(const bool include_mtz) const {
                             int c_coeff = 0;
                             if(i == ii && j == jj) { c_coeff = 1; }
                             col += capacity_constraints[c_number++](c_coeff); // There are constraints 0...number_of_arcs
+                        }
+                    }
+                }
+                
+                c_number = 0;
+                for(int ii = 1; ii <= 2 * n; ii++) {
+                    for(int jj = 1; jj <= 2 * n; jj++) {
+                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                            int my_coeff {0};
+                            
+                            if(i == ii && j == jj) {
+                                my_coeff = 1;
+                            }
+                            
+                            col += valid_y_ineq[c_number++](my_coeff);
                         }
                     }
                 }
@@ -394,6 +434,7 @@ void MipSolver::solve(const bool include_mtz) const {
     model.add(outdegree_constraints);
     model.add(indegree_constraints);
     model.add(capacity_constraints);
+    model.add(valid_y_ineq);
     model.add(load_constraints);
     model.add(initial_load_constraint);
     if(include_mtz) {
