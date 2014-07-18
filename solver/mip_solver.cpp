@@ -296,15 +296,7 @@ void MipSolver::solve(const bool include_mtz) const {
                 }
 
                 // Create the column
-                int min_y_value {0};
-                if(i >= 1 && i <= n) {
-                    min_y_value = d[i];
-                }
-                if(j >= n+1 && j <= 2*n && -d[j] > min_y_value) {
-                    min_y_value = -d[j];
-                }
-                
-                IloNumVar v(col, min_y_value, Q, IloNumVar::Int, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
+                IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
                 variables_y.add(v);
             }
         }
