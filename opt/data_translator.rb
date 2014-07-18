@@ -53,14 +53,29 @@ end
 ports = Array.new
 requests = Array.new
 origins = Array.new
-capacity = 0
+
+# Forget about demands and draught in the original instances
+demand = Array.new
+draught = Array.new
+
+max_load = 90
+min_load = 10
+avg_load = ((min_load + max_load) / 2).to_i
+
+h = ARGV[1].to_f
+k = ARGV[2].to_f
+instance_name = File.basename(ARGV[0], ".dat").split("_").first
+
+q = (num_ports * h * avg_load).to_i
 
 0.upto(num_ports - 1) do |i|
-  ports[i] = {:id => i, :draught => draught[i], :depot => (i == 0 ? true : false), :x => posx[i], :y => posy[i]}
-
+  draught[i] = ((Random.rand >= k) ? q : (q/2 + Random.rand(q/2 + 2)))
   origins[i] = ((1..num_ports-1).to_a - [i]).sample
-  demand[i] = [draught[origins[i]], draught[i], ((num_ports/8) + ((-1) ** Random.rand(2)) * Random.rand(0..(num_ports/16))).round].min
-  capacity = (num_ports + ((-1) ** Random.rand(2)) * Random.rand(0..(num_ports/4))).round
+end
+
+0.upto(num_ports - 1) do |i|
+  demand[i] = [draught[origins[i]], draught[i], (min_load + Random.rand(max_load - min_load + 1))].min.to_i
+  ports[i] = {:id => i, :draught => draught[i], :depot => (i == 0 ? true : false), :x => posx[i], :y => posy[i]}
     
   unless i == 0
     requests[i-1] = {:origin => origins[i], :destination => i, :demand => demand[i]}
@@ -72,10 +87,10 @@ data = {
   :ports => ports,
   :num_requests => num_ports - 1,
   :requests => requests,
-  :capacity => capacity,
+  :capacity => q,
   :distances => distances
 }
 
-new_file_name = "../data/" + File.basename(ARGV[0], ".dat") + ".json"
+new_file_name = "../data/#{instance_name}_#{h}_#{k}.json"
 
 File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data) }
