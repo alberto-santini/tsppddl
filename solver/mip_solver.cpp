@@ -458,7 +458,7 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
     model.add(capacity_constraints);
     if(use_valid_y_ineq) {
         model.add(valid_y_ineq);
-    };
+    }
     model.add(load_constraints);
     model.add(initial_load_constraint);
     if(include_mtz) {
