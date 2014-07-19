@@ -39,7 +39,7 @@ void MipSolver::find_best_initial_solution() {
     initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-void MipSolver::solve(const bool include_mtz) const {
+void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const {
     using namespace std::chrono;
 
     extern long g_total_number_of_cuts_added;
@@ -101,10 +101,13 @@ void MipSolver::solve(const bool include_mtz) const {
             }
         }
     }
-    for(int i = 1; i <= 2 * n; i++) {
-        for(int j = 1; j <= 2 * n; j++) {
-            if(c[i][j] > 0 && (i <= n || j > n)) {
-                valid_y_ineq.add(IloRange(env, 0.0, IloInfinity));
+    if(use_valid_y_ineq) {
+        for(int i = 1; i <= 2 * n; i++) {
+            for(int j = 1; j <= 2 * n; j++) {
+                if(c[i][j] > 0 && (i <= n || j > n)) {
+                    // 0 <= y(i,j) - N x(i,j)
+                    valid_y_ineq.add(IloRange(env, 0.0, IloInfinity));
+                }
             }
         }
     }
@@ -174,18 +177,21 @@ void MipSolver::solve(const bool include_mtz) const {
                     }
                 }
                 
-                c_number = 0;
-                for(int ii = 1; ii <= 2 * n; ii++) {
-                    for(int jj = 1; jj <= 2 * n; jj++) {
-                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
-                            int my_coeff {0};
+                if(use_valid_y_ineq) {
+                    // Valid y inequalities
+                    c_number = 0;
+                    for(int ii = 1; ii <= 2 * n; ii++) {
+                        for(int jj = 1; jj <= 2 * n; jj++) {
+                            if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                                int my_coeff {0};
                             
-                            if(i == ii && j == jj) {
-                                if(ii <= n) { my_coeff -= d[ii]; }
-                                if(jj > n && jj != ii + n) { my_coeff += d[jj]; }
+                                if(i == ii && j == jj) {
+                                    if(ii <= n) { my_coeff -= d[ii]; }
+                                    if(jj > n && jj != ii + n) { my_coeff += d[jj]; }
+                                }
+                            
+                                col += valid_y_ineq[c_number++](my_coeff);
                             }
-                            
-                            col += valid_y_ineq[c_number++](my_coeff);
                         }
                     }
                 }
@@ -278,17 +284,20 @@ void MipSolver::solve(const bool include_mtz) const {
                     }
                 }
                 
-                c_number = 0;
-                for(int ii = 1; ii <= 2 * n; ii++) {
-                    for(int jj = 1; jj <= 2 * n; jj++) {
-                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
-                            int my_coeff {0};
+                if(use_valid_y_ineq) {
+                    // Valid y inequalities
+                    c_number = 0;
+                    for(int ii = 1; ii <= 2 * n; ii++) {
+                        for(int jj = 1; jj <= 2 * n; jj++) {
+                            if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                                int my_coeff {0};
                             
-                            if(i == ii && j == jj) {
-                                my_coeff = 1;
+                                if(i == ii && j == jj) {
+                                    my_coeff = 1;
+                                }
+                            
+                                col += valid_y_ineq[c_number++](my_coeff);
                             }
-                            
-                            col += valid_y_ineq[c_number++](my_coeff);
                         }
                     }
                 }
@@ -379,6 +388,19 @@ void MipSolver::solve(const bool include_mtz) const {
                     }
                 }
             }
+            
+            if(use_valid_y_ineq) {
+                // Valid y inequalities
+                c_number = 0;
+                for(int ii = 1; ii <= 2 * n; ii++) {
+                    for(int jj = 1; jj <= 2 * n; jj++) {
+                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                            int my_coeff {0};
+                            col += valid_y_ineq[c_number++](my_coeff);
+                        }
+                    }
+                }
+            }
 
             // Load
             for(int ii = 1; ii < 2 * n + 1; ii++) {
@@ -434,7 +456,9 @@ void MipSolver::solve(const bool include_mtz) const {
     model.add(outdegree_constraints);
     model.add(indegree_constraints);
     model.add(capacity_constraints);
-    model.add(valid_y_ineq);
+    if(use_valid_y_ineq) {
+        model.add(valid_y_ineq);
+    }
     model.add(load_constraints);
     model.add(initial_load_constraint);
     if(include_mtz) {

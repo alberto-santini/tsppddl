@@ -25,6 +25,7 @@ void Program::autorun(const std::vector<std::string> args) {
     
     std::string file_name {args[0]};
     g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
+    bool use_valid_y_ineq = (args[2] == "true");
     
     // 1) Load data
     load(file_name);
@@ -39,7 +40,7 @@ void Program::autorun(const std::vector<std::string> args) {
     
     // 3) Run CPLEX
     MipSolver msolv {g, heuristic_solutions, args[0]};
-    msolv.solve(false);
+    msolv.solve(false, use_valid_y_ineq);
 }
 
 void Program::prompt() {

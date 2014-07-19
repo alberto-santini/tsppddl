@@ -25,7 +25,7 @@ class MipSolver {
     
 public:
     MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path> initial_solutions, const std::string instance_name = "");
-    void solve(const bool include_mtz) const;
+    void solve(const bool include_mtz, const bool use_valid_y_ineq = false) const;
 };
 
 #endif
