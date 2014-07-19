@@ -181,8 +181,8 @@ void MipSolver::solve(const bool include_mtz) const {
                             int my_coeff {0};
                             
                             if(i == ii && j == jj) {
-                                if(ii <= n) { my_coeff = -d[ii]; }
-                                if(jj > n && my_coeff < -d[jj]) { my_coeff = d[jj]; }
+                                if(ii <= n) { my_coeff -= d[ii]; }
+                                if(jj > n && jj != ii + n) { my_coeff += d[jj]; }
                             }
                             
                             col += valid_y_ineq[c_number++](my_coeff);
