@@ -318,7 +318,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 }
 
                 // Create the column
-                IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, ("x_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
+                IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool);//, ("x_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
                 
                 std::cerr << "IloNumVar created" << std::endl;
                 
@@ -440,7 +440,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 }
 
                 // Create the column
-                IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
+                IloNumVar v(col, 0.0, Q, IloNumVar::Int);//, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
                 variables_y.add(v);
             }
         }
@@ -569,7 +569,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             }
 
             // Create the column
-            IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int, ("t_{" + std::to_string(i) + "}").c_str());
+            IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int);//, ("t_{" + std::to_string(i) + "}").c_str());
             variables_t.add(v);
         }
         std::cerr << "Initialised variables t" << std::endl;
