@@ -48,9 +48,6 @@ Graph Parser::generate_graph() const {
         }
         port_cost.push_back(port_cost_row);
     }
-    
-    assert(ports[0].id == 0);
-    assert(ports[0].depot == true);
         
     demand_t demand(2*n+2, 0);
     draught_t draught(2*n+2, 0);

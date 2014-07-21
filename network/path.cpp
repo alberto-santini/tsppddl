@@ -11,7 +11,7 @@ Path::Path(unsigned int expected_length) {
 }
 
 void Path::verify_feasible(std::shared_ptr<const Graph> g) {
-    std::cout << "***** Verifying the feasibility of a heuristic solution!" << std::endl;
+    // std::cout << "***** Verifying the feasibility of a heuristic solution!" << std::endl;
     
     int n {g->g[graph_bundle].n};
     int Q {g->g[graph_bundle].capacity};
@@ -21,6 +21,9 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
     
     if(path.size() != 2 * n + 2) {
         std::cout << "Wrong path length: " << path.size() << " vs. " << 2 * n + 2 << std::endl;
+        std::cout << "Path: ";
+        for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
+        std::cout << std::endl;
         throw std::runtime_error("Path length is != 2 * n + 2");
     }
     
@@ -62,4 +65,6 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
             throw std::runtime_error("Wrong load!");
         }
     }
+    
+    // std::cout << "***** Solution feasible!" << std::endl;
 }

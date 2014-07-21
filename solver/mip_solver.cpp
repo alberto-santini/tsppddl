@@ -40,25 +40,31 @@ void MipSolver::find_best_initial_solution() {
 }
 
 void MipSolver::solve_with_mtz(const bool use_valid_y_ineq) const {
-    solve(true, false, false, use_valid_y_ineq);
+    solve(true, false, false, use_valid_y_ineq, false);
 }
 
 void MipSolver::solve_with_lagrangian_relaxation_precedence(const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
     this->mult_mu = mult_mu;
-    solve(true, false, true, use_valid_y_ineq);
+    solve(true, false, true, use_valid_y_ineq, false);
 }
 
 void MipSolver::solve_with_lagrangian_relaxation_precedence_and_cycles(const std::vector<std::vector<double>>& mult_lambda, const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
     this->mult_lambda = mult_lambda;
     this->mult_mu = mult_mu;
-    solve(true, true, true, use_valid_y_ineq);
+    solve(true, true, true, use_valid_y_ineq, false);
 }
 
 void MipSolver::solve_with_branch_and_cut(const bool use_valid_y_ineq) const {
-    solve(false, false, false, use_valid_y_ineq);
+    solve(false, false, false, use_valid_y_ineq, false);
 }
 
-void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool use_valid_y_ineq) const {
+std::vector<std::vector<int>> MipSolver::solve_for_k_opt(const std::vector<std::vector<int>>& lhs, const int& rhs) {
+    k_opt_lhs = lhs;
+    k_opt_rhs = rhs;
+    return solve(true, false, false, true, true);
+}
+
+std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool use_valid_y_ineq, const bool k_opt) const {
     using namespace std::chrono;
 
     extern long g_total_number_of_cuts_added;
@@ -85,11 +91,16 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
     cost_t c {g->cost};
 
     IloEnv env;
+    std::cerr << "Created env" << std::endl;
     IloModel model(env);
+    std::cerr << "Created model" << std::endl;
 
     IloNumVarArray variables_x(env);
     IloNumVarArray variables_y(env);
     IloNumVarArray variables_t(env);
+    
+    std::cerr << "Created variables" << std::endl;
+    
     IloRangeArray outdegree_constraints(env);
     IloRangeArray indegree_constraints(env);
     IloRangeArray capacity_constraints(env);
@@ -99,8 +110,13 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
     IloRangeArray mtz_constraints(env);
     IloRangeArray precedence_constraints(env);
     IloRangeArray fix_t(env); // Fixes t(0) to 0
+    IloRangeArray k_opt_constraint(env);
+    
+    std::cerr << "Created constraints" << std::endl;
 
     IloObjective obj = IloMinimize(env);
+    
+    std::cerr << "Created objective function" << std::endl;
 
     /******************************** ROWS ********************************/
 
@@ -156,7 +172,12 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
         }
         // 0.0 <= t(0) <= 0.0
         fix_t.add(IloRange(env, 0.0, 0.0));
+        // lhs >= rhs ---> rhs <= lhs
+        if(k_opt) {
+            k_opt_constraint.add(IloRange(env, k_opt_rhs, IloInfinity));
+        }
     }
+    std::cerr << "Initialised constraints" << std::endl;
 
     /******************************** COLUMNS X ********************************/
 
@@ -165,6 +186,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
             if(c[i][j] >= 0) {
                 // Set coefficient values for x(i, j) where (i, j) is an arc
 
+                std::cerr << "Initialising variable x[" << i << "][" << j << "]" << std::endl;
+
                 int arc_cost = c[i][j]; // c(i, j)
                 
                 if(use_lagrange_cycles) {
@@ -172,6 +195,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                 }
                 
                 IloNumColumn col = obj(arc_cost);
+                
+                std::cerr << "\t Added column via objective" << std::endl;
 
                 // Out degree
                 for(int ii = 0; ii < 2 * n + 1; ii++) {
@@ -181,6 +206,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                     if(i == ii) { od_coeff = 1; } // It's 1 for j in i+, for i in 0...2n
                     col += outdegree_constraints[ii](od_coeff);    // There are constraints 0...2n, corresponding to 0...2n
                 }
+                
+                std::cerr << "\t Added out degree constraints" << std::endl;
 
                 // In degree
                 for(int jj = 1; jj <= 2 * n + 1; jj++) {
@@ -190,6 +217,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                     if(j == jj) { id_coeff = 1; } // It's 1 for j in i-, for i in 1...2n+1
                     col += indegree_constraints[jj - 1](id_coeff); // There are constraints 0...2n, corresponding to 1...2n+1
                 }
+                
+                std::cerr << "\t Added in degree constraints" << std::endl;
 
                 // Capacity
                 int c_number = 0;
@@ -204,6 +233,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                         }
                     }
                 }
+                
+                std::cerr << "\t Added capacity constraints" << std::endl;
                 
                 if(use_valid_y_ineq) {
                     // Valid y inequalities
@@ -222,6 +253,7 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                             }
                         }
                     }
+                    std::cerr << "\t Added valid y ineq constraints" << std::endl;
                 }
                             
 
@@ -232,10 +264,14 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                     int l_coeff = 0; // x(i,j) is not involved in load constraints
                     col += load_constraints[ii - 1](l_coeff); // There are constraints 0...2n-1, corresponding to 1...2n
                 }
+                
+                std::cerr << "\t Added load constraints" << std::endl;
 
                 // Initial load
                 int il_coeff = 0; // x(i,j) is not involved in initial load constraints
                 col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
+                
+                std::cerr << "\t Added the initial load constraint" << std::endl;
 
                 if(include_mtz) {
                     // MTZ
@@ -252,7 +288,10 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                                 }
                             }
                         }
+                        
+                        std::cerr << "\t Added mtz constraints" << std::endl;
                     }
+                    
 
                     // Precedence
                     if(!use_lagrange_precedence) {
@@ -262,19 +301,34 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                             int p_coeff = 0; // x(i,j) is not involved in precedence constraints
                             col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
                         }
+                        
+                        std::cerr << "\t Added precedence constraints" << std::endl;
                     }
 
                     // Fix t
                     int ft_coeff = 0; // x(i,j) is not involved in fixing t
                     col += fix_t[0](ft_coeff);
+                    std::cerr << "\t Added the fix_t constraint" << std::endl;
+                }
+                
+                if(k_opt) {
+                    int ko_coeff {k_opt_lhs[i][j]};
+                    col += k_opt_constraint[0](ko_coeff);
+                    std::cerr << "\t Added the k_opt constraint" << std::endl;
                 }
 
                 // Create the column
                 IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, ("x_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
+                
+                std::cerr << "IloNumVar created" << std::endl;
+                
                 variables_x.add(v);
+                
+                std::cerr << "IloNumVar added to the variables" << std::endl;
             }
         }
     }
+    std::cerr << "Initialised variables x" << std::endl;
 
     /******************************** COLUMNS Y ********************************/
 
@@ -379,6 +433,11 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                     int ft_coeff = 0; // y(i,j) is not involved in fixing t
                     col += fix_t[0](ft_coeff);
                 }
+                
+                if(k_opt) {
+                    int ko_coeff {0};
+                    col += k_opt_constraint[0](ko_coeff);
+                }
 
                 // Create the column
                 IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
@@ -386,6 +445,7 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
             }
         }
     }
+    std::cerr << "Initialised variables y" << std::endl;
 
     /******************************** COLUMNS T ********************************/
 
@@ -502,16 +562,25 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
             int ft_coeff = 0;
             if(i == 0) { ft_coeff = 1; }
             col += fix_t[0](ft_coeff);
+            
+            if(k_opt) {
+                int ko_coeff {0};
+                col += k_opt_constraint[0](ko_coeff);
+            }
 
             // Create the column
             IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int, ("t_{" + std::to_string(i) + "}").c_str());
             variables_t.add(v);
         }
+        std::cerr << "Initialised variables t" << std::endl;
     }
 
     /****************************************************************/
 
     model.add(obj);
+    
+    std::cerr << "Added objective function to model" << std::endl;
+    
     model.add(outdegree_constraints);
     model.add(indegree_constraints);
     model.add(capacity_constraints);
@@ -525,8 +594,15 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
         if(!use_lagrange_precedence) { model.add(precedence_constraints); }
         model.add(fix_t); // Fixes t(0) to 0
     }
+    if(k_opt) {
+        model.add(k_opt_constraint);
+    }
+    
+    std::cerr << "Added constraints to model" << std::endl;
 
     IloCplex cplex(model);
+    
+    std::cerr << "Created cplex" << std::endl;
 
     std::cout << "***** CPLEX model created" << std::endl;
 
@@ -538,6 +614,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
         IloNumArray initial_values_y(env);
         IloNumVarArray initial_vars_t(env);
         IloNumArray initial_values_t(env);
+        
+        std::cerr << "Created IloNumVarArray and IloNumArray for the initial solution" << std::endl;
 
         int x_idx = 0;
         for(int i = 0; i <= 2 * n + 1; i++) {
@@ -554,14 +632,20 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
                 initial_values_t.add(initial_t[i]);
             }
         }
+        
+        std::cerr << "Initialised initial variables" << std::endl;
 
         cplex.addMIPStart(initial_vars_x, initial_values_x);
         cplex.addMIPStart(initial_vars_y, initial_values_y);
         if(include_mtz) {
             cplex.addMIPStart(initial_vars_t, initial_values_t);
         }
+        
+        std::cerr << "Added mip start" << std::endl;
 
         initial_values_x.end(); initial_values_y.end(); initial_values_t.end();
+        
+        std::cerr << ".end()-ed the initial values IloNumArray" << std::endl;
 
         std::cout << "***** Initial solution added" << std::endl;
     }
@@ -573,11 +657,13 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
         if(g_search_for_cuts_every_n_nodes > 0) {
             cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
             std::cout << "***** Branch and cut callback added" << std::endl;
+            std::cerr << "Added FlowCutCallbackHandle" << std::endl;
         }
 
         if(!include_mtz) {
             cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
             std::cout << "***** Incumbent check callback added" << std::endl;
+            std::cerr << "Added CheckIncumbentCallbackHandle" << std::endl;
         }
     }
     
@@ -597,7 +683,16 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
         }
     }
 
-    cplex.exportModel("model.lp");
+    std::string model_file_name;
+    if(k_opt) {
+        model_file_name = "kopt_model.lp";
+    } else {
+        model_file_name = "model.lp";
+    }
+    cplex.exportModel(model_file_name.c_str());
+    
+    std::cerr << "Model wrote to file" << std::endl;
+    
     cplex.setParam(IloCplex::TiLim, 3600);
     // cplex.setParam(IloCplex::CutsFactor, 10);
     cplex.setParam(IloCplex::Threads, 4);
@@ -605,6 +700,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
 
     // DEBUG ONLY:
     // cplex.setParam(IloCplex::DataCheck, 1);
+    
+    std::cerr << "Set cplex parameters" << std::endl;
 
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};
 
@@ -656,25 +753,33 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
 
     // Print variables and path
     int col_index {0};
+    std::vector<std::vector<int>> solution_x(2 * n + 2, std::vector<int>(2 * n + 2, 0));
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
                 if(x[col_index] > 0) {
-                    std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl;
+                    solution_x[i][j] = 1;
+                    if(!k_opt) { std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
                 if(y[col_index] > 0) {
-                    std::cout << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl;
+                    if(!k_opt) { std::cout << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
                 }
                 col_index++;
             }
          }
          if(include_mtz) {
-             std::cout << "\tt(" << i << ") = " << t[i] << std::endl;
+             if(!k_opt) { std::cout << "\tt(" << i << ") = " << t[i] << std::endl; }
          }
     }
 
     std::ofstream results_file;
-    results_file.open("results.txt", std::ios::out | std::ios::app);
+    std::string results_file_name;
+    if(k_opt) {
+        results_file_name = "kopt.txt";
+    } else {
+        results_file_name = "results.txt";
+    }
+    results_file.open(results_file_name, std::ios::out | std::ios::app);
     results_file << instance_name << "\t";
     results_file << g_search_for_cuts_every_n_nodes << "\t";
     results_file << total_cplex_time << "\t";
@@ -697,4 +802,6 @@ void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, co
     } catch(...) {
         std::cout << "Error while .end()-ing!" << std::endl;
     }
+    
+    return solution_x;
 }
