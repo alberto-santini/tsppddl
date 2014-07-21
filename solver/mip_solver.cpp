@@ -13,7 +13,7 @@
 #include <ratio>
 #include <stdexcept>
 
-MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path> initial_solutions, const std::string instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
+MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, const std::string& instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
     find_best_initial_solution();
 
     std::vector<int> ip {initial_solution.path}, il {initial_solution.load};
@@ -39,7 +39,26 @@ void MipSolver::find_best_initial_solution() {
     initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const {
+void MipSolver::solve_with_mtz(const bool use_valid_y_ineq) const {
+    solve(true, false, false, use_valid_y_ineq);
+}
+
+void MipSolver::solve_with_lagrangian_relaxation_precedence(const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
+    this->mult_mu = mult_mu;
+    solve(true, false, true, use_valid_y_ineq);
+}
+
+void MipSolver::solve_with_lagrangian_relaxation_precedence_and_cycles(const std::vector<std::vector<double>>& mult_lambda, const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
+    this->mult_lambda = mult_lambda;
+    this->mult_mu = mult_mu;
+    solve(true, true, true, use_valid_y_ineq);
+}
+
+void MipSolver::solve_with_branch_and_cut(const bool use_valid_y_ineq) const {
+    solve(false, false, false, use_valid_y_ineq);
+}
+
+void MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool use_valid_y_ineq) const {
     using namespace std::chrono;
 
     extern long g_total_number_of_cuts_added;
@@ -119,17 +138,21 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
     initial_load_constraint.add(IloRange(env, 0.0, 0.0));
 
     if(include_mtz) {
-        for(int i = 0; i <= 2 * n + 1; i++) {
-            for(int j = 0; j <= 2 * n + 1; j++) {
-                if(c[i][j] >= 0) {
-                    // t(i) - t(j) + (2n+1) x(i,j) <= 2n
-                    mtz_constraints.add(IloRange(env, -IloInfinity, 2 * n));
+        if(!use_lagrange_cycles) {
+            for(int i = 0; i <= 2 * n + 1; i++) {
+                for(int j = 0; j <= 2 * n + 1; j++) {
+                    if(c[i][j] >= 0) {
+                        // t(i) - t(j) + (2n+1) x(i,j) <= 2n
+                        mtz_constraints.add(IloRange(env, -IloInfinity, 2 * n));
+                    }
                 }
             }
         }
-        for(int i = 1; i <= n; i++) {
-            // 1.0 <= t(n+i) - t(i)
-            precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
+        if(!use_lagrange_precedence) {
+            for(int i = 1; i <= n; i++) {
+                // 1.0 <= t(n+i) - t(i)
+                precedence_constraints.add(IloRange(env, 1.0, IloInfinity));
+            }
         }
         // 0.0 <= t(0) <= 0.0
         fix_t.add(IloRange(env, 0.0, 0.0));
@@ -143,6 +166,11 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
                 // Set coefficient values for x(i, j) where (i, j) is an arc
 
                 int arc_cost = c[i][j]; // c(i, j)
+                
+                if(use_lagrange_cycles) {
+                    arc_cost += (2 * n + 1) * mult_lambda[i][j];
+                }
+                
                 IloNumColumn col = obj(arc_cost);
 
                 // Out degree
@@ -212,24 +240,28 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
                 if(include_mtz) {
                     // MTZ
                     c_number = 0;
-                    for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                        for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                            if(c[ii][jj] >= 0) {
-                                // Set the coefficient value for the constraint associated to arc (ii, jj)
+                    if(!use_lagrange_cycles) {
+                        for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                            for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                                if(c[ii][jj] >= 0) {
+                                    // Set the coefficient value for the constraint associated to arc (ii, jj)
 
-                                int mtz_coeff = 0;
-                                if(i == ii && j == jj) { mtz_coeff = 2 * n + 1; }
-                                col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                    int mtz_coeff = 0;
+                                    if(i == ii && j == jj) { mtz_coeff = 2 * n + 1; }
+                                    col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                }
                             }
                         }
                     }
 
                     // Precedence
-                    for(int ii = 1; ii <= n; ii++) {
-                        // Set the coefficient value for the constraint associated with ii
+                    if(!use_lagrange_precedence) {
+                        for(int ii = 1; ii <= n; ii++) {
+                            // Set the coefficient value for the constraint associated with ii
 
-                        int p_coeff = 0; // x(i,j) is not involved in precedence constraints
-                        col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                            int p_coeff = 0; // x(i,j) is not involved in precedence constraints
+                            col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                        }
                     }
 
                     // Fix t
@@ -251,8 +283,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
             if(c[i][j] >= 0) {
                 // Set coefficient values for y(i, j) where (i, j) is an arc
 
-                double arc_cost = 0; // y columns don't contribute to the obj cost
-                IloNumColumn col = obj(arc_cost);
+                double var_cost = 0; // y columns don't contribute to the obj cost
+                IloNumColumn col = obj(var_cost);
 
                 // Out degree
                 for(int ii = 0; ii < 2 * n + 1; ii++) {
@@ -320,23 +352,27 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
                 if(include_mtz) {
                     // MTZ
                     c_number = 0;
-                    for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                        for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                            if(c[ii][jj] >= 0) {
-                                // Set the coefficient value for the constraint associated to arc (ii, jj)
+                    if(!use_lagrange_cycles) {
+                        for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                            for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                                if(c[ii][jj] >= 0) {
+                                    // Set the coefficient value for the constraint associated to arc (ii, jj)
 
-                                int mtz_coeff = 0; // y(i, j) is not involved in mtz constraints
-                                col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                    int mtz_coeff = 0; // y(i, j) is not involved in mtz constraints
+                                    col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                                }
                             }
                         }
                     }
 
                     // Precedence
-                    for(int ii = 1; ii <= n; ii++) {
-                        // Set the coefficient value for the constraint associated with ii
+                    if(!use_lagrange_precedence) {
+                        for(int ii = 1; ii <= n; ii++) {
+                            // Set the coefficient value for the constraint associated with ii
 
-                        int p_coeff = 0; // y(i,j) is not involved in precedence constraints
-                        col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                            int p_coeff = 0; // y(i,j) is not involved in precedence constraints
+                            col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                        }
                     }
 
                     // Fix t
@@ -357,8 +393,27 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
         for(int i = 0; i <= 2 * n + 1; i++) {
             // Set coefficient values for t(i)
 
-            double arc_cost = 0; // t columns don't contribute to the obj cost
-            IloNumColumn col = obj(arc_cost);
+            double var_cost = 0; // t columns don't contribute to the obj cost
+            
+            if(use_lagrange_cycles) {
+                for(int j = 0; j <= 2 * n + 1; j++) {
+                    if(c[i][j] >= 0) {
+                        var_cost -= mult_lambda[i][j];
+                    }
+                    if(c[j][i] >= 0) {
+                        var_cost += mult_lambda[j][i];
+                    }
+                }
+            }
+            
+            if(use_lagrange_precedence) {
+                if(i >= 1 && i <= n) {
+                    var_cost -= mult_mu[i];
+                    var_cost += mult_mu[n+i];
+                }
+            }
+            
+            IloNumColumn col = obj(var_cost);
 
             // Out degree
             for(int ii = 0; ii < 2 * n + 1; ii++) {
@@ -416,27 +471,31 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
 
             // MTZ
             c_number = 0;
-            for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                    if(c[ii][jj] >= 0) {
-                        // Set the coefficient value for the constraint associated to arc (ii, jj)
+            if(!use_lagrange_cycles) {
+                for(int ii = 0; ii <= 2 * n + 1; ii++) {
+                    for(int jj = 0; jj <= 2 * n + 1; jj++) {
+                        if(c[ii][jj] >= 0) {
+                            // Set the coefficient value for the constraint associated to arc (ii, jj)
 
-                        int mtz_coeff = 0;
-                        if(i == ii) { mtz_coeff = 1; }
-                        if(i == jj) { mtz_coeff = -1; }
-                        col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                            int mtz_coeff = 0;
+                            if(i == ii) { mtz_coeff = 1; }
+                            if(i == jj) { mtz_coeff = -1; }
+                            col += mtz_constraints[c_number++](mtz_coeff); // There are constraints 0...2n+1,2n+2...4n+3,...
+                        }
                     }
                 }
             }
 
             // Precedence
-            for(int ii = 1; ii <= n; ii++) {
-                // Set the coefficient value for the constraint associated with ii
+            if(!use_lagrange_precedence) {
+                for(int ii = 1; ii <= n; ii++) {
+                    // Set the coefficient value for the constraint associated with ii
 
-                int p_coeff = 0;
-                if(i == ii) { p_coeff = -1; }
-                if(i == ii + n) { p_coeff = 1; }
-                col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                    int p_coeff = 0;
+                    if(i == ii) { p_coeff = -1; }
+                    if(i == ii + n) { p_coeff = 1; }
+                    col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
+                }
             }
 
             // Fix t
@@ -462,8 +521,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
     model.add(load_constraints);
     model.add(initial_load_constraint);
     if(include_mtz) {
-        model.add(mtz_constraints);
-        model.add(precedence_constraints);
+        if(!use_lagrange_cycles) { model.add(mtz_constraints); }
+        if(!use_lagrange_precedence) { model.add(precedence_constraints); }
         model.add(fix_t); // Fixes t(0) to 0
     }
 
@@ -507,16 +566,35 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
         std::cout << "***** Initial solution added" << std::endl;
     }
 
-    std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
-
-    if(g_search_for_cuts_every_n_nodes > 0) {
-        cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
-        std::cout << "***** Branch and cut callback added" << std::endl;
-    }
-
     if(!include_mtz) {
-        cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        std::cout << "***** Incumbent check callback added" << std::endl;
+        // Then it means we are doing branch_and_cut!
+        std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
+
+        if(g_search_for_cuts_every_n_nodes > 0) {
+            cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
+            std::cout << "***** Branch and cut callback added" << std::endl;
+        }
+
+        if(!include_mtz) {
+            cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+            std::cout << "***** Incumbent check callback added" << std::endl;
+        }
+    }
+    
+    double missing_from_obj_value {0};
+    if(use_lagrange_cycles) {
+        for(int i = 0; i <= 2 * n + 1; i++) {
+            for(int j = 0; j <= 2 * n + 1; j++) {
+                if(c[i][j] >= 0) {
+                    missing_from_obj_value -= mult_lambda[i][j];
+                }
+            }
+        }
+    }
+    if(use_lagrange_precedence) {
+        for(int i = 1; i <= n; i++) {
+            missing_from_obj_value -= mult_mu[i];
+        }
     }
 
     cplex.exportModel("model.lp");
@@ -541,8 +619,8 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
 
         time_spent_at_root = time_span.count();
         number_of_cuts_added_at_root = g_total_number_of_cuts_added;
-        lb_at_root = cplex.getBestObjValue();
-        ub_at_root = cplex.getObjValue();
+        lb_at_root = cplex.getBestObjValue() + missing_from_obj_value;
+        ub_at_root = cplex.getObjValue() + missing_from_obj_value;
 
         cplex.setParam(IloCplex::NodeLim, 2100000000);
         if(!cplex.solve()) {
@@ -557,11 +635,11 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
 
     IloAlgorithm::Status status = cplex.getStatus();
     std::cout << "CPLEX status: " << status << std::endl;
-    std::cout << "\tObjective value: " << cplex.getObjValue() << std::endl;
+    std::cout << "\tObjective value: " << cplex.getObjValue() + missing_from_obj_value << std::endl;
 
     total_bb_nodes_explored = cplex.getNnodes();
-    lb = cplex.getBestObjValue();
-    ub = cplex.getObjValue();
+    lb = cplex.getBestObjValue() + missing_from_obj_value;
+    ub = cplex.getObjValue() + missing_from_obj_value;
     total_cplex_time = time_span_total.count();
 
     IloNumArray x(env);
@@ -595,7 +673,6 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
          }
     }
 
-    // *** MOVE THIS FROM HERE ONCE THE MEM PROBLEMS ARE SOLVED ***
     std::ofstream results_file;
     results_file.open("results.txt", std::ios::out | std::ios::app);
     results_file << instance_name << "\t";
@@ -614,13 +691,10 @@ void MipSolver::solve(const bool include_mtz, const bool use_valid_y_ineq) const
     results_file << number_of_cuts_added_at_root << "\t";
     results_file << total_bb_nodes_explored << std::endl;
     results_file.close();
-    // *** END OF THE PART TO MOVE ***
-
-    x.end(); y.end(); t.end();
 
     try {
-        env.end();
+        x.end(); y.end(); t.end(); env.end();
     } catch(...) {
-        std::cout << "Maybe it's my fault, but I feel like CPLEX's memory management sucks!" << std::endl;
+        std::cout << "Error while .end()-ing!" << std::endl;
     }
 }

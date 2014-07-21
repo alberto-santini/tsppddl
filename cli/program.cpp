@@ -40,7 +40,7 @@ void Program::autorun(const std::vector<std::string> args) {
     
     // 3) Run CPLEX
     MipSolver msolv {g, heuristic_solutions, args[0]};
-    msolv.solve(false, use_valid_y_ineq);
+    msolv.solve_with_branch_and_cut(use_valid_y_ineq);
 }
 
 void Program::prompt() {
@@ -86,7 +86,7 @@ void Program::prompt() {
         if(cmd_tokens[0] == "solve" || cmd_tokens[0] == "s") {
             if(g != nullptr) {
                 MipSolver msolv {g, heuristic_solutions};
-                msolv.solve(true);
+                msolv.solve_with_branch_and_cut(true);
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }
