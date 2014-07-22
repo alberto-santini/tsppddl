@@ -18,17 +18,21 @@ MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Pat
     initial_solution.verify_feasible(g);
     int n {g->g[graph_bundle].n};
     
-    initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    initial_y = std::vector<int>(2 * n + 2, 0);
-    initial_t = std::vector<int>(2 * n + 2, 0);
+    std::cerr << "Initialising initial_val's" << std::endl;
+    initial_x_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    std::cerr << "\tx" << std::endl;
+    initial_y_val = std::vector<int>(2 * n + 2, 0);
+    std::cerr << "\ty" << std::endl;
+    initial_t_val = std::vector<int>(2 * n + 2, 0);
+    std::cerr << "\tt" << std::endl;
 
     if(initial_solution.total_cost > 0) {
         for(int l = 0; l < 2 * n + 2; l++) {
-            if(l < 2 * n + 2 - 1) { initial_x[initial_solution.path[l]][initial_solution.path[l+1]] = 1; }
-            initial_y[initial_solution.path[l]] = initial_solution.load[l];
-            initial_t[initial_solution.path[l]] = l;
+            if(l < 2 * n + 2 - 1) { initial_x_val[initial_solution.path[l]][initial_solution.path[l+1]] = 1; }
+            initial_y_val[initial_solution.path[l]] = initial_solution.load[l];
+            initial_t_val[initial_solution.path[l]] = l;
         }
-        initial_t[2 * n + 2] = 2 * n + 2;
+        initial_t_val[2 * n + 2] = 2 * n + 2;
     }
 }
 
@@ -94,7 +98,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
 
     IloNumVarArray variables_x(env);
     IloNumVarArray variables_y(env);
-    IloNumVarArray variables_t(env);
+    IloNumVarArray variables_tt(env);
     
     std::cerr << "Created variables" << std::endl;
     
@@ -567,7 +571,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
 
             // Create the column
             IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int);//, ("t_{" + std::to_string(i) + "}").c_str());
-            variables_t.add(v);
+            variables_tt.add(v);
         }
         std::cerr << "Initialised variables t" << std::endl;
     }
@@ -605,12 +609,12 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
 
     // Add initial integer solution, if present
     if(initial_solution.total_cost > 0) {
-        IloNumVarArray initial_vars_x(env);
-        IloNumArray initial_values_x(env);
-        IloNumVarArray initial_vars_y(env);
-        IloNumArray initial_values_y(env);
-        IloNumVarArray initial_vars_t(env);
-        IloNumArray initial_values_t(env);
+        IloNumVarArray initial_x_vars_x(env);
+        IloNumArray initial_x_values(env);
+        IloNumVarArray initial_y_vars(env);
+        IloNumArray initial_y_values(env);
+        IloNumVarArray initial_t_vars(env);
+        IloNumArray initial_t_values(env);
         
         std::cerr << "Created IloNumVarArray and IloNumArray for the initial solution" << std::endl;
 
@@ -618,29 +622,29 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
         for(int i = 0; i <= 2 * n + 1; i++) {
             for(int j = 0; j <= 2 * n + 1; j++) {
                 if(c[i][j] >= 0) {
-                    initial_vars_x.add(variables_x[x_idx++]);
-                    initial_values_x.add(initial_x[i][j]);
+                    initial_x_vars.add(variables_x[x_idx++]);
+                    initial_x_values.add(initial_x_val[i][j]);
                 }
             }
-            initial_vars_y.add(variables_y[i]);
-            initial_values_y.add(initial_y[i]);
+            initial_y_vars.add(variables_y[i]);
+            initial_y_values.add(initial_y_val[i]);
             if(include_mtz) {
-                initial_vars_t.add(variables_t[i]);
-                initial_values_t.add(initial_t[i]);
+                initial_t_vars.add(variables_tt[i]);
+                initial_t_values.add(initial_t_val[i]);
             }
         }
         
         std::cerr << "Initialised initial variables" << std::endl;
 
-        cplex.addMIPStart(initial_vars_x, initial_values_x);
-        cplex.addMIPStart(initial_vars_y, initial_values_y);
+        cplex.addMIPStart(initial_x_vars, initial_x_values);
+        cplex.addMIPStart(initial_y_vars, initial_y_values);
         if(include_mtz) {
-            cplex.addMIPStart(initial_vars_t, initial_values_t);
+            cplex.addMIPStart(initial_t_vars, initial_t_values);
         }
         
         std::cerr << "Added mip start" << std::endl;
 
-        initial_values_x.end(); initial_values_y.end(); initial_values_t.end();
+        initial_x_values.end(); initial_y_values.end(); initial_t_values.end();
         
         std::cerr << ".end()-ed the initial values IloNumArray" << std::endl;
 
@@ -743,7 +747,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
     if(include_mtz) {
-        cplex.getValues(t, variables_t);
+        cplex.getValues(t, variables_tt);
     }
 
     std::cout << "CPLEX problem solved" << std::endl;

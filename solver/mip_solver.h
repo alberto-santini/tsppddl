@@ -17,9 +17,9 @@ class MipSolver {
     
     std::string instance_name;
     
-    std::vector<std::vector<int>> initial_x;
-    std::vector<int> initial_y;
-    std::vector<int> initial_t;
+    std::vector<std::vector<int>> initial_x_val;
+    std::vector<int> initial_y_val;
+    std::vector<int> initial_t_val;
     
     std::vector<std::vector<double>> mult_lambda;
     std::vector<double> mult_mu;
