@@ -32,7 +32,7 @@ MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Pat
             initial_y_val[initial_solution.path[l]] = initial_solution.load[l];
             initial_t_val[initial_solution.path[l]] = l;
         }
-        initial_t_val[2 * n + 2] = 2 * n + 2;
+        initial_t_val[2 * n + 1] = 2 * n + 1;
     }
 }
 
