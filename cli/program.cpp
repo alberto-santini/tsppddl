@@ -24,9 +24,11 @@ void Program::autorun(const std::vector<std::string> args) {
     extern long g_search_for_cuts_every_n_nodes;
     
     std::string file_name {args[0]};
-    g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
-    bool use_valid_y_ineq = (args[2] == "true");
     
+    if(args[1] != "lagrange") {    
+        g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
+    }
+        
     // 1) Load data
     load(file_name);
     
@@ -40,7 +42,15 @@ void Program::autorun(const std::vector<std::string> args) {
     
     // 3) Run CPLEX
     MipSolver msolv {g, heuristic_solutions, args[0]};
-    msolv.solve_with_branch_and_cut(use_valid_y_ineq);
+    
+    if(args[1] != "lagrange") {
+        msolv.solve_with_branch_and_cut();
+    } else {
+        int n {g->g[graph_bundle].n};
+        std::vector<std::vector<double>> mult_lambda(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
+        std::vector<double> mult_mu(2 * n + 2, 1.0);
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda, mult_mu);
+    }
 }
 
 void Program::prompt() {
@@ -86,7 +96,7 @@ void Program::prompt() {
         if(cmd_tokens[0] == "solve" || cmd_tokens[0] == "s") {
             if(g != nullptr) {
                 MipSolver msolv {g, heuristic_solutions};
-                msolv.solve_with_branch_and_cut(true);
+                msolv.solve_with_branch_and_cut();
             } else {
                 std::cout << "No graph generated!" << std::endl;
             }

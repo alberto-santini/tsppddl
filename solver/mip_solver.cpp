@@ -36,32 +36,32 @@ Path MipSolver::find_best_initial_solution() {
     return *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-void MipSolver::solve_with_mtz(const bool use_valid_y_ineq) const {
-    solve(true, false, false, use_valid_y_ineq, false);
+void MipSolver::solve_with_mtz() const {
+    solve(true, false, false, false);
 }
 
-void MipSolver::solve_with_lagrangian_relaxation_precedence(const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
+void MipSolver::solve_with_lagrangian_relaxation_precedence(const std::vector<double>& mult_mu) {
     this->mult_mu = mult_mu;
-    solve(true, false, true, use_valid_y_ineq, false);
+    solve(true, false, true, false);
 }
 
-void MipSolver::solve_with_lagrangian_relaxation_precedence_and_cycles(const std::vector<std::vector<double>>& mult_lambda, const std::vector<double>& mult_mu, const bool use_valid_y_ineq) {
+void MipSolver::solve_with_lagrangian_relaxation_precedence_and_cycles(const std::vector<std::vector<double>>& mult_lambda, const std::vector<double>& mult_mu) {
     this->mult_lambda = mult_lambda;
     this->mult_mu = mult_mu;
-    solve(true, true, true, use_valid_y_ineq, false);
+    solve(true, true, true, false);
 }
 
-void MipSolver::solve_with_branch_and_cut(const bool use_valid_y_ineq) const {
-    solve(false, false, false, use_valid_y_ineq, false);
+void MipSolver::solve_with_branch_and_cut() const {
+    solve(false, false, false, false);
 }
 
 std::vector<std::vector<int>> MipSolver::solve_for_k_opt(const std::vector<std::vector<int>>& lhs, const int& rhs) {
     k_opt_lhs = lhs;
     k_opt_rhs = rhs;
-    return solve(true, false, false, true, true);
+    return solve(true, false, false, true);
 }
 
-std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool use_valid_y_ineq, const bool k_opt) const {
+std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool k_opt) const {
     using namespace std::chrono;
 
     extern long g_total_number_of_cuts_added;
@@ -88,15 +88,15 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     cost_t c {g->cost};
 
     IloEnv env;
-    std::cerr << "Created env" << std::endl;
+    // std::cerr << "Created env" << std::endl;
     IloModel model(env);
-    std::cerr << "Created model" << std::endl;
+    // std::cerr << "Created model" << std::endl;
 
     IloNumVarArray variables_x(env);
     IloNumVarArray variables_y(env);
     IloNumVarArray variables_tt(env);
     
-    std::cerr << "Created variables" << std::endl;
+    // std::cerr << "Created variables" << std::endl;
     
     IloRangeArray outdegree_constraints(env);
     IloRangeArray indegree_constraints(env);
@@ -109,11 +109,11 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     IloRangeArray fix_t(env); // Fixes t(0) to 0
     IloRangeArray k_opt_constraint(env);
     
-    std::cerr << "Created constraints" << std::endl;
+    // std::cerr << "Created constraints" << std::endl;
 
     IloObjective obj = IloMinimize(env);
     
-    std::cerr << "Created objective function" << std::endl;
+    // std::cerr << "Created objective function" << std::endl;
 
     /******************************** ROWS ********************************/
 
@@ -132,14 +132,12 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 capacity_constraints.add(IloRange(env, -IloInfinity, 0.0));
             }
         }
-    }
-    if(use_valid_y_ineq) {
-        for(int i = 1; i <= 2 * n; i++) {
-            for(int j = 1; j <= 2 * n; j++) {
-                if(c[i][j] > 0 && (i <= n || j > n)) {
-                    // 0 <= y(i,j) - N x(i,j)
-                    valid_y_ineq.add(IloRange(env, 0.0, IloInfinity));
-                }
+    }    
+    for(int i = 1; i <= 2 * n; i++) {
+        for(int j = 1; j <= 2 * n; j++) {
+            if(c[i][j] > 0 && (i <= n || j > n)) {
+                // 0 <= y(i,j) - N x(i,j)
+                valid_y_ineq.add(IloRange(env, 0.0, IloInfinity));
             }
         }
     }
@@ -174,7 +172,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             k_opt_constraint.add(IloRange(env, k_opt_rhs, IloInfinity));
         }
     }
-    std::cerr << "Initialised constraints" << std::endl;
+    // std::cerr << "Initialised constraints" << std::endl;
 
     /******************************** COLUMNS X ********************************/
 
@@ -225,7 +223,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                             // Set the coefficient value for the constraint associated with arc (ii, jj)
 
                             int c_coeff = 0;
-                            if(i == ii && j == jj) { c_coeff = -std::min({Q, l[i], l[j]}); }
+                            if(i == ii && j == jj) { c_coeff = -std::min({Q - std::max(0, d[j]), l[i], l[j] - std::max(0, d[j])}); }
                             col += capacity_constraints[c_number++](c_coeff); // There are constraints 0...number_of_arcs
                         }
                     }
@@ -233,26 +231,23 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 
                 // std::cerr << "\t Added capacity constraints" << std::endl;
                 
-                if(use_valid_y_ineq) {
-                    // Valid y inequalities
-                    c_number = 0;
-                    for(int ii = 1; ii <= 2 * n; ii++) {
-                        for(int jj = 1; jj <= 2 * n; jj++) {
-                            if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
-                                int my_coeff {0};
-                            
-                                if(i == ii && j == jj) {
-                                    if(ii <= n) { my_coeff -= d[ii]; }
-                                    if(jj > n && jj != ii + n) { my_coeff += d[jj]; }
-                                }
-                            
-                                col += valid_y_ineq[c_number++](my_coeff);
+                // Valid y inequalities
+                c_number = 0;
+                for(int ii = 1; ii <= 2 * n; ii++) {
+                    for(int jj = 1; jj <= 2 * n; jj++) {
+                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                            int my_coeff {0};
+                        
+                            if(i == ii && j == jj) {
+                                if(ii <= n) { my_coeff -= d[ii]; }
+                                if(jj > n && jj != ii + n) { my_coeff += d[jj]; }
                             }
+                        
+                            col += valid_y_ineq[c_number++](my_coeff);
                         }
                     }
-                    // std::cerr << "\t Added valid y ineq constraints" << std::endl;
                 }
-                            
+                // std::cerr << "\t Added valid y ineq constraints" << std::endl;
 
                 // Load
                 for(int ii = 1; ii < 2 * n + 1; ii++) {
@@ -325,7 +320,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             }
         }
     }
-    std::cerr << "Initialised variables x" << std::endl;
+    // std::cerr << "Initialised variables x" << std::endl;
 
     /******************************** COLUMNS Y ********************************/
 
@@ -367,20 +362,18 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                     }
                 }
                 
-                if(use_valid_y_ineq) {
-                    // Valid y inequalities
-                    c_number = 0;
-                    for(int ii = 1; ii <= 2 * n; ii++) {
-                        for(int jj = 1; jj <= 2 * n; jj++) {
-                            if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
-                                int my_coeff {0};
-                            
-                                if(i == ii && j == jj) {
-                                    my_coeff = 1;
-                                }
-                            
-                                col += valid_y_ineq[c_number++](my_coeff);
+                // Valid y inequalities
+                c_number = 0;
+                for(int ii = 1; ii <= 2 * n; ii++) {
+                    for(int jj = 1; jj <= 2 * n; jj++) {
+                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                            int my_coeff {0};
+                        
+                            if(i == ii && j == jj) {
+                                my_coeff = 1;
                             }
+                        
+                            col += valid_y_ineq[c_number++](my_coeff);
                         }
                     }
                 }
@@ -442,7 +435,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             }
         }
     }
-    std::cerr << "Initialised variables y" << std::endl;
+    // std::cerr << "Initialised variables y" << std::endl;
 
     /******************************** COLUMNS T ********************************/
 
@@ -501,15 +494,13 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 }
             }
             
-            if(use_valid_y_ineq) {
-                // Valid y inequalities
-                c_number = 0;
-                for(int ii = 1; ii <= 2 * n; ii++) {
-                    for(int jj = 1; jj <= 2 * n; jj++) {
-                        if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
-                            int my_coeff {0};
-                            col += valid_y_ineq[c_number++](my_coeff);
-                        }
+            // Valid y inequalities
+            c_number = 0;
+            for(int ii = 1; ii <= 2 * n; ii++) {
+                for(int jj = 1; jj <= 2 * n; jj++) {
+                    if(c[ii][jj] > 0 && (ii <= n || jj > n)) {
+                        int my_coeff {0};
+                        col += valid_y_ineq[c_number++](my_coeff);
                     }
                 }
             }
@@ -569,21 +560,19 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int);//, ("t_{" + std::to_string(i) + "}").c_str());
             variables_tt.add(v);
         }
-        std::cerr << "Initialised variables t" << std::endl;
+        // std::cerr << "Initialised variables t" << std::endl;
     }
 
     /****************************************************************/
 
     model.add(obj);
     
-    std::cerr << "Added objective function to model" << std::endl;
+    // std::cerr << "Added objective function to model" << std::endl;
     
     model.add(outdegree_constraints);
     model.add(indegree_constraints);
     model.add(capacity_constraints);
-    if(use_valid_y_ineq) {
-        model.add(valid_y_ineq);
-    }
+    model.add(valid_y_ineq);
     model.add(load_constraints);
     model.add(initial_load_constraint);
     if(include_mtz) {
@@ -595,11 +584,11 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
         model.add(k_opt_constraint);
     }
     
-    std::cerr << "Added constraints to model" << std::endl;
+    // std::cerr << "Added constraints to model" << std::endl;
 
     IloCplex cplex(model);
     
-    std::cerr << "Created cplex" << std::endl;
+    // std::cerr << "Created cplex" << std::endl;
 
     std::cout << "***** CPLEX model created" << std::endl;
 
@@ -612,7 +601,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
         IloNumVarArray initial_t_vars(env);
         IloNumArray initial_t_values(env);
         
-        std::cerr << "Created IloNumVarArray and IloNumArray for the initial solution" << std::endl;
+        // std::cerr << "Created IloNumVarArray and IloNumArray for the initial solution" << std::endl;
 
         int x_idx = 0;
         for(int i = 0; i <= 2 * n + 1; i++) {
@@ -630,19 +619,23 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             }
         }
         
-        std::cerr << "Initialised initial variables" << std::endl;
+        // std::cerr << "Initialised initial variables" << std::endl;
 
         cplex.addMIPStart(initial_x_vars, initial_x_values);
+        // std::cerr << "Added x initial vars" << std::endl;
         cplex.addMIPStart(initial_y_vars, initial_y_values);
+        // std::cerr << "Added y initial vars" << std::endl;
         if(include_mtz) {
             cplex.addMIPStart(initial_t_vars, initial_t_values);
+            // std::cerr << "Added t initial vars" << std::endl;
         }
         
-        std::cerr << "Added mip start" << std::endl;
+        // std::cerr << "Added mip start" << std::endl;
 
         initial_x_values.end(); initial_y_values.end(); initial_t_values.end();
+        initial_x_vars.end(); initial_y_vars.end(); initial_t_vars.end();
         
-        std::cerr << ".end()-ed the initial values IloNumArray" << std::endl;
+        // std::cerr << ".end()-ed the initial values and variables" << std::endl;
 
         std::cout << "***** Initial solution added" << std::endl;
     }
@@ -654,13 +647,13 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
         if(g_search_for_cuts_every_n_nodes > 0) {
             cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), include_mtz));
             std::cout << "***** Branch and cut callback added" << std::endl;
-            std::cerr << "Added FlowCutCallbackHandle" << std::endl;
+            // std::cerr << "Added FlowCutCallbackHandle" << std::endl;
         }
 
         if(!include_mtz) {
             cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
             std::cout << "***** Incumbent check callback added" << std::endl;
-            std::cerr << "Added CheckIncumbentCallbackHandle" << std::endl;
+            // std::cerr << "Added CheckIncumbentCallbackHandle" << std::endl;
         }
     }
     
@@ -688,7 +681,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     }
     cplex.exportModel(model_file_name.c_str());
     
-    std::cerr << "Model wrote to file" << std::endl;
+    // std::cerr << "Model wrote to file" << std::endl;
     
     cplex.setParam(IloCplex::TiLim, 3600);
     // cplex.setParam(IloCplex::CutsFactor, 10);
@@ -698,7 +691,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     // DEBUG ONLY:
     // cplex.setParam(IloCplex::DataCheck, 1);
     
-    std::cerr << "Set cplex parameters" << std::endl;
+    // std::cerr << "Set cplex parameters" << std::endl;
 
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};
 

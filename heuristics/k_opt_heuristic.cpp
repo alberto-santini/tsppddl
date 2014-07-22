@@ -87,7 +87,7 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     
     while(current_node != 2 * n + 1) {
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(x[current_node][j] == 1) {
+            if(abs(x[current_node][j] - 1) < 0.01) {
                 p.path.push_back(j);
                 current_load += d[j];
                 p.load.push_back(current_load);
