@@ -16,16 +16,18 @@
 MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, const std::string& instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
     find_best_initial_solution();
 
-    std::vector<int> ip {initial_solution.path}, il {initial_solution.load};
+    std::vector<int> ip, il;
+    ip = initial_solution.path;
+    il = initial_solution.load;
     int n {g->g[graph_bundle].n};
+    
+    initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    initial_y = std::vector<int>(2 * n + 2, 0);
+    initial_t = std::vector<int>(2 * n + 2, 0);
 
     initial_solution.verify_feasible(g);
 
     if(initial_solution.total_cost > 0) {
-        initial_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-        initial_y = std::vector<int>(2 * n + 2, 0);
-        initial_t = std::vector<int>(2 * n + 2, 0);
-
         for(int l = 0; l < 2 * n + 2; l++) {
             if(l < 2 * n + 2 - 1) { initial_x[ip[l]][ip[l+1]] = 1; }
             initial_y[ip[l]] = il[l];
