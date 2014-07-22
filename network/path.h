@@ -12,9 +12,8 @@ public:
     int total_load;
     int total_cost;
     
-    Path() : Path{0} {}
-    Path(unsigned int expected_length);
-    
+    Path() : total_load{0}, total_cost{0} {}
+        
     void verify_feasible(std::shared_ptr<const Graph> g);
 };
 

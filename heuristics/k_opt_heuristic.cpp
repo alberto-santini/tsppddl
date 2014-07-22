@@ -81,8 +81,9 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     int current_load {0};
     int n {g->g[graph_bundle].n};
     
-    Path p(2 * n + 2);
-    p.path.push_back(0);
+    Path p;
+    p.path.reserve(2 * n + 2); p.load.reserve(2 * n + 2);
+    p.path.push_back(0); p.load.push_back(0);
     
     while(current_node != 2 * n + 1) {
         for(int j = 0; j <= 2 * n + 1; j++) {

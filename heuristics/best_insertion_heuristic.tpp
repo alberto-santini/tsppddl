@@ -34,7 +34,7 @@ Path BestInsertionHeuristic<IC>::solve() {
             this->p = new_path;
             this->remaining_requests.erase(std::remove(this->remaining_requests.begin(), this->remaining_requests.end(), best_request), this->remaining_requests.end());
         } else {
-            throw std::runtime_error("Can't insert any request");
+            throw std::runtime_error("Can't insert any request! (best insertion)");
         }
     }
     

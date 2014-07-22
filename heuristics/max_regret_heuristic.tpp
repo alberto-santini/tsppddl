@@ -9,9 +9,9 @@ Path MaxRegretHeuristic<IC, RG>::solve() {
     
     while((rs = this->remaining_requests.size()) > 0) {
         std::vector<double> regrets(rs, 0);
-        std::vector<Path> new_possible_paths(rs, 0);
+        std::vector<Path> new_possible_paths(rs, Path());
         int ps {static_cast<int>(this->p.path.size())};
-                
+            
         for(int req_id = 0; req_id < rs; req_id++) {
             // BestCost, SecondBestCost, BestLoad, SecondBestLoad
             int bc {std::numeric_limits<int>::max()}, sbc {std::numeric_limits<int>::max()}, bl {0}, sbl {0};
@@ -22,7 +22,7 @@ Path MaxRegretHeuristic<IC, RG>::solve() {
                 for(int y = x; y < ps; y++) {
                     int req {this->remaining_requests[req_id]};                    
                     auto result = HeuristicHelper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, sbc, sbl);
-                                        
+
                     if(result.first) {
                         managed_to_insert = true;
                         if(this->insertion_comparator(result.second.total_cost, result.second.total_load, bc, bl)) {
@@ -57,7 +57,7 @@ Path MaxRegretHeuristic<IC, RG>::solve() {
             this->p = new_possible_paths[best_regret_id];
             this->remaining_requests.erase(this->remaining_requests.begin() + best_regret_id);
         } else {
-            throw std::runtime_error("Can't insert any request!");
+            throw std::runtime_error("Can't insert any request! (max regret)");
         }
     }
     

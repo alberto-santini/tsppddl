@@ -3,11 +3,6 @@
 #include <iostream>
 #include <stdexcept>
 
-Path::Path(unsigned int expected_length) : path{std::vector<int>(0)}, load{std::vector<int>(0)}, total_load{0}, total_cost{0} {
-    path.reserve(expected_length);
-    load.reserve(expected_length);
-}
-
 void Path::verify_feasible(std::shared_ptr<const Graph> g) {
     // std::cout << "***** Verifying the feasibility of a heuristic solution!" << std::endl;
     
