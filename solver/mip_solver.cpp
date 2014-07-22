@@ -755,6 +755,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
                 if(x[col_index] > 0) {
+                    std::cerr << "Setting solution_x[" << i << "][" << j << "]" << std::endl;
                     solution_x[i][j] = 1;
                     if(!k_opt) { std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
