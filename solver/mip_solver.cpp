@@ -751,19 +751,13 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     // Print variables and path
     int col_index {0};
     std::vector<std::vector<int>> solution_x(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    std::cerr << "solution_x created of dimensions " << (2 * n + 2) << " squared" << std::endl;
-    std::cerr << "IloNumArrays of dimensions => x: " << x.getSize() << ", y: " << y.getSize() << ", t: " << t.getSize() << std::endl;
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
-                std::cerr << "Checking if x[" << col_index << "] > 0" << std::endl;
                 if(x[col_index] > 0) {
-                    std::cerr << "Setting solution_x[" << i << "][" << j << "]" << std::endl;
                     solution_x[i][j] = 1;
-                    std::cerr << "Set solution_x[" << i << "][" << j << "] to 1" << std::endl;
                     if(!k_opt) { std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
-                std::cerr << "Checking if y[" << col_index << "] > 0" << std::endl;
                 if(y[col_index] > 0) {
                     if(!k_opt) { std::cout << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
                 }
@@ -771,7 +765,6 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             }
          }
          if(include_mtz) {
-             std::cerr << "Printing t[" << i << "]" << std::endl;
              if(!k_opt) { std::cout << "\tt(" << i << ") = " << t[i] << std::endl; }
          }
     }
