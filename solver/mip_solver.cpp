@@ -186,7 +186,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
             if(c[i][j] >= 0) {
                 // Set coefficient values for x(i, j) where (i, j) is an arc
 
-                std::cerr << "Initialising variable x[" << i << "][" << j << "]" << std::endl;
+                // std::cerr << "Initialising variable x[" << i << "][" << j << "]" << std::endl;
 
                 int arc_cost = c[i][j]; // c(i, j)
                 
@@ -196,7 +196,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                 
                 IloNumColumn col = obj(arc_cost);
                 
-                std::cerr << "\t Added column via objective" << std::endl;
+                // std::cerr << "\t Added column via objective" << std::endl;
 
                 // Out degree
                 for(int ii = 0; ii < 2 * n + 1; ii++) {
@@ -207,7 +207,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                     col += outdegree_constraints[ii](od_coeff);    // There are constraints 0...2n, corresponding to 0...2n
                 }
                 
-                std::cerr << "\t Added out degree constraints" << std::endl;
+                // std::cerr << "\t Added out degree constraints" << std::endl;
 
                 // In degree
                 for(int jj = 1; jj <= 2 * n + 1; jj++) {
@@ -218,7 +218,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                     col += indegree_constraints[jj - 1](id_coeff); // There are constraints 0...2n, corresponding to 1...2n+1
                 }
                 
-                std::cerr << "\t Added in degree constraints" << std::endl;
+                // std::cerr << "\t Added in degree constraints" << std::endl;
 
                 // Capacity
                 int c_number = 0;
@@ -234,7 +234,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                     }
                 }
                 
-                std::cerr << "\t Added capacity constraints" << std::endl;
+                // std::cerr << "\t Added capacity constraints" << std::endl;
                 
                 if(use_valid_y_ineq) {
                     // Valid y inequalities
@@ -253,7 +253,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                             }
                         }
                     }
-                    std::cerr << "\t Added valid y ineq constraints" << std::endl;
+                    // std::cerr << "\t Added valid y ineq constraints" << std::endl;
                 }
                             
 
@@ -265,13 +265,13 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                     col += load_constraints[ii - 1](l_coeff); // There are constraints 0...2n-1, corresponding to 1...2n
                 }
                 
-                std::cerr << "\t Added load constraints" << std::endl;
+                // std::cerr << "\t Added load constraints" << std::endl;
 
                 // Initial load
                 int il_coeff = 0; // x(i,j) is not involved in initial load constraints
                 col += initial_load_constraint[0](il_coeff); // There is just 1 constraint
                 
-                std::cerr << "\t Added the initial load constraint" << std::endl;
+                // std::cerr << "\t Added the initial load constraint" << std::endl;
 
                 if(include_mtz) {
                     // MTZ
@@ -289,7 +289,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                             }
                         }
                         
-                        std::cerr << "\t Added mtz constraints" << std::endl;
+                        // std::cerr << "\t Added mtz constraints" << std::endl;
                     }
                     
 
@@ -302,29 +302,29 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
                             col += precedence_constraints[ii - 1](p_coeff); // There are constraints 0...n-1, corresponding to 1...n
                         }
                         
-                        std::cerr << "\t Added precedence constraints" << std::endl;
+                        // std::cerr << "\t Added precedence constraints" << std::endl;
                     }
 
                     // Fix t
                     int ft_coeff = 0; // x(i,j) is not involved in fixing t
                     col += fix_t[0](ft_coeff);
-                    std::cerr << "\t Added the fix_t constraint" << std::endl;
+                    // std::cerr << "\t Added the fix_t constraint" << std::endl;
                 }
                 
                 if(k_opt) {
                     int ko_coeff {k_opt_lhs[i][j]};
                     col += k_opt_constraint[0](ko_coeff);
-                    std::cerr << "\t Added the k_opt constraint" << std::endl;
+                    // std::cerr << "\t Added the k_opt constraint" << std::endl;
                 }
 
                 // Create the column
                 IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool);//, ("x_{" + std::to_string(i) + "," + std::to_string(j) + "}").c_str());
                 
-                std::cerr << "IloNumVar created" << std::endl;
+                // std::cerr << "IloNumVar created" << std::endl;
                 
                 variables_x.add(v);
                 
-                std::cerr << "IloNumVar added to the variables" << std::endl;
+                // std::cerr << "IloNumVar added to the variables" << std::endl;
             }
         }
     }
