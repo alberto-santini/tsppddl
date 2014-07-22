@@ -18,13 +18,9 @@ MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Pat
     initial_solution.verify_feasible(g);
     int n {g->g[graph_bundle].n};
     
-    std::cerr << "Initialising initial_val's" << std::endl;
     initial_x_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    std::cerr << "\tx" << std::endl;
     initial_y_val = std::vector<int>(2 * n + 2, 0);
-    std::cerr << "\ty" << std::endl;
     initial_t_val = std::vector<int>(2 * n + 2, 0);
-    std::cerr << "\tte" << std::endl;
 
     if(initial_solution.total_cost > 0) {
         for(int l = 0; l < 2 * n + 2; l++) {
