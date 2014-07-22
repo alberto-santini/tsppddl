@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-Path::Path(unsigned int expected_length) {
+Path::Path(unsigned int expected_length) : path{std::vector<int>()}, load{std::vector<int>()} {
     path.reserve(expected_length);
     load.reserve(expected_length);
     total_load = 0;
