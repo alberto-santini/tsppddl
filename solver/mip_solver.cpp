@@ -14,7 +14,7 @@
 #include <stdexcept>
 
 MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, const std::string& instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
-    find_best_initial_solution();
+    initial_solution = find_best_initial_solution();
     initial_solution.verify_feasible(g);
     int n {g->g[graph_bundle].n};
     
@@ -32,8 +32,8 @@ MipSolver::MipSolver(const std::shared_ptr<const Graph> g, const std::vector<Pat
     }
 }
 
-void MipSolver::find_best_initial_solution() {
-    initial_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+Path MipSolver::find_best_initial_solution() {
+    return *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
 void MipSolver::solve_with_mtz(const bool use_valid_y_ineq) const {

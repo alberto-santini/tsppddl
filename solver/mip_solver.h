@@ -27,7 +27,7 @@ class MipSolver {
     std::vector<std::vector<int>> k_opt_lhs;
     int k_opt_rhs;
     
-    void find_best_initial_solution();
+    Path find_best_initial_solution();
     std::vector<std::vector<int>> solve(const bool include_mtz, const bool use_lagrange_cycles, const bool use_lagrange_precedence, const bool use_valid_y_ineq, const bool k_opt) const;
     
 public:
