@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 
 Path KOptHeuristic::solve_with_multiple_columns() const {
     unsigned long int N {initial_solutions.size()};
@@ -78,6 +79,7 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     demand_t d {g->demand};
     
     int current_node {0};
+    int previous_node {-1};
     int current_load {0};
     int n {g->g[graph_bundle].n};
     
@@ -86,6 +88,17 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     p.path.push_back(0); p.load.push_back(0);
     
     while(current_node != 2 * n + 1) {
+        if(current_node == previous_node) {
+            sdt::cerr << "I got stuck!" << std::endl;
+            std::cerr << "X are:" << std::endl;
+            for(int i = 0; i <= 2 * n - 1; i++) {
+                for(int j = 0; j <= 2 * n - 1; j++) {
+                    std::cerr << x[i][j] << " ";
+                }
+                std::cerr << std::endl;
+            }
+            throw std::runtime_error("get_path got stuck!");
+        }
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(abs(x[current_node][j] - 1) < 0.01) {
                 p.path.push_back(j);
@@ -93,6 +106,7 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
                 p.load.push_back(current_load);
                 if(d[j] > 0) { p.total_load += d[j]; }
                 p.total_cost += c[current_node][j];
+                previous_node = current_node;
                 current_node = j;
                 break;
             }
