@@ -97,6 +97,7 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     std::cerr << ">> get_path about to start" << std::endl;
     
     while(current_node != 2 * n + 1) {
+        std::cerr << "> current node: " << current_node << std::endl;
         if(current_node == previous_node) {
             std::cerr << "I got stuck!" << std::endl;
             std::cerr << "X are:" << std::endl;
@@ -110,6 +111,8 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
         }
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(abs(x[current_node][j] - 1) < 0.01) {
+                std::cerr << "\tpath goes " << current_node << " -> " << j << std::endl;
+                
                 p.path.push_back(j);
                 current_load += d[j];
                 p.load.push_back(current_load);
@@ -118,6 +121,8 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
                 previous_node = current_node;
                 current_node = j;
                 break;
+            } else {
+                std::cerr << "\tpath does not go " << current_node << " -> " << j << " (x = " << x[current_node][j] << ")" << std::endl;
             }
         }
     }
