@@ -121,8 +121,6 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
                 previous_node = current_node;
                 current_node = j;
                 break;
-            } else {
-                std::cerr << "\tpath does not go " << current_node << " -> " << j << " (x = " << x[current_node][j] << ")" << std::endl;
             }
         }
     }
