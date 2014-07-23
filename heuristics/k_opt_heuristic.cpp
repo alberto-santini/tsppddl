@@ -113,5 +113,12 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
         }
     }
     
+    if(p.path.size() != 2 * n + 2) {
+        p.path = std::vector<int>(0);
+        p.load = std::vector<int>(0);
+        p.total_cost = std::numeric_limits<int>::max() - 1;
+        p.total_load = 0;
+    }
+    
     return p;
 }
