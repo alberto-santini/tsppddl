@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 
 Path KOptHeuristic::solve_with_multiple_columns() const {
@@ -60,13 +61,6 @@ Path KOptHeuristic::solve() const {
     
     MipSolver msolv {g, initial_solutions, "k-opt"};
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
-    std::cerr << ">> Got solution (x variables) from the MIP solver:" << std::endl;
-    for(int i = 0; i <= 2 * n - 1; i++) {
-        for(int j = 0; j <= 2 * n - 1; j++) {
-            std::cerr << solution_x[i][j] << " ";
-        }
-        std::cerr << std::endl;
-    }
     return get_path(solution_x);
 }
 
@@ -86,39 +80,33 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     demand_t d {g->demand};
     
     int current_node {0};
-    int previous_node {-1};
+    std::vector<int> visited_nodes(0);
     int current_load {0};
     int n {g->g[graph_bundle].n};
     
     Path p;
     p.path.reserve(2 * n + 2); p.load.reserve(2 * n + 2);
     p.path.push_back(0); p.load.push_back(0);
-    
-    std::cerr << ">> get_path about to start" << std::endl;
-    
+    visited_nodes.reserve(2 * n + 1);
+        
     while(current_node != 2 * n + 1) {
-        std::cerr << "> current node: " << current_node << std::endl;
-        if(current_node == previous_node) {
-            std::cerr << "I got stuck!" << std::endl;
-            std::cerr << "X are:" << std::endl;
-            for(int i = 0; i <= 2 * n - 1; i++) {
-                for(int j = 0; j <= 2 * n - 1; j++) {
-                    std::cerr << x[i][j] << " ";
-                }
-                std::cerr << std::endl;
-            }
-            throw std::runtime_error("get_path got stuck!");
+        auto cycle = std::find(visited_nodes.begin(), visited_nodes.end(), current_node);
+        if(cycle != visited_nodes.end()) {
+            std::cerr << ">> Cycle: the path comes back to " << *cycle << std::endl;
+            p.path = std::vector<int>(0);
+            p.load = std::vector<int>(0);
+            p.total_cost = std::numeric_limits<int>::max() - 1;
+            p.total_load = 0;
+            return p;
         }
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(abs(x[current_node][j] - 1) < 0.01) {
-                std::cerr << "\tpath goes " << current_node << " -> " << j << std::endl;
-                
                 p.path.push_back(j);
                 current_load += d[j];
                 p.load.push_back(current_load);
                 if(d[j] > 0) { p.total_load += d[j]; }
                 p.total_cost += c[current_node][j];
-                previous_node = current_node;
+                visited_nodes.push_back(current_node);
                 current_node = j;
                 break;
             }
