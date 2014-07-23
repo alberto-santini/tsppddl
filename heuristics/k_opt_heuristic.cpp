@@ -46,8 +46,14 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
     }
     
     MipSolver msolv {g, initial_solutions, "k-opt"};
-    std::cout << "> alpha: " << alpha << ", k: " << k << ", beta: " << beta << std::endl;
+    std::cout << "alpha: " << alpha << ", k: " << k << ", beta: " << beta << std::endl;
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
+    for(int i = 0; i <= 2 * n - 1; i++) {
+        for(int j = 0; j <= 2 * n - 1; j++) {
+            std::cerr << solution_x[i][j] << " ";
+        }
+        std::cerr << std::endl;
+    }
     return get_path(solution_x);
 }
 
@@ -60,6 +66,7 @@ Path KOptHeuristic::solve() const {
     
     MipSolver msolv {g, initial_solutions, "k-opt"};
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
+    std::cerr << ">> Got solution (x variables) from the MIP solver:" << std::endl;
     return get_path(solution_x);
 }
 
@@ -86,6 +93,8 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     Path p;
     p.path.reserve(2 * n + 2); p.load.reserve(2 * n + 2);
     p.path.push_back(0); p.load.push_back(0);
+    
+    std::cerr << ">> get_path about to start" << std::endl;
     
     while(current_node != 2 * n + 1) {
         if(current_node == previous_node) {
