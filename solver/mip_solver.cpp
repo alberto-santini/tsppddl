@@ -569,6 +569,14 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     
     // std::cerr << "Added objective function to model" << std::endl;
     
+    model.add(variables_x);
+    model.add(variables_y);
+    if(include_mtz) {
+        model.add(variables_tt);
+    }
+    
+    // std::cerr << "Added variables to model" << std::endl;
+    
     model.add(outdegree_constraints);
     model.add(indegree_constraints);
     model.add(capacity_constraints);
@@ -728,6 +736,10 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     lb = cplex.getBestObjValue() + missing_from_obj_value;
     ub = cplex.getObjValue() + missing_from_obj_value;
     total_cplex_time = time_span_total.count();
+    
+    if(k_opt) {
+        g_total_time_spent_by_heuristics += total_cplex_time;
+    }
 
     IloNumArray x(env);
     IloNumArray y(env);
@@ -776,6 +788,7 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     results_file << g_total_time_spent_by_heuristics << "\t";
     results_file << g_total_time_spent_separating_cuts << "\t";
     results_file << time_spent_at_root << "\t";
+    results_file << initial_solution.total_cost << "\t";
     results_file << ub << "\t";
     results_file << lb << "\t";
     results_file << (ub - lb) / ub << "\t";
