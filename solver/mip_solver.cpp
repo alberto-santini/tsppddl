@@ -783,6 +783,16 @@ std::vector<std::vector<int>> MipSolver::solve(const bool include_mtz, const boo
     }
     results_file.open(results_file_name, std::ios::out | std::ios::app);
     results_file << instance_name << "\t";
+    if(use_lagrange_cycles) {
+        results_file << mult_lambda[0][0] << "\t";
+    } else {
+        results_file << "no" << "\t";
+    }
+    if(use_lagrange_precedence) {
+        results_file << mult_mu[0] << "\t";
+    } else {
+        results_file << "no" << "\t";
+    }
     results_file << g_search_for_cuts_every_n_nodes << "\t";
     results_file << total_cplex_time << "\t";
     results_file << g_total_time_spent_by_heuristics << "\t";

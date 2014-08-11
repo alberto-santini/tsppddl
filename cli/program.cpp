@@ -25,7 +25,7 @@ void Program::autorun(const std::vector<std::string> args) {
     
     std::string file_name {args[0]};
     
-    if(args[1] != "lagrange") {    
+    if(args[1] != "lagrange" && args[1] != "lagrange_test") {    
         g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
     }
         
@@ -43,13 +43,31 @@ void Program::autorun(const std::vector<std::string> args) {
     // 3) Run CPLEX
     MipSolver msolv {g, heuristic_solutions, args[0]};
     
-    if(args[1] != "lagrange") {
+    if(args[1] == "lagrange") {
+        std::cout << "Sbgradient method not yet implemented!" << std::endl;
+    } else if(args[1] == "lagrange_test") {
+        int n {g->g[graph_bundle].n};
+        std::vector<std::vector<double>> mult_lambda_1(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
+        std::vector<double> mult_mu_1(2 * n + 2, 1.0);
+        std::vector<std::vector<double>> mult_lambda_h(2 * n + 2, std::vector<double>(2 * n + 2, 0.5));
+        std::vector<double> mult_mu_h(2 * n + 2, 0.5);
+        
+        // 1) Run lagrange relaxation of just 1 constraint with multipliers = 1.0
+        msolv.solve_with_lagrangian_relaxation_precedence(mult_mu_1);
+        
+        // 2) Run lagrange relaxation of just 1 constraint with multipliers = 0.5
+        msolv.solve_with_lagrangian_relaxation_precedence(mult_mu_h);
+        
+        // 3) Run lagrange relaxation of both constraints with multipliers = 1.0
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda_1, mult_mu_1);
+        
+        // 4) Run lagrange relaxation of both constraints with multipliers = 0.5
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda_h, mult_mu_h);
+        
+        // 5) Run branch and cut algorithm
         msolv.solve_with_branch_and_cut();
     } else {
-        int n {g->g[graph_bundle].n};
-        std::vector<std::vector<double>> mult_lambda(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
-        std::vector<double> mult_mu(2 * n + 2, 1.0);
-        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda, mult_mu);
+        msolv.solve_with_branch_and_cut();
     }
 }
 
