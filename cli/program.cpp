@@ -25,7 +25,7 @@ void Program::autorun(const std::vector<std::string> args) {
     
     std::string file_name {args[0]};
     
-    if(args[1] != "lagrange" && args[1] != "lagrange_test") {    
+    if(args[1] == "branch_and_cut") {    
         g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
     }
         
@@ -44,7 +44,17 @@ void Program::autorun(const std::vector<std::string> args) {
     MipSolver msolv {g, heuristic_solutions, args[0]};
     
     if(args[1] == "lagrange") {
-        std::cout << "Sbgradient method not yet implemented!" << std::endl;
+        int n {g->g[graph_bundle].n};
+        double mult_lambda_value {std::stod(args[2])};
+        double mult_mu_value {std::stod(args[3])};
+        std::vector<std::vector<double> mult_lambda(2 * n + 2, std::vector<double>(2 * n + 2, mult_lambda_value));
+        std::vector<double> mult_mu(2 * n + 2, mult_mu_value);
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda, mult_mu)
+    } else if(args[1] == "lagrange_precedence_only") {
+        int n {g->g[graph_bundle].n};
+        double mult_mu_value {std::stod(args[2])};
+        std::vector<double> mult_mu(2 * n + 2, mult_mu_value);
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_mu);
     } else if(args[1] == "lagrange_test") {
         int n {g->g[graph_bundle].n};
         std::vector<std::vector<double>> mult_lambda_1(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
@@ -66,8 +76,14 @@ void Program::autorun(const std::vector<std::string> args) {
         
         // 5) Run branch and cut algorithm
         msolv.solve_with_branch_and_cut();
-    } else {
+    } else if(args[1] == "branch_and_cut") {
         msolv.solve_with_branch_and_cut();
+    } else {
+        std::cout << "Possible usages: " << std::endl;
+        std::cout << "tsppddl <instance> lagrange <lambda> <mu>" << std::endl;
+        std::cout << "tsppddl <instance> lagrange_precedence_only <mu>" << std::endl;
+        std::cout << "tsppddl <instance> lagrange_test" << std::endl;
+        std::cout << "tsppddl <instance> branch_and_cut <cut_every_n_nodes>" << std::endl;
     }
 }
 
