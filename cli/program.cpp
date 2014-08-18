@@ -47,14 +47,14 @@ void Program::autorun(const std::vector<std::string> args) {
         int n {g->g[graph_bundle].n};
         double mult_lambda_value {std::stod(args[2])};
         double mult_mu_value {std::stod(args[3])};
-        std::vector<std::vector<double> mult_lambda(2 * n + 2, std::vector<double>(2 * n + 2, mult_lambda_value));
+        std::vector<std::vector<double>> mult_lambda(2 * n + 2, std::vector<double>(2 * n + 2, mult_lambda_value));
         std::vector<double> mult_mu(2 * n + 2, mult_mu_value);
-        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda, mult_mu)
+        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_lambda, mult_mu);
     } else if(args[1] == "lagrange_precedence_only") {
         int n {g->g[graph_bundle].n};
         double mult_mu_value {std::stod(args[2])};
         std::vector<double> mult_mu(2 * n + 2, mult_mu_value);
-        msolv.solve_with_lagrangian_relaxation_precedence_and_cycles(mult_mu);
+        msolv.solve_with_lagrangian_relaxation_precedence(mult_mu);
     } else if(args[1] == "lagrange_test") {
         int n {g->g[graph_bundle].n};
         std::vector<std::vector<double>> mult_lambda_1(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
