@@ -26,7 +26,7 @@ void Program::autorun(const std::vector<std::string> args) {
     std::string file_name {args[0]};
     
     if(args[1] == "branch_and_cut") {    
-        g_search_for_cuts_every_n_nodes = std::stoi(args[1]);
+        g_search_for_cuts_every_n_nodes = std::stoi(args[2]);
     }
         
     // 1) Load data
@@ -79,7 +79,7 @@ void Program::autorun(const std::vector<std::string> args) {
     } else if(args[1] == "branch_and_cut") {
         msolv.solve_with_branch_and_cut();
     } else {
-        std::cout << "Possible usages: " << std::endl;
+        std::cout << "Possible args: " << std::endl;
         std::cout << "tsppddl <instance> lagrange <lambda> <mu>" << std::endl;
         std::cout << "tsppddl <instance> lagrange_precedence_only <mu>" << std::endl;
         std::cout << "tsppddl <instance> lagrange_test" << std::endl;
