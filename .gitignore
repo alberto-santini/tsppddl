@@ -29,3 +29,5 @@ tsppddl
 results.txt
 cuts.txt
 kopt*
+subgradient_results
+subgradient_results/*

@@ -2,6 +2,7 @@
 #include <parser/parser.h>
 #include <solver/heuristic_solver.h>
 #include <solver/mip_solver.h>
+#include <solver/subgradient_solver.h>
 
 #include <linenoise.h>
 #include <boost/algorithm/string.hpp>
@@ -78,6 +79,9 @@ void Program::autorun(const std::vector<std::string> args) {
         msolv.solve_with_branch_and_cut();
     } else if(args[1] == "branch_and_cut") {
         msolv.solve_with_branch_and_cut();
+    } else if(args[1] == "subgradient") {
+        SubgradientSolver ssolv {g, heuristic_solutions, args[0], 100};
+        ssolv.solve();
     } else {
         std::cout << "Possible args: " << std::endl;
         std::cout << "tsppddl <instance> lagrange <lambda> <mu>" << std::endl;
