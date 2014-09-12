@@ -223,6 +223,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         
         results_file << instance_name << "\t";
         results_file << global::g_search_for_cuts_every_n_nodes << "\t";
+        results_file << std::boolalpha << tce << "\t";
         results_file << total_cplex_time << "\t";
         results_file << global::g_total_time_spent_by_heuristics << "\t";
         results_file << global::g_total_time_spent_separating_cuts << "\t";
