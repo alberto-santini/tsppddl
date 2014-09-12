@@ -1,6 +1,7 @@
 #ifndef HEURISTIC_WITH_ORDERED_REQUESTS_H
 #define HEURISTIC_WITH_ORDERED_REQUESTS_H
 
+#include <global.h>
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 

@@ -1,5 +1,6 @@
-#include <solver/bc/callbacks/check_incumbent_callback.h>
-#include <solver/bc/callbacks/flow_cut_callback.h>
+#include <global.h>
+#include <solver/bc/callbacks/feasibility_cuts_callback.h>
+#include <solver/bc/callbacks/feasibility_cuts_lazy_constraint.h>
 #include <solver/bc/bc_solver.h>
 
 #include <ilcplex/ilocplex.h>
@@ -36,23 +37,18 @@ Path BcSolver::find_best_initial_solution() {
     return *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
 }
 
-std::vector<std::vector<int>> BcSolver::solve_for_k_opt(const std::vector<std::vector<int>>& lhs, const int& rhs) {
+std::vector<std::vector<int>> BcSolver::solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs) {
     k_opt_lhs = lhs;
     k_opt_rhs = rhs;
-    return solve(true);
+    return solve(true, true);
 }
 
-void BcSolver::solve_with_branch_and_cut() const {
-    solve(false);
+void BcSolver::solve_with_branch_and_cut(bool tce) const {
+    solve(false, tce);
 }
 
-std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
+std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     using namespace std::chrono;
-
-    extern long g_total_number_of_cuts_added;
-    extern double g_total_time_spent_by_heuristics;
-    extern double g_total_time_spent_separating_cuts;
-    extern long g_search_for_cuts_every_n_nodes;
 
     long total_bb_nodes_explored;
     long number_of_cuts_added_at_root;
@@ -63,8 +59,8 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     double lb;
     double total_cplex_time;
     
-    g_total_number_of_cuts_added = 0;
-    g_total_time_spent_separating_cuts = 0;
+    global::g_total_number_of_cuts_added = 0;
+    global::g_total_time_spent_separating_cuts = 0;
 
     int n {g->g[graph_bundle].n};
     int Q {g->g[graph_bundle].capacity};
@@ -85,12 +81,13 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     IloRangeArray y_lower(env);
     IloRangeArray load(env);
     IloRangeArray initial_load(env);
+    IloRangeArray two_cycles_elimination(env);
     IloRangeArray k_opt_constraint(env);
 
     IloObjective obj = IloMinimize(env);
 
     #include <solver/bc/bc_setup_model.raw.cpp>
-
+    
     model.add(obj);    
     model.add(variables_x);
     model.add(variables_y);
@@ -101,6 +98,9 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     model.add(y_lower);
     model.add(load);
     model.add(initial_load);
+    if(tce) {
+        model.add(two_cycles_elimination);
+    }
     if(k_opt) {
         model.add(k_opt_constraint);
     }
@@ -135,9 +135,9 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
 
     // Add callbacks to separate cuts
     std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
-    if(g_search_for_cuts_every_n_nodes > 0) {
-        cplex.use(FlowCutCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        cplex.use(CheckIncumbentCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+    if(global::g_search_for_cuts_every_n_nodes > 0) {
+        cplex.use(FeasibilityCutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(FeasibilityCutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
     }
 
     // Export model to file
@@ -153,15 +153,15 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     // Solve root node
     if(!cplex.solve()) {
         IloAlgorithm::Status status = cplex.getStatus();
-        std::cout << "CPLEX problem encountered at root node." << std::endl;
-        std::cout << "CPLEX status: " << status << std::endl;
+        std::cerr << "BcSolver::solve()\tCPLEX problem encountered at root node." << std::endl;
+        std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
     } else {
         high_resolution_clock::time_point t_end {high_resolution_clock::now()};
         duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
-
+        
         time_spent_at_root = time_span.count();
-        number_of_cuts_added_at_root = g_total_number_of_cuts_added;
+        number_of_cuts_added_at_root = global::g_total_number_of_cuts_added;
         lb_at_root = cplex.getBestObjValue();
         ub_at_root = cplex.getObjValue();
 
@@ -169,7 +169,8 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
         cplex.setParam(IloCplex::NodeLim, 2100000000);
         if(!cplex.solve()) {
             IloAlgorithm::Status status = cplex.getStatus();
-            std::cout << "CPLEX status: " << status << std::endl;
+            std::cerr << "BcSolver::solve()\tCPLEX problem encountered after the root node." << std::endl;
+            std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
             throw std::runtime_error("Some error occurred or the problem is infeasible.");
         }
     }
@@ -178,15 +179,15 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     duration<double> time_span_total {duration_cast<duration<double>>(t_end_total - t_start)};
 
     IloAlgorithm::Status status = cplex.getStatus();
-    std::cout << "CPLEX status: " << status << std::endl;
-    std::cout << "\tObjective value: " << cplex.getObjValue() << std::endl;
+    std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
+    std::cerr << "BcSolver::solve()\tObjective value: " << cplex.getObjValue() << std::endl;
 
     total_bb_nodes_explored = cplex.getNnodes();
     lb = cplex.getBestObjValue();
     ub = cplex.getObjValue();
     total_cplex_time = time_span_total.count();
     
-    if(k_opt) { g_total_time_spent_by_heuristics += total_cplex_time; }
+    if(k_opt) { global::g_total_time_spent_by_heuristics += total_cplex_time; }
 
     IloNumArray x(env);
     IloNumArray y(env);
@@ -195,8 +196,7 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
 
-    std::cout << "CPLEX problem solved" << std::endl;
-    if(k_opt) { std::cout << "\t(K-Opt)" << std::endl; }
+    std::cerr << "BcSolver::solve()\tSolution:" << std::endl;
 
     // Get solution
     int col_index {0};
@@ -206,10 +206,10 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
             if(c[i][j] >= 0) {
                 if(x[col_index] > 0) {
                     solution_x[i][j] = 1;
-                    if(!k_opt) { std::cout << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
+                    if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
                 if(y[col_index] > 0) {
-                    if(!k_opt) { std::cout << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
+                    if(!k_opt) { std::cerr << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
                 }
                 col_index++;
             }
@@ -222,10 +222,10 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
         results_file.open("results.txt", std::ios::out | std::ios::app);
         
         results_file << instance_name << "\t";
-        results_file << g_search_for_cuts_every_n_nodes << "\t";
+        results_file << global::g_search_for_cuts_every_n_nodes << "\t";
         results_file << total_cplex_time << "\t";
-        results_file << g_total_time_spent_by_heuristics << "\t";
-        results_file << g_total_time_spent_separating_cuts << "\t";
+        results_file << global::g_total_time_spent_by_heuristics << "\t";
+        results_file << global::g_total_time_spent_separating_cuts << "\t";
         results_file << time_spent_at_root << "\t";
         results_file << initial_solution.total_cost << "\t";
         results_file << ub << "\t";
@@ -234,7 +234,7 @@ std::vector<std::vector<int>> BcSolver::solve(const bool k_opt) const {
         results_file << ub_at_root << "\t";
         results_file << lb_at_root << "\t";
         results_file << (ub_at_root - lb_at_root) / ub_at_root << "\t";
-        results_file << g_total_number_of_cuts_added << "\t";
+        results_file << global::g_total_number_of_cuts_added << "\t";
         results_file << number_of_cuts_added_at_root << "\t";
         results_file << total_bb_nodes_explored << std::endl;
         

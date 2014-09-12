@@ -4,7 +4,6 @@ BestInsertionHeuristic<IC>::BestInsertionHeuristic(const std::shared_ptr<const G
 template<class IC>
 Path BestInsertionHeuristic<IC>::solve() {
     using namespace std::chrono;
-    extern double g_total_time_spent_by_heuristics;
     
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};
     
@@ -40,7 +39,7 @@ Path BestInsertionHeuristic<IC>::solve() {
     
     high_resolution_clock::time_point t_end {high_resolution_clock::now()};
     duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
-    g_total_time_spent_by_heuristics += time_span.count();
+    global::g_total_time_spent_by_heuristics += time_span.count();
     
     return this->p;
 }

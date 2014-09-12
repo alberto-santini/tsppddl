@@ -1,6 +1,7 @@
 #ifndef BEST_INSERTION_HEURISTIC_H
 #define BEST_INSERTION_HEURISTIC_H
 
+#include <global.h>
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 

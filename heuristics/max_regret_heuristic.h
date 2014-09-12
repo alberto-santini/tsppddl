@@ -1,6 +1,7 @@
 #ifndef MAX_REGRET_HEURISTIC_H
 #define MAX_REGRET_HEURISTIC_H
 
+#include <global.h>
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 

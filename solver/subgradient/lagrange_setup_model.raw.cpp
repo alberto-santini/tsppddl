@@ -58,8 +58,8 @@ for(int i = 0; i <= 2*n + 1; i++) {
                             if(i >= 1 && i <= n && j >= 1 && j <= n) { alpha = d[i]; }
                             if(i >= n+1 && i <= 2*n && j >= n+1 && j <= 2*n) { alpha = -d[j]; }
                             if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) { alpha = d[i] - d[j]; }
+                            beta = std::min(std::min(Q - std::max(0, d[j]), l[i]), l[j] - std::max(0, d[j]));
                         }
-                        beta = std::min(std::min(Q - std::max(0, d[j]), l[i]), l[j] - std::max(0, d[j]));
                         
                         col += y_lower[col_n](alpha);
                         col += y_upper[col_n](beta);
@@ -103,8 +103,14 @@ for(int i = 0; i <= 2*n + 1; i++) {
             for(int ii = 0; ii <= 2*n + 1; ii++) {
                 for(int jj = 0; jj <= 2*n + 1; jj++) {
                     if(c[ii][jj] >= 0) {
-                        col += y_lower[col_n](-1);
-                        col += y_upper[col_n](-1);
+                        int coeff {0};
+                        
+                        if(i == ii && j == jj) {
+                            coeff = -1;
+                        }
+                        
+                        col += y_lower[col_n](coeff);
+                        col += y_upper[col_n](coeff);
                         col_n++;
                     }
                 }

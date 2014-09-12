@@ -1,3 +1,4 @@
+#include <global.h>
 #include <cli/program.h>
 #include <parser/parser.h>
 #include <solver/heuristics/heuristic_solver.h>
@@ -19,20 +20,19 @@ void Program::load(const std::string filename) {
 }
 
 void Program::autorun(const std::vector<std::string> args) {
-    extern long g_search_for_cuts_every_n_nodes;
-    
     std::string file_name {args[0]};
 
     load(file_name);
 
     if(args[1] == "branch_and_cut") {
-        g_search_for_cuts_every_n_nodes = std::stoi(args[2]);
+        global::g_search_for_cuts_every_n_nodes = std::stoi(args[2]);
+        bool tce {args[3] == "yes"};
         
         HeuristicSolver hsolv {g};
         heuristic_solutions = hsolv.solve();
         
         BcSolver bsolv {g, heuristic_solutions, args[0]};
-        bsolv.solve_with_branch_and_cut();
+        bsolv.solve_with_branch_and_cut(tce);
     } else if(args[1] == "subgradient") {
         HeuristicSolver hsolv {g};
         heuristic_solutions = hsolv.solve();
