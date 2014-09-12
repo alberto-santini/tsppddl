@@ -25,15 +25,14 @@ class FlowCutCallback : public IloCplex::UserCutCallbackI {
     std::pair<bool, std::vector<std::vector<double>>> compute_x_values() const;
     
 public:
-    FlowCutCallback(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps, const bool separate_all) : IloCplex::UserCutCallbackI{env}, x{x}, g{g}, gr{gr}, eps{eps}, separate_all{separate_all} {}
+    FlowCutCallback(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps) : IloCplex::UserCutCallbackI{env}, x{x}, g{g}, gr{gr}, eps{eps} {}
     
-    // Virtual functions of IloCplex::UserCutCallbackI
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback FlowCutCallbackHandle(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps, const bool include_mtz) {
-    return (IloCplex::Callback(new(env) FlowCutCallback(env, x, g, gr, eps, !include_mtz)));
+inline IloCplex::Callback FlowCutCallbackHandle(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps) {
+    return (IloCplex::Callback(new(env) FlowCutCallback(env, x, g, gr, eps)));
 }
 
 #endif

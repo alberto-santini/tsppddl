@@ -37,11 +37,27 @@ Graph::Graph(const demand_t demand, const draught_t draught, const cost_t cost, 
         for(std::tie(vj, vj_end) = vertices(g); vj != vj_end; ++vj) {
             int j {g[*vj].id};
             
-            if( (*vi == *vj) || (*vj == start_depot_v) || (*vi == start_depot_v && j > n) ||
-                (*vj == end_depot_v && i <= n) || (i == j + n) ||
-                (i <= n && g[*vi].demand > std::min(g[*vj].draught, capacity)) ||
-                (i <= n && g[*vi].demand + g[*vj].demand > std::min(g[*vj].draught, capacity)) ||
-                (j > n && -g[*vj].demand > std::min(g[*vi].draught, capacity))) {
+            if( (*vi == *vj) ||
+                (*vj == start_depot_v) ||
+                (*vi == start_depot_v && j > n) ||
+                (*vj == end_depot_v && i <= n) ||
+                (i == j + n) ||
+                (
+                    (i <= n) &&
+                    (i <= n) &&
+                    (g[*vi].demand + g[*vj].demand > std::min(g[*vj].draught, capacity))
+                ) ||
+                (
+                    (i <= n) &&
+                    (j > n) &&
+                    (g[*vi].demand + std::abs(g[*vj].demand) > std::min(std::min(g[*vi].draught, g[*vj].draught), capacity))
+                ) ||
+                (
+                    (i > n) &&
+                    (j > n) &&
+                    (std::abs(g[*vi].demand) + std::abs(g[*vj].demand) > std::min(g[*vi].draught, capacity))
+                )
+            ) {
                 
                 this->cost[i][j] = -1;
                 continue;

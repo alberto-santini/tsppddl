@@ -119,17 +119,18 @@ for(int i = 0; i <= 2*n + 1; i++) {
     }
 }
 
-for(int i = 0; i < 2*n + 1; i++) {
+for(int i = 0; i <= 2*n + 1; i++) {
     double obj_coeff {0};
     
     for(int j = 0; j <= 2*n + 1; j++) {
-        if(c[i][j] >= 0) { obj_coeff -= lambda[i][j]; }
-        if(c[j][i] >= 0) { obj_coeff += lambda[j][i]; }
+        if(c[i][j] >= 0) { obj_coeff += lambda[i][j]; }
+        if(c[j][i] >= 0) { obj_coeff -= lambda[j][i]; }
     }
     
     if(i >= 1 && i <= n) {
-        obj_coeff -= mu[i];
-        obj_coeff += mu[n+i];
+        obj_coeff += mu[i];
+    } else if(i >= n+1 && i <= 2*n) {
+        obj_coeff -= mu[i-n];
     }
     
     IloNumColumn col = obj(obj_coeff);

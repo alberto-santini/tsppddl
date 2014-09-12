@@ -1,6 +1,6 @@
 #include <heuristics/k_opt_heuristic.h>
 
-#include <solver/mip_solver.h>
+#include <solver/bc/bc_solver.h>
 
 #include <algorithm>
 #include <iostream>
@@ -46,7 +46,7 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
         }
     }
     
-    MipSolver msolv {g, initial_solutions, "k-opt"};
+    BcSolver msolv {g, initial_solutions, "k-opt"};
     std::cout << "alpha: " << alpha << ", k: " << k << ", beta: " << beta << std::endl;
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
     return get_path(solution_x);
@@ -59,7 +59,7 @@ Path KOptHeuristic::solve() const {
     
     std::vector<std::vector<int>> sol_x {get_x_values(best_solution)};
     
-    MipSolver msolv {g, initial_solutions, "k-opt"};
+    BcSolver msolv {g, initial_solutions, "k-opt"};
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
     return get_path(solution_x);
 }

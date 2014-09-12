@@ -1,4 +1,4 @@
-#include <solver/flow_cut_callback.h>
+#include <solver/bc/callbacks/flow_cut_callback.h>
 
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/property_map/property_map.hpp>
@@ -72,33 +72,28 @@ void FlowCutCallback::main() {
                 sink_v_prec
             );
                 
-            if(separate_all) {
-                for(std::tie(vi, vi_end) = vertices(gr->g); vi != vi_end; ++vi) {
-                    if(gr->g[*vi].id == n+i) {
-                        source_v_cycles = *vi;
-                    }
-                    if(gr->g[*vi].id == 2*n+1) {
-                        sink_v_cycles = *vi;
-                    }
+            for(std::tie(vi, vi_end) = vertices(gr->g); vi != vi_end; ++vi) {
+                if(gr->g[*vi].id == n+i) {
+                    source_v_cycles = *vi;
                 }
-                
-                flow_cycles = boykov_kolmogorov_max_flow(gr->g,
-                    make_iterator_property_map(capacity.begin(), get(&Arc::id, gr->g)),
-                    make_iterator_property_map(residual_capacity_cycles.begin(), get(&Arc::id, gr->g)),
-                    make_iterator_property_map(reverse_edge.begin(), get(&Arc::id, gr->g)),
-                    make_iterator_property_map(colour_cycles.begin(), get(&Node::id, gr->g)),
-                    get(&Node::id, gr->g),
-                    source_v_cycles,
-                    sink_v_cycles
-                ); 
+                if(gr->g[*vi].id == 2*n+1) {
+                    sink_v_cycles = *vi;
+                }
             }
+            
+            flow_cycles = boykov_kolmogorov_max_flow(gr->g,
+                make_iterator_property_map(capacity.begin(), get(&Arc::id, gr->g)),
+                make_iterator_property_map(residual_capacity_cycles.begin(), get(&Arc::id, gr->g)),
+                make_iterator_property_map(reverse_edge.begin(), get(&Arc::id, gr->g)),
+                make_iterator_property_map(colour_cycles.begin(), get(&Node::id, gr->g)),
+                get(&Node::id, gr->g),
+                source_v_cycles,
+                sink_v_cycles
+            ); 
                 
             high_resolution_clock::time_point t_end {high_resolution_clock::now()};
             duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
             g_total_time_spent_separating_cuts += time_span.count();
-        
-            // std::ofstream cuts_file;
-            // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
         
             if(flow_prec < 1 - eps) {
                 std::vector<int> source_nodes, sink_nodes;
@@ -110,17 +105,6 @@ void FlowCutCallback::main() {
                         sink_nodes.push_back(j);
                     }
                 }
-                
-                // cuts_file << "PREC CUT ";
-                // if(is_integer_solution) {
-                //     cuts_file << "(ON*INTEGER): ";
-                // } else {
-                //     cuts_file << "(" << std::setw(10) << node_number << "): ";
-                // }
-                // for(int ii : source_nodes) { cuts_file << ii << " "; }
-                // cuts_file << " | ";
-                // for(int jj : sink_nodes) { cuts_file << jj << " "; }
-                // cuts_file << std::endl;
             
                 IloRange cut;
                 IloExpr lhs;
@@ -155,7 +139,7 @@ void FlowCutCallback::main() {
                 }
             }
             
-            if(separate_all && flow_cycles < 1 - eps) {
+            if(flow_cycles < 1 - eps) {
                 std::vector<int> source_nodes, sink_nodes;
         
                 for(int j = 0; j < colour_cycles.size(); j++) {
@@ -165,18 +149,7 @@ void FlowCutCallback::main() {
                         sink_nodes.push_back(j);
                     }
                 }
-                
-                // cuts_file << "CYCL CUT ";
-                // if(is_integer_solution) {
-                //     cuts_file << "(ON*INTEGER): ";
-                // } else {
-                //     cuts_file << "(" << std::setw(10) << node_number << "): ";
-                // }
-                // for(int ii : source_nodes) { cuts_file << ii << " "; }
-                // cuts_file << " | ";
-                // for(int jj : sink_nodes) { cuts_file << jj << " "; }
-                // cuts_file << std::endl;
-        
+
                 IloRange cut;
                 IloExpr lhs;
                 IloNum rhs = 1.0;
@@ -209,7 +182,6 @@ void FlowCutCallback::main() {
                     throw;
                 }
             }
-            // cuts_file.close();
         }
     }
 }

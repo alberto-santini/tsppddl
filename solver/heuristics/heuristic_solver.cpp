@@ -1,4 +1,4 @@
-#include <solver/heuristic_solver.h>
+#include <solver/heuristics/heuristic_solver.h>
 
 #include <heuristics/best_insertion_heuristic.h>
 #include <heuristics/heuristic_with_ordered_requests.h>

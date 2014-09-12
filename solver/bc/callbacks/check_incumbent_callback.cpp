@@ -1,4 +1,4 @@
-#include <solver/check_incumbent_callback.h>
+#include <solver/bc/callbacks/check_incumbent_callback.h>
 
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/property_map/property_map.hpp>
