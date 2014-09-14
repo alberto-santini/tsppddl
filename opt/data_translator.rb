@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/Users/alberto/.rvm/rubies/ruby-2.1.2/bin/ruby
 
 require 'json'
 
@@ -74,7 +74,9 @@ q = (num_ports * h * avg_load).to_i
 end
 
 0.upto(num_ports - 1) do |i|
-  demand[i] = [draught[origins[i]], draught[i], (min_load + Random.rand(max_load - min_load + 1))].min.to_i
+  x = Math.log(min_load.to_f / max_load.to_f)
+  demand[i] = [draught[origins[i]], draught[i], min_load * Math.exp(Random.rand(-1.1 * x))].min.to_i
+  # demand[i] = [draught[origins[i]], draught[i], (min_load + Random.rand(max_load - min_load + 1))].min.to_i
   ports[i] = {:id => i, :draught => draught[i], :depot => (i == 0 ? true : false), :x => posx[i], :y => posy[i]}
     
   unless i == 0
@@ -91,6 +93,6 @@ data = {
   :distances => distances
 }
 
-new_file_name = "../data/#{instance_name}_#{h}_#{k}.json"
+new_file_name = "../data/new/#{instance_name}_#{h}_#{k}.json"
 
-File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data) }
+File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data)}
