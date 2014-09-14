@@ -10,6 +10,11 @@ void FeasibilityCutsCallback::main() {
     long node_number = getNnodes();
     auto sol = compute_x_values();
     
+    // std::ofstream cuts_file;
+    // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
+    // cuts_file << "CTS " << std::setw(6) << node_number << std::endl;
+    // cuts_file.close();
+    
     if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
         auto cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
         

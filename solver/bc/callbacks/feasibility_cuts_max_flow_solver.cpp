@@ -30,6 +30,9 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         capacity[e] = xvals[i][j];
         reverse_edge[e] = edge(target(*ei, gr->g), source(*ei, gr->g), gr->g).first;
     }
+    
+    // std::ofstream cuts_file;
+    // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
 
     for(int i = 1; i <= n; i++) {
         std::vector<double> residual_capacity_prec(num_edges(gr->g), 0);
@@ -81,8 +84,11 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         if(flow_prec < 1 - eps) {
             std::vector<int> source_nodes, sink_nodes;
         
+            // cuts_file << "\tPREC: ";
+            
             for(int j = 0; j < colour_prec.size(); j++) {
                 if(colour_prec[j] == colour_prec[i]) {
+                    // cuts_file << std::setw(3) << j;
                     source_nodes.push_back(j);
                 } else {
                     sink_nodes.push_back(j);
@@ -93,7 +99,7 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
             IloExpr lhs;
             IloNum rhs = 1.0;
             bool expr_init {false};
-        
+
             int col_index {0};
             for(int i = 0; i <= 2 * n + 1; i++) {
                 for(int j = 0; j <= 2 * n + 1; j++) {
@@ -114,13 +120,17 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
                     
             cut = (lhs >= rhs);
             cuts.push_back(cut);
+            // cuts_file << std::endl;
         }
         
         if(flow_cycles < 1 - eps) {
             std::vector<int> source_nodes, sink_nodes;
+            
+            // cuts_file << "\tCYCL: ";
     
             for(int j = 0; j < colour_cycles.size(); j++) {
                 if(colour_cycles[j] == colour_cycles[n+i]) {
+                    // cuts_file << std::setw(3) << j;
                     source_nodes.push_back(j);
                 } else {
                     sink_nodes.push_back(j);
@@ -137,7 +147,7 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
                 for(int j = 0; j <= 2 * n + 1; j++) {
                     if(g->cost[i][j] >= 0) {
                         if( std::find(source_nodes.begin(), source_nodes.end(), i) != source_nodes.end() &&
-                            std::find(sink_nodes.begin(), sink_nodes.end(), j) != sink_nodes.end()) {
+                            std::find(sink_nodes.begin(), sink_nodes.end(), j) != sink_nodes.end()) {                                
                             if(!expr_init) {
                                 lhs = x[col_index];
                                 expr_init = true;
@@ -152,7 +162,10 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
                 
             cut = (lhs >= rhs);
             cuts.push_back(cut);
+            // cuts_file << std::endl;
         }
+        
+        // cuts_file.close();
     }
     
     return cuts;

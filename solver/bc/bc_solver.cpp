@@ -145,7 +145,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
-    cplex.setParam(IloCplex::Threads, 4);
+    cplex.setParam(IloCplex::Threads, 1);
     cplex.setParam(IloCplex::NodeLim, 0);
     
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};

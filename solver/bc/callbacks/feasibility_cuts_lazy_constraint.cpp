@@ -9,6 +9,12 @@ IloCplex::CallbackI* FeasibilityCutsLazyConstraint::duplicateCallback() const {
 void FeasibilityCutsLazyConstraint::main() {
     long node_number = getNnodes();
     auto sol = compute_x_values();
+    
+    // std::ofstream cuts_file;
+    // cuts_file.open("cuts.txt", std::ios::out | std::ios::app);
+    // cuts_file << "LZY " << std::setw(6) << node_number << std::endl;
+    // cuts_file.close();
+    
     auto cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
     
     for(IloRange cut : cuts) {

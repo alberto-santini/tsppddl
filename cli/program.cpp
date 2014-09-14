@@ -41,7 +41,7 @@ void Program::autorun(const std::vector<std::string> args) {
         ssolv.solve();
     } else {
         std::cout << "Possible args: " << std::endl;
-        std::cout << "tsppddl <instance> branch_and_cut <cut_every_n_nodes>" << std::endl;
+        std::cout << "tsppddl <instance> branch_and_cut <cut_every_n_nodes> <2-cycles_elimination>" << std::endl;
         std::cout << "tsppddl <instance> subgradient" << std::endl;
     }
 }
