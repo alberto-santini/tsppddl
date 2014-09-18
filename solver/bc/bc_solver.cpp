@@ -15,7 +15,7 @@
 #include <ratio>
 #include <stdexcept>
 
-BcSolver::BcSolver(const std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, const std::string instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
+BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
     initial_solution = find_best_initial_solution();
     initial_solution.verify_feasible(g);
     int n {g->g[graph_bundle].n};

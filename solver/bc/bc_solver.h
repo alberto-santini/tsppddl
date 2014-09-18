@@ -28,7 +28,7 @@ class BcSolver {
     std::vector<std::vector<int>> solve(bool k_opt, bool tce) const;
     
 public:
-    BcSolver(const std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, const std::string instance_name = "");
+    BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_name = "");
     void solve_with_branch_and_cut(bool tce) const;
     std::vector<std::vector<int>> solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs);
 };

@@ -12,11 +12,11 @@ class Program {
     std::shared_ptr<const Graph> g;
     std::vector<Path> heuristic_solutions;
     
-    void load(const std::string filename);
+    void load(const std::string& filename);
 
 public:
-    Program();
-    void autorun(const std::vector<std::string> args);
+    Program() : g{nullptr} {}
+    void autorun(const std::vector<std::string>& args);
 };
 
 #endif

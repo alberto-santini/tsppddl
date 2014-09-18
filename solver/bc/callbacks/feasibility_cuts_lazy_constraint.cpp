@@ -7,7 +7,6 @@ IloCplex::CallbackI* FeasibilityCutsLazyConstraint::duplicateCallback() const {
 }
 
 void FeasibilityCutsLazyConstraint::main() {
-    long node_number = getNnodes();
     auto sol = compute_x_values();
         
     auto cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-Graph::Graph(const demand_t demand, const draught_t draught, const cost_t cost, const int capacity) : demand{demand}, draught{draught}, cost{cost} {
+Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, const int capacity) : demand{demand}, draught{draught}, cost{cost} {
     int n {(static_cast<int>(demand.size()) - 2) / 2};
     
     assert(demand.size() == 2 * n + 2);
@@ -44,7 +44,7 @@ Graph::Graph(const demand_t demand, const draught_t draught, const cost_t cost, 
                 (i == j + n) ||
                 (
                     (i <= n) &&
-                    (i <= n) &&
+                    (j <= n) &&
                     (g[*vi].demand + g[*vj].demand > std::min(g[*vj].draught, capacity))
                 ) ||
                 (

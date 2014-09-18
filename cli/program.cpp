@@ -10,16 +10,12 @@
 #include <iostream>
 #include <string>
 
-Program::Program() {
-    g = nullptr;
-}
-
-void Program::load(const std::string filename) {
+void Program::load(const std::string& filename) {
     Parser par {filename};
     g = std::make_shared<Graph>(par.generate_graph());
 }
 
-void Program::autorun(const std::vector<std::string> args) {
+void Program::autorun(const std::vector<std::string>& args) {
     std::string file_name {args[0]};
 
     load(file_name);

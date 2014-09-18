@@ -3,7 +3,7 @@
 #include <iostream>
 #include <numeric>
 
-Heuristic::Heuristic(const std::shared_ptr<const Graph> g) : g{g} {
+Heuristic::Heuristic(const std::shared_ptr<const Graph>& g) : g{g} {
     n = g->g[graph_bundle].n;
     remaining_requests = std::vector<int>(n);
     std::iota(remaining_requests.begin(), remaining_requests.end(), 1);

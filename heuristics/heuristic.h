@@ -15,7 +15,7 @@ protected:
     Path p;
     
 public:
-    Heuristic(const std::shared_ptr<const Graph> g);
+    Heuristic(const std::shared_ptr<const Graph>& g);
     void print_requests() const;
 };
 

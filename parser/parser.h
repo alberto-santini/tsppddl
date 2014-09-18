@@ -9,7 +9,7 @@ class Parser {
     std::string file_name;
     
 public:
-    Parser(const std::string file_name) : file_name{file_name} {}
+    Parser(const std::string& file_name) : file_name{file_name} {}
     Graph generate_graph() const;
 };
 

@@ -31,7 +31,7 @@ public:
     draught_t draught;
     cost_t cost;
     
-    Graph(const demand_t demand, const draught_t draught, const cost_t cost, const int capacity);
+    Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, const int capacity);
     Graph make_reverse_graph() const;
 };
 
