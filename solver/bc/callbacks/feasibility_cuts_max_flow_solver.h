@@ -7,6 +7,7 @@
 #include <ilcplex/ilocplex.h>
 #include <ilcplex/ilocplexi.h>
 
+#include <memory>
 #include <vector>
 
 namespace FeasibilityCutsMaxFlowSolver {

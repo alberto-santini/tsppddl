@@ -1,26 +1,27 @@
 #include <global.h>
-#include <solver/bc/callbacks/feasibility_cuts_callback.h>
-#include <solver/bc/callbacks/feasibility_cuts_max_flow_solver.h>
+#include <solver/bc/callbacks/valid_cuts_callback.h>
 
-IloCplex::CallbackI* FeasibilityCutsCallback::duplicateCallback() const {
-    return (new(getEnv()) FeasibilityCutsCallback(*this));
+#include <iostream>
+
+IloCplex::CallbackI* ValidCutsCallback::duplicateCallback() const {
+    return (new(getEnv()) ValidCutsCallback(*this));
 }
 
-void FeasibilityCutsCallback::main() {
-    long node_number = getNnodes();
+void ValidCutsCallback::main() {
     auto sol = compute_x_values();
     
-    if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
-        auto cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
-        
-        for(IloRange& cut : cuts) {
-            add(cut, IloCplex::UseCutForce).end();
-            global::g_total_number_of_cuts_added++;
-        }
+    auto cuts_se = SubtourEliminationCutsSolver::separate_valid_cuts(g, sol, x, eps);
+    auto cuts = cuts_se;
+    
+    // std::cout << "Adding " << cuts.size() << " cuts" << std::endl;
+    
+    for(IloRange& cut : cuts) {
+        add(cut, IloCplex::UseCutForce).end();
+        global::g_total_number_of_cuts_added++;
     }
 }
 
-CallbacksHelper::solution FeasibilityCutsCallback::compute_x_values() const {
+CallbacksHelper::solution ValidCutsCallback::compute_x_values() const {
     int n {g->g[graph_bundle].n};
     cost_t c {g->cost};
     std::vector<std::vector<double>> xvals(2*n+2, std::vector<double>(2*n+2, 0));

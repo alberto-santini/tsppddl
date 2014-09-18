@@ -1,6 +1,7 @@
 #include <global.h>
 #include <solver/bc/callbacks/feasibility_cuts_callback.h>
 #include <solver/bc/callbacks/feasibility_cuts_lazy_constraint.h>
+#include <solver/bc/callbacks/valid_cuts_callback.h>
 #include <solver/bc/bc_solver.h>
 
 #include <ilcplex/ilocplex.h>
@@ -138,6 +139,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     if(global::g_search_for_cuts_every_n_nodes > 0) {
         cplex.use(FeasibilityCutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
         cplex.use(FeasibilityCutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(ValidCutsCallbackHandle(env, variables_x, g, cplex.getParam(IloCplex::EpRHS)));
     }
 
     // Export model to file
@@ -155,6 +157,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         IloAlgorithm::Status status = cplex.getStatus();
         std::cerr << "BcSolver::solve()\tCPLEX problem encountered at root node." << std::endl;
         std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
+        cplex.exportModel("model_err.lp");
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
     } else {
         high_resolution_clock::time_point t_end {high_resolution_clock::now()};
@@ -171,6 +174,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
             IloAlgorithm::Status status = cplex.getStatus();
             std::cerr << "BcSolver::solve()\tCPLEX problem encountered after the root node." << std::endl;
             std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
+            cplex.exportModel("model_err.lp");
             throw std::runtime_error("Some error occurred or the problem is infeasible.");
         }
     }
@@ -196,7 +200,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
 
-    std::cerr << "BcSolver::solve()\tSolution:" << std::endl;
+    if(!k_opt) { std::cerr << "BcSolver::solve()\tSolution:" << std::endl; }
 
     // Get solution
     int col_index {0};
