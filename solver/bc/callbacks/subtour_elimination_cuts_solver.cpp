@@ -187,31 +187,35 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts(std::sha
                         // PI
                         
                         // First sum: delta+(S') \cup delta-(S')
-                        if(new_in_S_pi[ii] || new_in_S_pi[jj]) {
+                        if((ii >= 1 && ii <= 2*n && new_in_S_pi[ii]) || (jj >= 1 && jj <= 2*n && new_in_S_pi[jj])) {
                             new_first_sum_pi += xvals[ii][jj];
                         }
-                        // Second sum: first set -> third set
-                        if(new_in_first_set_pi[ii] && new_in_third_set_pi[jj]) {
-                            new_second_sum_pi += xvals[ii][jj];
-                        }
-                        // Third sum: S' -> second set
-                        if(new_in_S_pi[ii] && new_in_second_set_pi[jj]) {
-                            new_third_sum_pi += xvals[ii][jj];
+                        if(ii >= 1 && ii <= 2*n && jj >= 1 && jj <= 2*n) {
+                            // Second sum: first set -> third set
+                            if(new_in_first_set_pi[ii] && new_in_third_set_pi[jj]) {
+                                new_second_sum_pi += xvals[ii][jj];
+                            }
+                            // Third sum: S' -> second set
+                            if(new_in_S_pi[ii] && new_in_second_set_pi[jj]) {
+                                new_third_sum_pi += xvals[ii][jj];
+                            }
                         }
                         
                         // SIGMA
                         
                         // First sum: delta+(S') \cup delta-(S')
-                        if(new_in_S_sigma[ii] || new_in_S_sigma[jj]) {
+                        if((ii >= 1 && ii <= 2*n && new_in_S_pi[ii]) || (jj >= 1 && jj <= 2*n && new_in_S_pi[jj])) {
                             new_first_sum_sigma += xvals[ii][jj];
                         }
-                        // Second sum: first set -> second set
-                        if(new_in_first_set_sigma[ii] && new_in_second_set_sigma[jj]) {
-                            new_second_sum_sigma += xvals[ii][jj];
-                        }
-                        // Third sum: third set -> S'
-                        if(new_in_third_set_sigma[ii] && new_in_S_sigma[ii]) {
-                            new_third_sum_sigma += xvals[ii][jj];
+                        if(ii >= 1 && ii <= 2*n && jj >= 1 && jj <= 2*n) {
+                            // Second sum: first set -> second set
+                            if(new_in_first_set_sigma[ii] && new_in_second_set_sigma[jj]) {
+                                new_second_sum_sigma += xvals[ii][jj];
+                            }
+                            // Third sum: third set -> S'
+                            if(new_in_third_set_sigma[ii] && new_in_S_sigma[ii]) {
+                                new_third_sum_sigma += xvals[ii][jj];
+                            }
                         }
                     }
                 }
