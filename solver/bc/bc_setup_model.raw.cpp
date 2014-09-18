@@ -113,7 +113,8 @@ for(int i = 0; i <= 2*n + 1; i++) {
             }
 
             IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, ("x_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
-            variables_x.add(v);            
+            variables_x.add(v);
+            col.end()          
         }
     }
 }
@@ -176,6 +177,7 @@ for(int i = 0; i <= 2*n + 1; i++) {
             
             IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
             variables_y.add(v);
+            col.end();
         }
     }
 }

@@ -72,7 +72,8 @@ for(int i = 0; i <= 2*n + 1; i++) {
             col += initial_order[0](0);
                         
             IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool);
-            variables_x.add(v);            
+            variables_x.add(v);
+            col.end();
         }
     }
 }
@@ -121,6 +122,7 @@ for(int i = 0; i <= 2*n + 1; i++) {
             
             IloNumVar v(col, 0.0, Q, IloNumVar::Int);
             variables_y.add(v);
+            col.end();
         }
     }
 }
@@ -169,4 +171,5 @@ for(int i = 0; i <= 2*n + 1; i++) {
     
     IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int);
     variables_tt.add(v);
+    col.end();
 }
