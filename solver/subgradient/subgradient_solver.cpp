@@ -20,7 +20,8 @@ void SubgradientSolver::solve() {
     draught_t l {g->draught};
     cost_t c {g->cost};
     
-    best_sol = std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); })->total_cost;
+    auto best_heur_path = std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+    best_sol = best_heur_path->total_cost;
     
     // Initial multipliers: all 1.0
     std::vector<std::vector<double>> lambda(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
