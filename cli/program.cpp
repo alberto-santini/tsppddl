@@ -35,6 +35,11 @@ void Program::autorun(const std::vector<std::string>& args) {
         HeuristicSolver hsolv {g};
         heuristic_solutions = hsolv.solve();
         
+        std::cerr << "Heuristic solutions: " << heuristic_solutions.size() << std::endl;
+        std::cerr << "Of sizes: ";
+        for(auto sol : heuristic_solutions) { std::cerr << sol.total_cost << " "; }
+        std::cerr << std::endl;
+        
         SubgradientSolver ssolv {g, heuristic_solutions, args[0], 1000};
         ssolv.solve();
     } else {
