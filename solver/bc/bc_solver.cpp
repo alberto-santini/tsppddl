@@ -143,7 +143,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     }
 
     // Export model to file
-    if(!k_opt) { cplex.exportModel("model.lp"); }
+    if(!k_opt) { cplex.exportModel("model.lp"); } else { cplex.exportModel("kopt.lp"); }
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
