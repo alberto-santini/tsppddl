@@ -143,7 +143,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     }
 
     // Export model to file
-    if(!k_opt) { cplex.exportModel("model.lp"); } else { cplex.exportModel("kopt.lp"); }
+    if(!k_opt) { cplex.exportModel("model.lp"); }
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
@@ -208,9 +208,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
-                if(x[col_index] > 0) {
+                if(x[col_index] > 0.0001) {
                     solution_x[i][j] = 1;
-                    std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl;
+                    if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
                 if(y[col_index] > 0) {
                     if(!k_opt) { std::cerr << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }

@@ -46,8 +46,6 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
         }
     }
     
-    BcSolver msolv {g, initial_solutions, "k-opt"};
-    std::cout << "alpha: " << alpha << ", k: " << k << ", beta: " << beta << std::endl;
     std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
     return get_path(solution_x);
 }
