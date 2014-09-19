@@ -116,7 +116,7 @@ void SubgradientSolver::solve() {
             
             // Value of the relaxed inequalities, as put in the objective function
             std::vector<std::vector<double>> L(2*n + 2, std::vector<double>(2*n + 2, 0));
-            std::vector<double> M(n, 0);
+            std::vector<double> M(n+1, 0);
             
             // Sum of the squares of L and M
             double LL {0};
