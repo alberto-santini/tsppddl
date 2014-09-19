@@ -87,20 +87,16 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     Path p;
     p.path.reserve(2 * n + 2); p.load.reserve(2 * n + 2);
     p.path.push_back(0); p.load.push_back(0);
-    visited_nodes.reserve(2 * n + 1);
+    visited_nodes.reserve(2 * n + 2);
         
     while(current_node != 2 * n + 1) {
         auto cycle = std::find(visited_nodes.begin(), visited_nodes.end(), current_node);
         if(cycle != visited_nodes.end()) {
             std::cerr << ">> Cycle: the path comes back to " << *cycle << std::endl;
-            p.path = std::vector<int>(0);
-            p.load = std::vector<int>(0);
-            p.total_cost = std::numeric_limits<int>::max() - 1;
-            p.total_load = 0;
-            return p;
+            throw std::runtime_error("K-opt heuristic produced a path with a cycle!");
         }
         for(int j = 0; j <= 2 * n + 1; j++) {
-            if(abs(x[current_node][j] - 1) < 0.01) {
+            if(std::abs(x[current_node][j] - 1) < 0.0001) {
                 p.path.push_back(j);
                 current_load += d[j];
                 p.load.push_back(current_load);
@@ -114,10 +110,8 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     }
     
     if(p.path.size() != 2 * n + 2) {
-        p.path = std::vector<int>(0);
-        p.load = std::vector<int>(0);
-        p.total_cost = std::numeric_limits<int>::max() - 1;
-        p.total_load = 0;
+        std::cerr << "Path length: " << p.path.size() << " - expected: " << (2*n+2) << std::endl;
+        throw std::runtime_error("K-opt heuristic produced a short path!");
     }
     
     return p;
