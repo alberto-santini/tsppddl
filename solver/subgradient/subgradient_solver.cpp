@@ -68,15 +68,11 @@ void SubgradientSolver::solve() {
     print_headers(results_file);
     
     while(subgradient_iteration++ <= iteration_limit) {
-        std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " STARTING *****" << std::endl;
-        
         high_resolution_clock::time_point t_start {high_resolution_clock::now()};
         
         if(cplex.solve()) {
             high_resolution_clock::time_point t_end {high_resolution_clock::now()};
             duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " CPLEX FINISHED *****" << std::endl;
             
             double obj_const_term {0};
             for(int i = 0; i <= 2*n + 1; i++) {
@@ -86,8 +82,6 @@ void SubgradientSolver::solve() {
                 if(i >= 1 && i <= n) { obj_const_term += mu[i]; }
             }
             
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " CALCULATED CONSTANT TERM *****" << std::endl;
-
             double iteration_time {time_span.count()};
             double result {cplex.getObjValue() + obj_const_term};
             int violated_mtz {0};
@@ -107,13 +101,9 @@ void SubgradientSolver::solve() {
                 rounds_without_improvement++;
             }
             
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " CHECKED IMPROVEMENT *****" << std::endl;
-            
             IloNumArray x(env); cplex.getValues(x, variables_x);
             IloNumArray t(env); cplex.getValues(t, variables_tt);
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " EXTRACTED VARIABLES' VALUES *****" << std::endl;
-            
+                        
             // Value of the relaxed inequalities, as put in the objective function
             std::vector<std::vector<double>> L(2*n + 2, std::vector<double>(2*n + 2, 0));
             std::vector<double> M(n+1, 0);
@@ -145,20 +135,14 @@ void SubgradientSolver::solve() {
                     }
                 }
             }
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " CALCULATED L,M *****" << std::endl;
-            
+                        
             x.end(); t.end();
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " ENDED IloNumArray *****" << std::endl;
-            
+                        
             // Halve theta after 5 rounds without improvement
             if(rounds_without_improvement > 0 && rounds_without_improvement % 5 == 0) {
                 theta /= 2;
             }
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " UPDATED THETA *****" << std::endl;
-            
+                        
             double step_lambda {theta * (best_sol - result) / LL};
             double step_mu {theta * (best_sol - result) / MM};
             
@@ -190,17 +174,11 @@ void SubgradientSolver::solve() {
                     exit_condition = exit_condition && (sg_compare::floating_equal(M[i], 0.0) || (M[i] < 0 && sg_compare::floating_equal(mu[i], 0.0)));
                 }
             }
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " UPDATED MULTIPLIERS *****" << std::endl;
-            
+                        
             avg_lambda_before = avg_lambda_before / col_n; avg_mu_before = avg_mu_before / n; avg_l = avg_l / col_n; avg_m = avg_m / n;
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " UPDATED AVERAGES *****" << std::endl;
-            
+                        
             print_result_row(results_file, result, best_sol, subgradient_iteration, iteration_time, cplex.getObjValue(), obj_const_term, violated_mtz, loose_mtz, tight_mtz, violated_prec, loose_prec, tight_prec, theta, step_lambda, step_mu, avg_lambda_before, avg_mu_before, avg_l, avg_m, improved);
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " PRINTED RESULTS *****" << std::endl;
-            
+                        
             if(exit_condition) {
                 results_file << std::endl << "Proven optimal! (by exit condition)" << std::endl;
                 print_final_results(results_file, best_sol, best_bound);
@@ -213,9 +191,7 @@ void SubgradientSolver::solve() {
                 results_file << std::endl << "Theta too small, the method is not converging or, at least, not fast enough!" << std::endl;
                 print_final_results(results_file, best_sol, best_bound);
                 break;
-            } else {
-                std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " NO EXIT CONDITION TRIGGERED *****" << std::endl;
-                
+            } else {                
                 // Update objective function coefficients
                 int num_col {0};
                 for(int i = 0; i <= 2*n + 1; i++) {
@@ -245,16 +221,10 @@ void SubgradientSolver::solve() {
                     
                     obj.setLinearCoef(variables_tt[i], t_obj_coeff);
                 }
-                
-                std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " UPDATED OBJ FUNCTION *****" << std::endl;
             }
-            
-            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " ABOUT TO LEAVE THE SCOPE OF solve() *****" << std::endl;
         } else {
             throw std::runtime_error("CPLEX failed!");
-        }
-        
-        std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " COMPLETED *****" << std::endl;
+        }        
     }
     
     if(subgradient_iteration > iteration_limit) {

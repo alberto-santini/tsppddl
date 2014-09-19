@@ -149,8 +149,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::Threads, 1);
     cplex.setParam(IloCplex::NodeLim, 0);
-    cplex.setParam(IloCplex::DataCheck, true);
-    
+        
     high_resolution_clock::time_point t_start {high_resolution_clock::now()};
 
     // Solve root node
