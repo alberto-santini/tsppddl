@@ -210,7 +210,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
             if(c[i][j] >= 0) {
                 if(x[col_index] > 0) {
                     solution_x[i][j] = 1;
-                    if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
+                    std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl;
                 }
                 if(y[col_index] > 0) {
                     if(!k_opt) { std::cerr << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
