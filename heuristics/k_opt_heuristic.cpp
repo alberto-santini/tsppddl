@@ -116,6 +116,14 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
             std::cerr << p.path[i] << " ";
         }
         std::cerr << std::endl;
+        std::cerr << "X: " << std::endl;
+        for(int i = 0; i <= 2*n+1; i++) {
+            for(int j = 0; j <= 2*n+1; j++) {
+                if(x[i][j] > 0.0) {
+                    std::cerr << "x[" << i << "][" << j << "] = " << x[i][j] << std::endl;
+                }
+            }
+        }
         throw std::runtime_error("K-opt heuristic produced a short path!");
     }
     
