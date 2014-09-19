@@ -111,6 +111,11 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
     
     if(p.path.size() != 2 * n + 2) {
         std::cerr << "Path length: " << p.path.size() << " - expected: " << (2*n+2) << std::endl;
+        std::cerr << "Path: ";
+        for(int i = 0; i < p.path.size(); i++) {
+            std::cerr << p.path[i] << " ";
+        }
+        std::cerr << std::endl;
         throw std::runtime_error("K-opt heuristic produced a short path!");
     }
     
