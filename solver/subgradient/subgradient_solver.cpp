@@ -68,6 +68,8 @@ void SubgradientSolver::solve() {
     print_headers(results_file);
     
     while(subgradient_iteration++ <= iteration_limit) {
+        std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " STARTING *****" << std::endl;
+        
         high_resolution_clock::time_point t_start {high_resolution_clock::now()};
         
         if(cplex.solve()) {
@@ -224,6 +226,8 @@ void SubgradientSolver::solve() {
         } else {
             throw std::runtime_error("CPLEX failed!");
         }
+        
+        std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " COMPLETED *****" << std::endl;
     }
     
     if(subgradient_iteration > iteration_limit) {
