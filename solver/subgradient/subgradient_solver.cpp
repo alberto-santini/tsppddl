@@ -248,6 +248,8 @@ void SubgradientSolver::solve() {
                 
                 std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " UPDATED OBJ FUNCTION *****" << std::endl;
             }
+            
+            std::cerr << "***** LAGRANGIAN ITERATION " << subgradient_iteration << " ABOUT TO LEAVE THE SCOPE OF solve() *****" << std::endl;
         } else {
             throw std::runtime_error("CPLEX failed!");
         }
