@@ -28,8 +28,8 @@ void SubgradientSolver::solve() {
     std::vector<double> mu(n+1, 1.0); // I include mu[0] for convenience
     
     double best_bound {0};
-    std::vector<std::vector<double>> best_lambda;
-    std::vector<double> best_mu;
+    std::vector<std::vector<double>> best_lambda(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
+    std::vector<double> best_mu(n+1, 1.0);
     
     IloEnv env;
     IloModel model(env);
