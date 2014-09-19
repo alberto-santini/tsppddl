@@ -139,7 +139,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     if(global::g_search_for_cuts_every_n_nodes > 0) {
         cplex.use(FeasibilityCutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
         cplex.use(FeasibilityCutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        cplex.use(ValidCutsCallbackHandle(env, variables_x, g, cplex.getParam(IloCplex::EpRHS)));
+        // cplex.use(ValidCutsCallbackHandle(env, variables_x, g, cplex.getParam(IloCplex::EpRHS)));
     }
 
     // Export model to file
