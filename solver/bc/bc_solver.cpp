@@ -1,7 +1,6 @@
 #include <global.h>
-#include <solver/bc/callbacks/feasibility_cuts_callback.h>
-#include <solver/bc/callbacks/feasibility_cuts_lazy_constraint.h>
-#include <solver/bc/callbacks/valid_cuts_callback.h>
+#include <solver/bc/callbacks/cuts_callback.h>
+#include <solver/bc/callbacks/cuts_lazy_constraint.h>
 #include <solver/bc/bc_solver.h>
 
 #include <ilcplex/ilocplex.h>
@@ -137,9 +136,8 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     // Add callbacks to separate cuts
     std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
     if(global::g_search_for_cuts_every_n_nodes > 0) {
-        cplex.use(FeasibilityCutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        cplex.use(FeasibilityCutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        // cplex.use(ValidCutsCallbackHandle(env, variables_x, g, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
     }
 
     // Export model to file
