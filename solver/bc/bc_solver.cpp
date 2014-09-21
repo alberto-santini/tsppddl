@@ -20,16 +20,15 @@ BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path
     int n {g->g[graph_bundle].n};
     
     initial_x_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    initial_y_val = std::vector<int>(2 * n + 2, 0);
-    initial_t_val = std::vector<int>(2 * n + 2, 0);
+    initial_y_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
 
     if(initial_solution.total_cost > 0) {
         for(int l = 0; l < 2 * n + 2; l++) {
-            if(l < 2 * n + 2 - 1) { initial_x_val[initial_solution.path[l]][initial_solution.path[l+1]] = 1; }
-            initial_y_val[initial_solution.path[l]] = initial_solution.load[l];
-            initial_t_val[initial_solution.path[l]] = l;
+            if(l < 2 * n + 2 - 1) {
+                initial_x_val[initial_solution.path[l]][initial_solution.path[l+1]] = 1;
+                initial_y_val[initial_solution.path[l]][initial_solution.path[l+1]] = initial_solution.load[l];
+            }
         }
-        initial_t_val[2 * n + 1] = 2 * n + 1;
     }
 }
 
@@ -109,28 +108,49 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     
     // Add initial solution
     if(initial_solution.total_cost > 0) {
-        IloNumVarArray initial_x_vars(env);
-        IloNumArray initial_x_values(env);
-        IloNumVarArray initial_y_vars(env);
-        IloNumArray initial_y_values(env);
+        IloNumVarArray initial_vars(env);
+        IloNumArray initial_values(env);
         
-        int x_idx = 0;
+        int col_idx {0};
         for(int i = 0; i <= 2 * n + 1; i++) {
             for(int j = 0; j <= 2 * n + 1; j++) {
                 if(c[i][j] >= 0) {
-                    initial_x_vars.add(variables_x[x_idx++]);
-                    initial_x_values.add(initial_x_val[i][j]);
+                    initial_vars.add(variables_x[col_idx]);
+                    initial_values.add(initial_x_val[i][j]);
+                    initial_vars.add(variables_y[col_idx]);
+                    initial_values.add(initial_y_val[i][j]);
+                    col_idx++;
                 }
             }
-            initial_y_vars.add(variables_y[i]);
-            initial_y_values.add(initial_y_val[i]);
         }
         
-        cplex.addMIPStart(initial_x_vars, initial_x_values);
-        cplex.addMIPStart(initial_y_vars, initial_y_values);
+        cplex.addMIPStart(initial_vars, initial_values);
         
-        initial_x_values.end(); initial_y_values.end();
-        initial_x_vars.end(); initial_y_vars.end();
+        IloConstraintArray constraints(env);
+        constraints.add(outdegree); constraints.add(indegree);
+        constraints.add(y_upper); constraints.add(y_lower);
+        constraints.add(load); constraints.add(initial_load);
+        if(tce) { constraints.add(two_cycles_elimination); }
+        if(k_opt) { constraints.add(k_opt_constraint); }
+        
+        IloNumArray preferences(env);
+        for(int i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
+        
+        if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
+            IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
+            env.getImpl()->useDetailedDisplay(IloTrue);
+            for(int i = 0; i < constraints.getSize(); i++) {
+                if(conflict[i] == IloCplex::ConflictMember) {
+                    std::cout << "Proven conflict: " << constraints[i] << std::endl;
+                }
+                if(conflict[i] == IloCplex::ConflictPossibleMember) {
+                    std::cout << "Possible conflict: " << constraints[i] << std::endl;
+                }
+            }
+        }
+        
+        initial_values.end();
+        initial_vars.end();
     }
 
     // Add callbacks to separate cuts

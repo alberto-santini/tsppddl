@@ -18,8 +18,7 @@ class BcSolver {
     std::string instance_name;
     
     std::vector<std::vector<int>> initial_x_val;
-    std::vector<int> initial_y_val;
-    std::vector<int> initial_t_val;
+    std::vector<std::vector<int>> initial_y_val;
     
     std::vector<std::vector<int>> k_opt_lhs;
     int k_opt_rhs;
