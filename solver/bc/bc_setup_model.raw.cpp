@@ -78,7 +78,13 @@ for(int i = 0; i <= 2*n + 1; i++) {
                         if(i == ii && j == jj) {
                             if(i >= 1 && i <= n && j >= 1 && j <= n) { alpha = d[i]; }
                             if(i >= n+1 && i <= 2*n && j >= n+1 && j <= 2*n) { alpha = -d[j]; }
-                            if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) { alpha = d[i] - d[j]; }
+                            if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) {
+                                if(j != i+n) {
+                                    alpha = d[i] - d[j];
+                                } else {
+                                    alpha = d[i];
+                                }
+                            }
                             beta = std::min(std::min(Q - std::max(0, d[j]), l[i]), l[j] - std::max(0, d[j]));
                         }
                         
