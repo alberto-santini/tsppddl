@@ -30,8 +30,6 @@ void Program::autorun(const std::vector<std::string>& args) {
         BcSolver bsolv {g, heuristic_solutions, args[0]};
         bsolv.solve_with_branch_and_cut(tce);
     } else if(args[1] == "subgradient") {
-        global::g_search_for_cuts_every_n_nodes = 1;
-        
         HeuristicSolver hsolv {g};
         heuristic_solutions = hsolv.solve();
         
