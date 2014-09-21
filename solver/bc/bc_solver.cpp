@@ -172,10 +172,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
 
     // Solve root node
     if(!cplex.solve()) {
-        IloAlgorithm::Status status = cplex.getStatus();
         std::cerr << "BcSolver::solve()\tCPLEX problem encountered at root node." << std::endl;
-        std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
-        cplex.exportModel("model_err.lp");
+        std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
+        std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
     } else {
         high_resolution_clock::time_point t_end {high_resolution_clock::now()};
@@ -189,10 +188,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         // Solve the rest of the BB tree
         cplex.setParam(IloCplex::NodeLim, 2100000000);
         if(!cplex.solve()) {
-            IloAlgorithm::Status status = cplex.getStatus();
             std::cerr << "BcSolver::solve()\tCPLEX problem encountered after the root node." << std::endl;
-            std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
-            cplex.exportModel("model_err.lp");
+            std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
+            std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
             throw std::runtime_error("Some error occurred or the problem is infeasible.");
         }
     }
