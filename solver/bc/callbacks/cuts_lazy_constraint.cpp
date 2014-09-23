@@ -19,7 +19,8 @@ void CutsLazyConstraint::main() {
         global::g_total_number_of_cuts_added++;
     }
     
-    auto valid_cuts = SubtourEliminationCutsSolver::separate_valid_cuts(g, sol, x, eps);
+    SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
+    auto valid_cuts = sub_solv.separate_valid_cuts();
 
     std::cout << "Adding " << valid_cuts.size() << " valid lazy constraints" << std::endl;
 
