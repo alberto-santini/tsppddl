@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <ratio>
 
@@ -126,46 +127,48 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
     
     std::cerr << "\tAdding pi cut as lhs is " << pi.lhs << " < 2 and |S| > 1" << std::endl;
     
-    std::ofstream cuts_file;
-    cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
+    // std::ofstream cuts_file;
+    // cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
+    //
+    // cuts_file << "S: " << pi.print_S() << std::endl;
+    // cuts_file << "fs: " << pi.print_fs() << std::endl;
+    // cuts_file << "ss: " << pi.print_ss() << std::endl;
+    // cuts_file << "ts: " << pi.print_ts() << std::endl;
+    // cuts_file << "sol: ";
+    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
+    // cuts_file << std::endl;
+    //
+    // cuts_file << "cut: ";
     
-    std::cerr << "p";
-    cuts_file << "S: " << pi.print_S() << std::endl;
-    cuts_file << "fs: " << pi.print_fs() << std::endl;
-    cuts_file << "ss: " << pi.print_ss() << std::endl;
-    cuts_file << "ts: " << pi.print_ts() << std::endl;
-    cuts_file << "sol: ";
-    for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
-    cuts_file << std::endl;
+    std::string s1 = pi.print_S();
     
-    cuts_file << "cut: ";
     int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(g->cost[i][j] >= 0) {
                 if(pi.is_in_S(i) && !pi.is_in_S(j)) {
-                    cuts_file << "+ x[" << i << "][" << j << "] ";
+                    // cuts_file << "+ x[" << i << "][" << j << "] ";
                     lhs += x[col_index];
                 }
                 if(!pi.is_in_S(i) && pi.is_in_S(j)) {
-                    cuts_file << "+ x[" << i << "][" << j << "] ";
+                    // cuts_file << "+ x[" << i << "][" << j << "] ";
                     lhs += x[col_index];
                 }
                 if(pi.is_in_fs(i) && pi.is_in_ts(j)) {
-                    cuts_file << "-2 x[" << i << "][" << j << "] ";
+                    // cuts_file << "-2 x[" << i << "][" << j << "] ";
                     lhs += -2 * x[col_index];
                 }
                 if(pi.is_in_S(i) && pi.is_in_ss(j)) {
-                    cuts_file << "-2 x[" << i << "][" << j << "] ";
+                    // cuts_file << "-2 x[" << i << "][" << j << "] ";
                     lhs += -2 * x[col_index];
                 }
                 col_index++;
             }
         }
     }
-    cuts_file << std::endl << std::endl << std::endl;
-    
-    cuts_file.close();
+    // cuts_file << std::endl << std::endl << std::endl;
+    //
+    // cuts_file.close();
     
     IloRange cut;
     cut = (lhs >= rhs);
