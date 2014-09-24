@@ -156,8 +156,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     // Add callbacks to separate cuts
     std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
     if(global::g_search_for_cuts_every_n_nodes > 0) {
-        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        bool apply_valid_cuts {!k_opt};
+        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
+        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
     }
 
     // Export model to file
