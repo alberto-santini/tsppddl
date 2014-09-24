@@ -23,7 +23,7 @@ class CutsCallback : public IloCplex::UserCutCallbackI {
     std::shared_ptr<const Graph> gr;
     double eps;
     
-    CallbacksHelper::solution compute_x_values() const;
+    ch::solution compute_x_values() const;
     
 public:
     CutsCallback(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps} {}

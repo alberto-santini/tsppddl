@@ -30,7 +30,7 @@ void CutsLazyConstraint::main() {
     }
 }
 
-CallbacksHelper::solution CutsLazyConstraint::compute_x_values() const {
+ch::solution CutsLazyConstraint::compute_x_values() const {
     int n {g->g[graph_bundle].n};
     cost_t c {g->cost};
     std::vector<std::vector<double>> xvals(2*n+2, std::vector<double>(2*n+2, 0));
@@ -53,5 +53,5 @@ CallbacksHelper::solution CutsLazyConstraint::compute_x_values() const {
          }
     }
     
-    return CallbacksHelper::solution(is_integer, xvals);
+    return ch::solution(is_integer, xvals);
 }

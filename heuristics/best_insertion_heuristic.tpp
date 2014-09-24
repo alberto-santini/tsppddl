@@ -1,5 +1,5 @@
 template<class IC>
-BestInsertionHeuristic<IC>::BestInsertionHeuristic(const std::shared_ptr<const Graph> g, const IC ic) : Heuristic{g}, insertion_comparator{ic} {}
+BestInsertionHeuristic<IC>::BestInsertionHeuristic(const std::shared_ptr<const Graph> g, const IC ic) : Heuristic{g}, insertion_comparator(ic) {}
 
 template<class IC>
 Path BestInsertionHeuristic<IC>::solve() {

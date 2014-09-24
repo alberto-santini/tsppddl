@@ -3,6 +3,9 @@
 #include <solver/bc/callbacks/feasibility_cuts_max_flow_solver.h>
 #include <solver/bc/callbacks/subtour_elimination_cuts_solver.h>
 
+#include <fstream>
+#include <iostream>
+
 IloCplex::CallbackI* CutsCallback::duplicateCallback() const {
     return (new(getEnv()) CutsCallback(*this));
 }
@@ -25,7 +28,7 @@ void CutsCallback::main() {
         auto valid_cuts = sub_solv.separate_valid_cuts();
     
         std::cout << "Adding " << valid_cuts.size() << " valid cuts" << std::endl;
-    
+        
         for(IloRange& cut : valid_cuts) {
             add(cut, IloCplex::UseCutForce).end();
             global::g_total_number_of_cuts_added++;
@@ -33,7 +36,7 @@ void CutsCallback::main() {
     }
 }
 
-CallbacksHelper::solution CutsCallback::compute_x_values() const {
+ch::solution CutsCallback::compute_x_values() const {
     int n {g->g[graph_bundle].n};
     cost_t c {g->cost};
     std::vector<std::vector<double>> xvals(2*n+2, std::vector<double>(2*n+2, 0));
@@ -56,5 +59,5 @@ CallbacksHelper::solution CutsCallback::compute_x_values() const {
          }
     }
     
-    return CallbacksHelper::solution(is_integer, xvals);
+    return ch::solution(is_integer, xvals);
 }

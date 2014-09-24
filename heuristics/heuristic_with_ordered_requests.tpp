@@ -1,5 +1,5 @@
 template<class RC, class IC>
-HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const std::shared_ptr<const Graph> g, const RC rc, const IC ic) : Heuristic{g}, insertion_comparator{ic} {
+HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const std::shared_ptr<const Graph> g, const RC rc, const IC ic) : Heuristic{g}, insertion_comparator(ic) {
     std::sort(remaining_requests.begin(), remaining_requests.end(), rc);
     std::reverse(remaining_requests.begin(), remaining_requests.end()); // Reverse to be able to pop_back() the best
 }

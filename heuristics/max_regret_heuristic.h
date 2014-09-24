@@ -18,7 +18,7 @@ class MaxRegretHeuristic : public Heuristic {
     RG regret_calculator;
     
 public:
-    MaxRegretHeuristic(const std::shared_ptr<const Graph> g, const IC ic, const RG rg) : Heuristic{g}, insertion_comparator{ic}, regret_calculator{rg} {}
+    MaxRegretHeuristic(const std::shared_ptr<const Graph> g, const IC ic, const RG rg) : Heuristic{g}, insertion_comparator(ic), regret_calculator(rg) {}
     Path solve();
 };
 

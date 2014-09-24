@@ -6,8 +6,17 @@
 #include <ilcplex/ilocplex.h>
 #include <ilcplex/ilocplexi.h>
 
+#include <boost/container/vector.hpp>
+#include <boost/range/algorithm/find.hpp>
+#include <boost/range/algorithm/count.hpp>
+
+#include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
+
+typedef boost::container::vector<bool> bvec;
+typedef std::vector<int> ivec;
 
 namespace CallbacksHelper {
     struct solution {
@@ -16,6 +25,39 @@ namespace CallbacksHelper {
         
         solution(bool i, std::vector<std::vector<double>> x) : is_integer{i}, x{x} {}
     };
+    
+    struct sets_info {
+        int n;
+        bvec in_S;
+        bvec in_tabu;
+        ivec tabu_start;
+        bvec in_fs; double fs;  // First sum
+        bvec in_ss; double ss;  // Second sum
+        bvec in_ts; double ts;  // Third sum
+        double lhs;
+        
+        sets_info() {}
+        
+        sets_info(int n, bvec in_S, bvec in_tabu, ivec tabu_start, bvec in_fs, double fs, bvec in_ss, double ss, bvec in_ts, double ts, double lhs) : n{n}, in_S{in_S}, in_tabu{in_tabu}, tabu_start{tabu_start}, in_fs{in_fs}, fs{fs}, in_ss{in_ss}, ss{ss}, in_ts{in_ts}, ts{ts}, lhs{lhs} {}
+        
+        // Methods for writing easier to read for(...) loops
+        bool is_in_S(int i) const;
+        bool is_in_fs(int i) const;
+        bool is_in_ss(int i) const;
+        bool is_in_ts(int i) const;
+        
+        bool empty_S() const;
+        int first_non_tabu() const;
+        std::string print_S() const;
+        std::string print_fs() const;
+        std::string print_ss() const;
+        std::string print_ts() const;
+        
+    private:
+        std::string print_set(const bvec& set) const;
+    };
 }
+
+namespace ch = CallbacksHelper;
 
 #endif
