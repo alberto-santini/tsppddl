@@ -46,8 +46,8 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         ch::sets_info best_pi = pi, best_sigma = sigma;
         int bn_pi = -1, bn_sigma = -1; // Best node \in (1...2n)
         
-        std::vector<double> _tmp_lhs_pi(2*n+1, 0);
-        std::vector<double> _tmp_lhs_sigma(2*n+1, 0);
+        // std::vector<double> _tmp_lhs_pi(2*n+1, 0);
+        // std::vector<double> _tmp_lhs_sigma(2*n+1, 0);
         
         for(int i = 1; i <= 2*n; i++) {
             ch::sets_info new_pi = pi, new_sigma = sigma;
@@ -57,8 +57,8 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
             add_or_remove_from_sigma_sets(new_sigma, i);
             recalculate_sigma_sums(new_sigma, xvals);
             
-            _tmp_lhs_pi[i] = new_pi.lhs;
-            _tmp_lhs_sigma[i] = new_sigma.lhs;
+            // _tmp_lhs_pi[i] = new_pi.lhs;
+            // _tmp_lhs_sigma[i] = new_sigma.lhs;
             
             if(i == pi.first_non_tabu() || (new_pi.lhs < best_pi.lhs && !pi.in_tabu[i] && !new_pi.empty_S())) { // Explicitely forbidding empty S
                 best_pi = new_pi;
@@ -70,17 +70,17 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
             }
         }
         
-        std::cerr << "End of iteration " << iter << ". Outcome is: " << (pi.in_S[bn_pi] ? "remove " : "add ") << bn_pi << " for pi and " << (sigma.in_S[bn_sigma] ? "remove " : "add ") << bn_sigma << " for sigma." << std::endl;
+        // std::cerr << "End of iteration " << iter << ". Outcome is: " << (pi.in_S[bn_pi] ? "remove " : "add ") << bn_pi << " for pi and " << (sigma.in_S[bn_sigma] ? "remove " : "add ") << bn_sigma << " for sigma." << std::endl;
         // std::cerr << "LHS for pi are: "; for(int i = 1; i <= 2*n; i++) { std::cerr << i << ", " << _tmp_lhs_pi[i] << "; "; } std::cerr << std::endl;
         // std::cerr << "LHS for sigma are: "; for(int i = 1; i <= 2*n; i++) { std::cerr << i << ", " << _tmp_lhs_sigma[i] << "; "; } std::cerr << std::endl;
-        // std::cerr << "\tBest S for pi is: " << best_pi.print_S() << std::endl;
-        // std::cerr << "\t\tFirst set: " << best_pi.print_fs() << std::endl;
-        // std::cerr << "\t\tSecond set: " << best_pi.print_ss() << std::endl;
-        // std::cerr << "\t\tThird set: " << best_pi.print_ts() << std::endl;
-        // std::cerr << "\tBest S for sigma is: " << best_sigma.print_S() << std::endl;
-        // std::cerr << "\t\tFirst set: " << best_sigma.print_fs() << std::endl;
-        // std::cerr << "\t\tSecond set: " << best_sigma.print_ss() << std::endl;
-        // std::cerr << "\t\tThird set: " << best_sigma.print_ts() << std::endl;
+        // std::cerr << "\tBest S for pi is: "; best_pi.print_S(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tFirst set: "; best_pi.print_fs(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tSecond set: "; best_pi.print_ss(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tThird set: "; best_pi.print_ts(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\tBest S for sigma is: "; best_sigma.print_S(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tFirst set: "; best_sigma.print_fs(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tSecond set: "; best_sigma.print_ss(std::cerr); std::cerr << std::endl;
+        // std::cerr << "\t\tThird set: "; best_sigma.print_ts(std::cerr); std::cerr << std::endl;
         
         if(bn_pi == -1) { throw std::runtime_error("Best pi node can't be -1"); } else {
             update_info(pi, best_pi, bn_pi, iter);
@@ -118,32 +118,26 @@ void SubtourEliminationCutsSolver::update_info(ch::sets_info& set, ch::sets_info
 }
 
 void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info pi) {
-    if(pi.lhs < 2 - eps) { return; } // Cut not violated
+    if(pi.lhs >= 2 - eps) { return; } // Cut not violated
     if(pi.empty_S()) { return; } // Empty S
     if(boost::count(pi.in_S, true) <= 1) { return; } // Trivial S gives a trivial inequality!
     
     IloExpr lhs(env);
     IloNum rhs = 2.0;
     
-    std::cerr << "\tAdding pi cut as lhs is " << pi.lhs << " < 2 and |S| > 1" << std::endl;
+    // std::cerr << "\tAdding pi cut as lhs is " << pi.lhs << " < 2 and |S| > 1" << std::endl;
     
-    std::string s_S = pi.print_S();
-    std::string s_fs = pi.print_fs();
-    std::string s_ss = pi.print_ss();
-    std::string s_ts = pi.print_ts();
-    
-    std::ofstream cuts_file;
-    cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
-
-    cuts_file << "S: " << s_S << std::endl;
-    cuts_file << "fs: " << s_fs << std::endl;
-    cuts_file << "ss: " << s_ss << std::endl;
-    cuts_file << "ts: " << s_ts << std::endl;
-    cuts_file << "sol: ";
-    for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
-    cuts_file << std::endl;
-
-    cuts_file << "cut: ";
+    // std::ofstream cuts_file;
+    // cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
+    //
+    // cuts_file << "S: "; pi.print_S(cuts_file); cuts_file << std::endl;
+    // cuts_file << "fs: "; pi.print_fs(cuts_file); cuts_file << std::endl;
+    // cuts_file << "ss: "; pi.print_ss(cuts_file); cuts_file << std::endl;
+    // cuts_file << "ts: "; pi.print_ts(cuts_file); cuts_file << std::endl;
+    // cuts_file << "sol: ";
+    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
+    // cuts_file << std::endl;
+    // cuts_file << "cut: ";
     
     int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
@@ -169,8 +163,11 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
             }
         }
     }
-    // cuts_file << std::endl << std::endl << std::endl;
-    //
+    // cuts_file << std::endl;
+    // cuts_file << "cut is violated: " << pi.lhs << " < 2" << std::endl;
+    // cuts_file << "cut is violated (explicit): ";
+    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(g->cost[i][j] >= 0) { if(pi.is_in_S(i) && !pi.is_in_S(j)) { if(sol.x[i][j] > 0) { cuts_file << " + " << sol.x[i][j]; } } if(!pi.is_in_S(i) && pi.is_in_S(j)) { if(sol.x[i][j] > 0) { cuts_file << " + " << sol.x[i][j]; } } if(pi.is_in_fs(i) && pi.is_in_ts(j)) { if(sol.x[i][j] > 0) { cuts_file << " -2 * " << sol.x[i][j]; } } if(pi.is_in_S(i) && pi.is_in_ss(j)) { if(sol.x[i][j] > 0) { cuts_file << " -2 * " << sol.x[i][j]; } } } } }
+    // cuts_file << " < 2" << std::endl << std::endl << std::endl;
     // cuts_file.close();
     
     IloRange cut;
@@ -179,39 +176,57 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
 }
 
 void SubtourEliminationCutsSolver::add_sigma_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info sigma) {
-    if(sigma.lhs < 2 - eps) { return; } // Cut not violated
+    if(sigma.lhs >= 2 - eps) { return; } // Cut not violated
     if(sigma.empty_S()) { return; } // Empty S
     if(boost::count(sigma.in_S, true) <= 1) { return; } // Trivial S gives a trivial inequality!
     
     IloExpr lhs(env);
     IloNum rhs = 2.0;
     
-    std::cerr << "\tAdding sigma cut as lhs is " << sigma.lhs << " < 2 and |S| > 1" << std::endl;
+    // std::cerr << "\tAdding sigma cut as lhs is " << sigma.lhs << " < 2 and |S| > 1" << std::endl;
+    
+    // std::ofstream cuts_file;
+    // cuts_file.open("valid_cuts_sigma.txt", std::ios::out | std::ios::app);
+    //
+    // cuts_file << "S: "; sigma.print_S(cuts_file); cuts_file << std::endl;
+    // cuts_file << "fs: "; sigma.print_fs(cuts_file); cuts_file << std::endl;
+    // cuts_file << "ss: "; sigma.print_ss(cuts_file); cuts_file << std::endl;
+    // cuts_file << "ts: "; sigma.print_ts(cuts_file); cuts_file << std::endl;
+    // cuts_file << "sol: ";
+    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
+    // cuts_file << std::endl;
+    // cuts_file << "cut: ";
     
     int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(g->cost[i][j] >= 0) {
                 if(sigma.is_in_S(i) && !sigma.is_in_S(j)) {
-                    // std::cerr << "\t\tx[" << i << "][" << j << "] in delta+ S" << std::endl;
+                    // cuts_file << "+ x[" << i << "][" << j << "] ";
                     lhs += x[col_index];
                 }
-                if(!pi.is_in_S(i) && pi.is_in_S(j)) {
-                    // std::cerr << "\t\tx[" << i << "][" << j << "] in delta- S" << std::endl;
+                if(!sigma.is_in_S(i) && sigma.is_in_S(j)) {
+                    // cuts_file << "+ x[" << i << "][" << j << "] ";
                     lhs += x[col_index];
                 }
                 if(sigma.is_in_fs(i) && sigma.is_in_ss(j)) {
-                    // std::cerr << "\t\tx[" << i << "][" << j << "] in second sum" << std::endl;
+                    // cuts_file << "-2 x[" << i << "][" << j << "] ";
                     lhs += -2 * x[col_index];
                 }
                 if(sigma.is_in_ts(i) && sigma.is_in_S(j)) {
-                    // std::cerr << "\t\tx[" << i << "][" << j << "] in third sum" << std::endl;
+                    // cuts_file << "-2 x[" << i << "][" << j << "] ";
                     lhs += -2 * x[col_index];
                 }
                 col_index++;
             }
         }
     }
+    // cuts_file << std::endl;
+    // cuts_file << "cut is violated: " << sigma.lhs << " < 2" << std::endl;
+    // cuts_file << "cut is violated (explicit): ";
+    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(g->cost[i][j] >= 0) { if(sigma.is_in_S(i) && !sigma.is_in_S(j)) { if(sol.x[i][j] > 0) { cuts_file << " + " << sol.x[i][j]; } } if(!sigma.is_in_S(i) && sigma.is_in_S(j)) { if(sol.x[i][j] > 0) { cuts_file << " + " << sol.x[i][j]; } } if(sigma.is_in_fs(i) && sigma.is_in_ss(j)) { if(sol.x[i][j] > 0) { cuts_file << " -2 * " << sol.x[i][j]; } } if(sigma.is_in_ts(i) && sigma.is_in_S(j)) { if(sol.x[i][j] > 0) { cuts_file << " -2 * " << sol.x[i][j]; } } } } }
+    // cuts_file << " < 2" << std::endl << std::endl << std::endl;
+    // cuts_file.close();
     
     IloRange cut;
     cut = (lhs >= rhs);
@@ -303,7 +318,7 @@ void SubtourEliminationCutsSolver::add_or_remove_from_sigma_sets(ch::sets_info& 
 void SubtourEliminationCutsSolver::recalculate_pi_sums(ch::sets_info& pi, std::vector<std::vector<double>> xvals) {
     pi.fs = 0; pi.ss = 0; pi.ts = 0; pi.lhs = 0;
     
-    // std::cerr << "** Calculating LHS for pi (S: " << pi.print_S() << ")" << std::endl;
+    // std::cerr << "** Calculating LHS for pi (S: "; pi.print_S(std::cerr); std::cerr << ")" << std::endl;
     
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
@@ -335,7 +350,7 @@ void SubtourEliminationCutsSolver::recalculate_pi_sums(ch::sets_info& pi, std::v
 void SubtourEliminationCutsSolver::recalculate_sigma_sums(ch::sets_info& sigma, std::vector<std::vector<double>> xvals) {
     sigma.fs = 0; sigma.ss = 0; sigma.ts = 0; sigma.lhs = 0;
     
-    // std::cerr << "** Calculating LHS for sigma (S: " << sigma.print_S() << ")" << std::endl;
+    // std::cerr << "** Calculating LHS for sigma (S: "; sigma.print_S(std::cerr); std::cerr << ")" << std::endl;
     
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {

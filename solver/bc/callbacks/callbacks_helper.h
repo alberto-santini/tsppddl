@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -48,13 +49,13 @@ namespace CallbacksHelper {
         
         bool empty_S() const;
         int first_non_tabu() const;
-        std::string print_S() const;
-        std::string print_fs() const;
-        std::string print_ss() const;
-        std::string print_ts() const;
+        void print_S(std::ostream& os) const;
+        void print_fs(std::ostream& os) const;
+        void print_ss(std::ostream& os) const;
+        void print_ts(std::ostream& os) const;
         
     private:
-        std::string print_set(const bvec& set) const;
+        void print_set(std::ostream& os, const bvec& set) const;
     };
 }
 

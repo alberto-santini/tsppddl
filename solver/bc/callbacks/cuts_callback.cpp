@@ -17,21 +17,23 @@ void CutsCallback::main() {
     if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
         auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
         
-        std::cout << "Adding " << feas_cuts.size() << " feasibility cuts" << std::endl;
+        // std::cout << "Adding " << feas_cuts.size() << " feasibility cuts" << std::endl;
         
         for(IloRange& cut : feas_cuts) {
             add(cut, IloCplex::UseCutForce).end();
             global::g_total_number_of_cuts_added++;
         }
         
-        SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
-        auto valid_cuts = sub_solv.separate_valid_cuts();
+        if(apply_valid_cuts) {
+            SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
+            auto valid_cuts = sub_solv.separate_valid_cuts();
     
-        std::cout << "Adding " << valid_cuts.size() << " valid cuts" << std::endl;
+            // std::cout << "Adding " << valid_cuts.size() << " valid cuts" << std::endl;
         
-        for(IloRange& cut : valid_cuts) {
-            add(cut, IloCplex::UseCutForce).end();
-            global::g_total_number_of_cuts_added++;
+            for(IloRange& cut : valid_cuts) {
+                add(cut, IloCplex::UseCutForce).end();
+                global::g_total_number_of_cuts_added++;
+            }
         }
     }
 }

@@ -12,21 +12,23 @@ void CutsLazyConstraint::main() {
         
     auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
     
-    std::cout << "Adding " << feas_cuts.size() << " feasibility lazy constraints" << std::endl;
+    // std::cout << "Adding " << feas_cuts.size() << " feasibility lazy constraints" << std::endl;
     
     for(IloRange cut : feas_cuts) {
         add(cut, IloCplex::UseCutForce).end();
         global::g_total_number_of_cuts_added++;
     }
     
-    SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
-    auto valid_cuts = sub_solv.separate_valid_cuts();
+    if(apply_valid_cuts) {
+        SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
+        auto valid_cuts = sub_solv.separate_valid_cuts();
 
-    std::cout << "Adding " << valid_cuts.size() << " valid lazy constraints" << std::endl;
+        // std::cout << "Adding " << valid_cuts.size() << " valid lazy constraints" << std::endl;
 
-    for(IloRange& cut : valid_cuts) {
-        add(cut, IloCplex::UseCutForce).end();
-        global::g_total_number_of_cuts_added++;
+        for(IloRange& cut : valid_cuts) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_cuts_added++;
+        }
     }
 }
 

@@ -1,7 +1,5 @@
 #include <solver/bc/callbacks/callbacks_helper.h>
 
-#include <sstream>
-
 bool ch::sets_info::is_in_S(int i) const {
     if(i == 0 || i == 2*n + 1) {
         return false;
@@ -42,24 +40,22 @@ int ch::sets_info::first_non_tabu() const {
     return (boost::find(in_tabu, false) - boost::begin(in_tabu));
 }
 
-std::string ch::sets_info::print_set(const bvec& set) const {
-    std::stringstream ss; ss << " ";
-    for(int i = 1; i < set.size(); i++) { if(set[i]) { ss << i << " "; } }
-    return ss.str();
+void ch::sets_info::print_set(std::ostream& os, const bvec& set) const {
+    for(int i = 1; i < set.size(); i++) { if(set[i]) { os << i << " "; } }
 }
 
-std::string ch::sets_info::print_S() const {
-    print_set(in_S);
+void ch::sets_info::print_S(std::ostream& os) const {
+    print_set(os, in_S);
 }
 
-std::string ch::sets_info::print_fs() const {
-    print_set(in_fs);
+void ch::sets_info::print_fs(std::ostream& os) const {
+    print_set(os, in_fs);
 }
 
-std::string ch::sets_info::print_ss() const {
-    print_set(in_ss);
+void ch::sets_info::print_ss(std::ostream& os) const {
+    print_set(os, in_ss);
 }
 
-std::string ch::sets_info::print_ts() const {
-    print_set(in_ts);
+void ch::sets_info::print_ts(std::ostream& os) const {
+    print_set(os, in_ts);
 }

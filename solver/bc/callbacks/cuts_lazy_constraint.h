@@ -22,18 +22,19 @@ class CutsLazyConstraint : public IloCplex::LazyConstraintCallbackI {
     std::shared_ptr<const Graph> g;
     std::shared_ptr<const Graph> gr;
     double eps;
+    bool apply_valid_cuts;
     
     ch::solution compute_x_values() const;
 
 public:
-    CutsLazyConstraint(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps) : IloCplex::LazyConstraintCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps} {}
+    CutsLazyConstraint(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, double eps, bool apply_valid_cuts) : IloCplex::LazyConstraintCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, apply_valid_cuts{apply_valid_cuts} {}
 
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback CutsLazyConstraintHandle(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, const double eps) {
-    return (IloCplex::Callback(new(env) CutsLazyConstraint(env, x, g, gr, eps)));
+inline IloCplex::Callback CutsLazyConstraintHandle(const IloEnv& env, const IloNumVarArray& x, const std::shared_ptr<const Graph> g, const std::shared_ptr<const Graph> gr, double eps, bool apply_valid_cuts) {
+    return (IloCplex::Callback(new(env) CutsLazyConstraint(env, x, g, gr, eps, apply_valid_cuts)));
 }
 
 #endif
