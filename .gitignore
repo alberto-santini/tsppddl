@@ -22,12 +22,14 @@
 
 .history
 Makefile
-model.lp
-tsppddl.dot
-tsppddl.png
+
+*.lp
+*.dot
+*.png
+*.txt
+
 tsppddl
-results.txt
-cuts.txt
+
 kopt*
 subgradient_results
 subgradient_results/*
