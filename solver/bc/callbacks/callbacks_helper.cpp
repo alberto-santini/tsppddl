@@ -43,7 +43,7 @@ int ch::sets_info::first_non_tabu() const {
 }
 
 std::string ch::sets_info::print_set(const bvec& set) const {
-    std::stringstream ss;
+    std::stringstream ss; ss << " ";
     for(int i = 1; i < set.size(); i++) { if(set[i]) { ss << i << " "; } }
     return ss.str();
 }

@@ -127,20 +127,23 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
     
     std::cerr << "\tAdding pi cut as lhs is " << pi.lhs << " < 2 and |S| > 1" << std::endl;
     
-    // std::ofstream cuts_file;
-    // cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
-    //
-    // cuts_file << "S: " << pi.print_S() << std::endl;
-    // cuts_file << "fs: " << pi.print_fs() << std::endl;
-    // cuts_file << "ss: " << pi.print_ss() << std::endl;
-    // cuts_file << "ts: " << pi.print_ts() << std::endl;
-    // cuts_file << "sol: ";
-    // for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
-    // cuts_file << std::endl;
-    //
-    // cuts_file << "cut: ";
+    std::string s_S = pi.print_S();
+    std::string s_fs = pi.print_fs();
+    std::string s_ss = pi.print_ss();
+    std::string s_ts = pi.print_ts();
     
-    std::string s1 = pi.print_S();
+    std::ofstream cuts_file;
+    cuts_file.open("valid_cuts_pi.txt", std::ios::out | std::ios::app);
+
+    cuts_file << "S: " << s_S << std::endl;
+    cuts_file << "fs: " << s_fs << std::endl;
+    cuts_file << "ss: " << s_ss << std::endl;
+    cuts_file << "ts: " << s_ts << std::endl;
+    cuts_file << "sol: ";
+    for(int i = 0; i <= 2 * n + 1; i++) { for(int j = 0; j <= 2 * n + 1; j++) { if(sol.x[i][j] > 0) { cuts_file << "x[" << i << "][" << j << "] = " << sol.x[i][j] << "; "; } } }
+    cuts_file << std::endl;
+
+    cuts_file << "cut: ";
     
     int col_index {0};
     for(int i = 0; i <= 2 * n + 1; i++) {
