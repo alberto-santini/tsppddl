@@ -32,7 +32,6 @@ SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(std::shared_ptr<const
     tabu_duration = 10;
 }
 
-
 std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
     using namespace std::chrono;
     using time_p =  high_resolution_clock::time_point;
@@ -41,6 +40,14 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
     
     time_p start_time {high_resolution_clock::now()};
     
+    // As a very rough way to avoid separating the same groetschel cuts many times, we keep a sum of the elements of S and its first element
+    struct memory { int first; int sum;
+        memory () : first(0), sum(0) {}
+        memory(int f, int s) : first(f), sum(s) {}
+        bool operator==(const memory& other) { return (other.first == first && other.sum == sum); }
+    };
+    std::vector<memory> cuts_memory_pi, cuts_memory_sigma;
+        
     for(int iter = 1; iter <= tot_number_of_iterations; iter++) {
         ch::sets_info best_pi = pi, best_sigma = sigma;
         int bn_pi = -1, bn_sigma = -1; // Best node \in (1...2n)
@@ -63,21 +70,48 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
             }
         }
         
+        auto f = boost::find(best_pi.in_S, true);
+        memory m_pi, m_sigma;
+        bool added_mem_pi = false, added_mem_sigma = false;
+        if(f != boost::end(best_pi.in_S)) {
+            m_pi = memory(
+                f - boost::begin(best_pi.in_S),
+                boost::accumulate(best_pi.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
+            );
+            added_mem_pi = (std::find(cuts_memory_pi.begin(), cuts_memory_pi.end(), m_pi) != cuts_memory_pi.end());
+        }
+        f = boost::find(best_sigma.in_S, true);
+        if(f != boost::end(best_sigma.in_S)) {
+            m_sigma = memory(
+                f - boost::begin(best_sigma.in_S),
+                boost::accumulate(best_sigma.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
+            );
+            added_mem_sigma = (std::find(cuts_memory_sigma.begin(), cuts_memory_sigma.end(), m_sigma) != cuts_memory_sigma.end());
+        }
+        
         if(bn_pi == -1) { throw std::runtime_error("Best pi node can't be -1"); }
         
         update_info(pi, best_pi, bn_pi, iter);
         add_pi_cut_if_violated(cuts, pi);
+        
         // Bonus: we can recycle set pi to add the groetschel pi cut
-        add_groetschel_pi_cut_if_violated(cuts, pi);
+        if(!added_mem_pi) {
+            add_groetschel_pi_cut_if_violated(cuts, pi);
+            cuts_memory_pi.push_back(m_pi);
+        }
         
         if(bn_sigma == -1) { throw std::runtime_error("Best sigma node can't be -1"); }
         
         update_info(sigma, best_sigma, bn_sigma, iter);
         add_sigma_cut_if_violated(cuts, sigma);
+        
         // Bonus: we can recycle set sigma to add the groetschel sigma cut
-        add_groetschel_sigma_cut_if_violated(cuts, sigma);
+        if(!added_mem_sigma) {
+            add_groetschel_sigma_cut_if_violated(cuts, sigma);
+            cuts_memory_sigma.push_back(m_sigma);
+        }
     }
-    
+        
     time_p end_time {high_resolution_clock::now()};
     duration<double> time_span {duration_cast<duration<double>>(end_time - start_time)};
     global::g_total_time_spent_separating_cuts += time_span.count();
@@ -101,6 +135,192 @@ void SubtourEliminationCutsSolver::update_info(ch::sets_info& set, ch::sets_info
             set.tabu_start[i] = -1;
         }
     }
+}
+
+void SubtourEliminationCutsSolver::add_groetschel_sigma_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info sigma) {
+    if(sigma.empty_S()) { return; }
+    if(boost::count(sigma.in_S, true) <= 1) { return; }
+    
+    std::vector<int> my_S;
+    for(int i = 1; i <= 2*n; i++) { if(sigma.in_S[i]) { my_S.push_back(i); } }
+    
+    std::vector<double> outflow_S(my_S.size(), 0);
+    for(int i = 0; i < my_S.size(); i++) {
+        for(int j = 1; j <= 2*n; j++) {
+            if(sol.x[my_S[i]][j] > 0) { outflow_S[i] += sol.x[my_S[i]][j]; }
+        }
+    }
+    
+    int max_outflow_id = std::distance(outflow_S.begin(), std::max_element(outflow_S.begin(), outflow_S.end()));
+    if(max_outflow_id != 1) {
+        std::swap(*my_S.begin(), *(my_S.begin() + max_outflow_id));
+    }
+    
+    std::random_shuffle(my_S.begin() + 1, my_S.end());
+    
+    double lhs = calculate_groetschel_lhs_sigma(my_S, sigma);
+        
+    if(lhs > my_S.size() - 1 + eps) { actually_add_groetschel_sigma_cut(cuts, my_S, sigma); }
+}
+
+void SubtourEliminationCutsSolver::add_groetschel_pi_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info pi) {
+    if(pi.empty_S()) { return; }
+    if(boost::count(pi.in_S, true) <= 1) { return; }
+    
+    std::vector<int> my_S;
+    for(int i = 1; i <= 2*n; i++) { if(pi.in_S[i]) { my_S.push_back(i); } }
+    
+    std::vector<double> inflow_S(my_S.size(), 0);
+    for(int i = 0; i < my_S.size(); i++) {
+        for(int j = 1; j <= 2*n; j++) {
+            if(sol.x[j][my_S[i]] > 0) { inflow_S[i] += sol.x[j][my_S[i]]; }
+        }
+    }
+    
+    int max_inflow_id = std::distance(inflow_S.begin(), std::max_element(inflow_S.begin(), inflow_S.end()));
+    if(max_inflow_id != 1) {
+        std::swap(*my_S.begin(), *(my_S.begin() + max_inflow_id));
+    }
+    
+    std::random_shuffle(my_S.begin() + 1, my_S.end());
+    
+    double lhs = calculate_groetschel_lhs_pi(my_S, pi);
+    
+    if(lhs > my_S.size() - 1 + eps) { actually_add_groetschel_pi_cut(cuts, my_S, pi); }
+}
+
+void SubtourEliminationCutsSolver::actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, std::vector<int> my_S, ch::sets_info sigma) {
+    IloExpr lhs(env);
+    IloNum rhs = my_S.size() - 1;
+    
+    int col_index {0};
+    for(int i = 0; i <= 2 * n + 1; i++) {
+        for(int j = 0; j <= 2 * n + 1; j++) {
+            if(g->cost[i][j] >= 0) {
+                auto pos_i = std::find(my_S.begin(), my_S.end(), i);
+                auto pos_j = std::find(my_S.begin(), my_S.end(), j);
+                                
+                if(pos_i != my_S.end() && i != my_S.back() && pos_j == pos_i + 1) { // First sum
+                    lhs += x[col_index];
+                }
+                
+                if(i == my_S.back() && j == my_S[0]) { // x[i_h][i_1]
+                    lhs += x[col_index];
+                }
+                
+                if(pos_i != my_S.end() && pos_i > my_S.begin() && i != my_S.back() && j == my_S[0]) { // Second sum
+                    lhs += 2 * x[col_index];
+                }
+                
+                if(pos_i != my_S.end() && pos_i > my_S.begin() + 1 && i != my_S.back() && pos_j != my_S.end() && pos_j > my_S.begin() && pos_j < pos_i) { // Third sum
+                    lhs += x[col_index];
+                }
+                
+                if(sigma.is_in_ts(j) && j == my_S[0]) { // Fourth sum
+                    lhs += x[col_index];
+                }
+                
+                col_index++;
+            }
+        }
+    }
+    
+    IloRange cut;
+    cut = (lhs <= rhs);
+        
+    cuts.push_back(cut);
+}
+
+void SubtourEliminationCutsSolver::actually_add_groetschel_pi_cut(std::vector<IloRange>& cuts, std::vector<int> my_S, ch::sets_info pi) {
+    IloExpr lhs(env);
+    IloNum rhs = my_S.size() - 1;
+    
+    int col_index {0};
+    for(int i = 0; i <= 2 * n + 1; i++) {
+        for(int j = 0; j <= 2 * n + 1; j++) {
+            if(g->cost[i][j] >= 0) {
+                auto pos_i = std::find(my_S.begin(), my_S.end(), i);
+                auto pos_j = std::find(my_S.begin(), my_S.end(), j);
+                                
+                if(pos_i != my_S.end() && i != my_S.back() && pos_j == pos_i + 1) {
+                    lhs += x[col_index];
+                }
+                
+                if(i == my_S.back() && j == my_S[0]) {
+                    lhs += x[col_index];
+                }
+                
+                if(i == my_S[0] && pos_j != my_S.end() && pos_j > my_S.begin() + 1) {
+                    lhs += 2 * x[col_index];
+                }
+                
+                if(pos_i != my_S.end() && pos_i > my_S.begin() + 2 && pos_j > my_S.begin() + 1 && pos_j < pos_i) {
+                    lhs += x[col_index];
+                }
+                
+                if(i == my_S[0] && pi.is_in_ss(j)) {
+                    lhs += x[col_index];
+                }
+                
+                col_index++;
+            }
+        }
+    }
+    
+    IloRange cut;
+    cut = (lhs <= rhs);
+        
+    cuts.push_back(cut);
+}
+
+double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(std::vector<int> my_S, ch::sets_info sigma) {
+    double lhs {0};
+    
+    for(int k = 0; k < my_S.size() - 1; k++) {
+        lhs += sol.x[my_S[k]][my_S[k+1]];
+        if(k >= 1) {
+            lhs += 2 * sol.x[my_S[k]][my_S[0]];
+        }
+        if(k >= 2) {
+            for(int l = 1; l < k; l++) {
+                lhs += sol.x[my_S[k]][my_S[l]];
+            }
+        }
+    }
+    for(int i = 1; i <= 2*n; i++) {
+        if(sigma.in_ts[i]) {
+            lhs += sol.x[i][my_S[0]];
+        }
+    }
+    lhs += sol.x[my_S.back()][my_S[0]];
+    
+    return lhs;
+}
+
+double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(std::vector<int> my_S, ch::sets_info pi) {
+    double lhs {0};
+    
+    for(int k = 0; k < my_S.size(); k++) {
+        if(k < my_S.size() - 1) {
+            lhs += sol.x[my_S[k]][my_S[k+1]];
+        }
+        if(k >= 2) {
+            lhs += 2 * sol.x[my_S[0]][my_S[k]];
+        }
+        if(k >= 3) {
+            for(int l = 2; l < k; l++) {
+                lhs += sol.x[my_S[k]][my_S[l]];
+            }
+        }
+    }
+    for(int i = 1; i <= 2*n; i++) {
+        if(pi.in_ss[i]) {
+            lhs += sol.x[my_S[0]][i];
+        }
+    }
+    lhs += sol.x[my_S.back()][my_S[0]];
+    
+    return lhs;
 }
 
 void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info pi) {
@@ -135,124 +355,6 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
     IloRange cut;
     cut = (lhs >= rhs);
     cuts.push_back(cut);
-}
-
-void SubtourEliminationCutsSolver::add_groetschel_pi_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info pi) {
-    if(pi.empty_S()) { return; }
-    if(boost::count(pi.in_S, true) <= 1) { return; }
-    
-    std::vector<int> my_S;
-    for(int i = 1; i <= 2*n; i++) { if(pi.in_S[i]) { my_S.push_back(i); } }
-    
-    std::cerr << "Checking groetschel pi cut" << std::endl;
-    std::cerr << "\tSet S: "; for(int i : my_S) { std::cerr << i << " "; } std::cerr << std::endl;
-    
-    std::vector<double> outflow_S(my_S.size());
-    for(int i = 1; i <= 2*n; i++) {
-        for(int j = 1; j <= 2*n; j++) {
-            if(sol.x[i][j] > 0) { outflow_S[i] += sol.x[i][j]; }
-        }
-    }
-    
-    int max_outflow_id = std::distance(outflow_S.begin(), std::max_element(outflow_S.begin(), outflow_S.end()));
-    if(max_outflow_id != 1) {
-        std::swap(*my_S.begin(), *(my_S.begin() + max_outflow_id));
-    }
-    
-    std::random_shuffle(my_S.begin() + 1, my_S.end());
-    
-    std::cerr << "\tOrdered set S: "; for(int i : my_S) { std::cerr << i << " "; } std::cerr << std::endl;
-
-    double lhs = calculate_groetschel_lhs_pi(my_S, pi);
-    
-    std::cerr << "\tLHS: " << lhs << std::endl;
-    
-    if(lhs > my_S.size() - 1) { actually_add_groetschel_pi_cut(cuts, my_S, pi); }
-}
-
-void SubtourEliminationCutsSolver::add_groetschel_sigma_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info sigma) {
-}
-
-void SubtourEliminationCutsSolver::actually_add_groetschel_pi_cut(std::vector<IloRange>& cuts, std::vector<int> my_S, ch::sets_info pi) {
-    IloExpr lhs(env);
-    IloNum rhs = my_S.size() - 1;
-    
-    int col_index {0};
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(g->cost[i][j] >= 0) {
-                auto pos_i = std::find(my_S.begin(), my_S.end(), i);
-                auto pos_j = std::find(my_S.begin(), my_S.end(), j);
-                
-                if(pos_i != my_S.end() && i != my_S.back()) { // First sum
-                    if(j == *(pos_i + 1)) {
-                        std::cerr << "\t\tx[" << i << "][" << j << "] (first sum)" << std::endl;
-                        lhs += x[col_index];
-                    }
-                }
-                
-                if(i == my_S.back() && j == my_S[0]) { // x[i_h][i_1]
-                    std::cerr << "\t\tx[" << i << "][" << j << "] (x)" << std::endl;
-                    lhs += x[col_index];
-                }
-                
-                if(pos_i != my_S.end() && pos_i > my_S.begin() && i != my_S.back() && j == my_S[0]) { // Second sum
-                    std::cerr << "\t\tx[" << i << "][" << j << "] (second sum)" << std::endl;
-                    lhs += 2 * x[col_index];
-                }
-                
-                if(pos_i != my_S.end() && pos_i > my_S.begin() + 1 && i != my_S.back() && pos_j != my_S.end() && pos_j > my_S.begin() && pos_j < pos_i) { // Third sum
-                    std::cerr << "\t\tx[" << i << "][" << j << "] (third sum)" << std::endl;
-                    lhs += x[col_index];
-                }
-                
-                if(i == my_S[0] && pi.is_in_S(j)) { // Fourth sum
-                    std::cerr << "\t\tx[" << i << "][" << j << "] (fourth sum)" << std::endl;
-                    lhs += x[col_index];
-                }
-                
-                col_index++;
-            }
-        }
-    }
-    
-    IloRange cut;
-    cut = (lhs <= rhs);
-    
-    std::cerr << "Adding groetschel pi cut: " << cut << std::endl;
-    
-    cuts.push_back(cut);
-}
-
-void SubtourEliminationCutsSolver::actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, std::vector<int> my_S, ch::sets_info sigma) {
-}
-
-double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(std::vector<int> my_S, ch::sets_info pi) {
-    double lhs {0};
-    
-    for(int k = 0; k < my_S.size() - 1; k++) {
-        lhs += sol.x[my_S[k]][my_S[k+1]];
-        if(k >= 1) {
-            lhs += 2 * sol.x[my_S[k]][my_S[0]];
-        }
-        if(k >= 2) {
-            for(int l = 1; l < k; l++) {
-                lhs += sol.x[my_S[k]][my_S[l]];
-            }
-        }
-    }
-    for(int i = 1; i <= 2*n; i++) {
-        if(pi.in_ss[i]) {
-            lhs += sol.x[my_S[0]][i];
-        }
-    }
-    lhs += sol.x[my_S.back()][my_S[0]];
-    
-    return lhs;
-}
-
-double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(std::vector<int> my_S, ch::sets_info sigma) {
-    return 0;
 }
 
 void SubtourEliminationCutsSolver::add_sigma_cut_if_violated(std::vector<IloRange>& cuts, ch::sets_info sigma) {

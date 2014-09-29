@@ -1,6 +1,7 @@
 #include <cli/program.h>
 
-#include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 namespace global {
     double g_total_time_spent_by_heuristics = 0;
@@ -9,8 +10,11 @@ namespace global {
     long g_search_for_cuts_every_n_nodes = 1;
 }
 
-int main(int argc, char* argv[]) {    
+int main(int argc, char* argv[]) {
     std::vector<std::string> args(argv + 1, argv + argc);
+    
+    // std::srand(unsigned(std::time(0)));
+    std::srand(123321); // For reproducibility
     
     Program p;
     p.autorun(args);

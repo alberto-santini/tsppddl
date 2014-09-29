@@ -9,6 +9,7 @@
 #include <boost/container/vector.hpp>
 #include <boost/range/algorithm/find.hpp>
 #include <boost/range/algorithm/count.hpp>
+#include <boost/range/numeric.hpp>
 
 #include <iostream>
 #include <memory>
