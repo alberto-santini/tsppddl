@@ -40,7 +40,10 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
     
     time_p start_time {high_resolution_clock::now()};
     
-    // As a very rough way to avoid separating the same groetschel cuts many times, we keep a sum of the elements of S and its first element
+    // As a very rough way to avoid separating the same cuts many times, we keep truck of
+    // 1. The first element of S and
+    // 2. Of the sum of all the elements of S
+    // We hash S -> (first, sum) and only add S's with unique hashes.
     struct memory { int first; int sum;
         memory () : first(0), sum(0) {}
         memory(int f, int s) : first(f), sum(s) {}
@@ -92,10 +95,10 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         if(bn_pi == -1) { throw std::runtime_error("Best pi node can't be -1"); }
         
         update_info(pi, best_pi, bn_pi, iter);
-        add_pi_cut_if_violated(cuts, pi);
         
         // Bonus: we can recycle set pi to add the groetschel pi cut
         if(!added_mem_pi) {
+            add_pi_cut_if_violated(cuts, pi);
             add_groetschel_pi_cut_if_violated(cuts, pi);
             cuts_memory_pi.push_back(m_pi);
         }
@@ -103,10 +106,10 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         if(bn_sigma == -1) { throw std::runtime_error("Best sigma node can't be -1"); }
         
         update_info(sigma, best_sigma, bn_sigma, iter);
-        add_sigma_cut_if_violated(cuts, sigma);
         
         // Bonus: we can recycle set sigma to add the groetschel sigma cut
         if(!added_mem_sigma) {
+            add_sigma_cut_if_violated(cuts, sigma);
             add_groetschel_sigma_cut_if_violated(cuts, sigma);
             cuts_memory_sigma.push_back(m_sigma);
         }
