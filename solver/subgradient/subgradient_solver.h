@@ -23,10 +23,10 @@ namespace sg_compare {
 
 class SubgradientSolver {
     std::shared_ptr<const Graph> g;
-    std::string instance_name;
     std::vector<Path> initial_solutions;
-    double best_sol;
+    std::string instance_name;
     int iteration_limit;
+    double best_sol;
     
 public:
     SubgradientSolver(std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, std::string instance_name, int iteration_limit) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name}, iteration_limit{iteration_limit}, best_sol{std::numeric_limits<double>::max()} {}

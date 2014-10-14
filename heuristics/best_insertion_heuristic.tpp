@@ -15,8 +15,8 @@ Path BestInsertionHeuristic<IC>::solve() {
         Path new_path;
         
         for(int req : this->remaining_requests) {
-            for(int x = 1; x < this->p.path.size(); x++) {
-                for(int y = x; y < this->p.path.size(); y++) {
+            for(auto x = 1u; x < this->p.path.size(); x++) {
+                for(auto y = x; y < this->p.path.size(); y++) {
                     auto result = HeuristicHelper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, best_cost, best_load);
                     if(result.first) {
                         managed_to_insert = true;

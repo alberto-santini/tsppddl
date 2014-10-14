@@ -38,7 +38,7 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         std::vector<double> residual_capacity_cycles(num_edges(gr->g), 0);
         std::vector<int> colour_prec(num_vertices(gr->g), 0);
         std::vector<int> colour_cycles(num_vertices(gr->g), 0);
-        vertex_t source_v_prec, sink_v_prec, source_v_cycles, sink_v_cycles;
+        vertex_t source_v_prec = vertex_t(), sink_v_prec = vertex_t(), source_v_cycles = vertex_t(), sink_v_cycles = vertex_t();
         
         bool skip_cycle = (std::find(already_checked_cycle.begin(), already_checked_cycle.end(), i) != already_checked_cycle.end());
 
@@ -56,7 +56,7 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         }
 
         high_resolution_clock::time_point t_start {high_resolution_clock::now()};
-        double flow_prec, flow_cycles;
+        double flow_prec, flow_cycles = 999;
 
         flow_prec = boykov_kolmogorov_max_flow(gr->g,
             make_iterator_property_map(capacity.begin(), get(&Arc::id, gr->g)),
@@ -87,7 +87,7 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         if(flow_prec < 1 - eps) {
             std::vector<int> source_nodes, sink_nodes;
             
-            for(int j = 0; j < colour_prec.size(); j++) {
+            for(auto j = 0u; j < colour_prec.size(); j++) {
                 if(colour_prec[j] == colour_prec[i]) {
                     source_nodes.push_back(j);
                 } else {
@@ -125,10 +125,10 @@ std::vector<IloRange> FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(st
         if(!skip_cycle && flow_cycles < 1 - eps) {
             std::vector<int> source_nodes, sink_nodes;
                         
-            for(int j = 0; j < colour_cycles.size(); j++) {
+            for(auto j = 0u; j < colour_cycles.size(); j++) {
                 if(colour_cycles[j] == colour_cycles[n+i]) {
                     source_nodes.push_back(j);
-                    if(j >= n+1) {
+                    if(j >= (size_t)(n+1)) {
                         already_checked_cycle.push_back(j-n);
                     }
                 } else {

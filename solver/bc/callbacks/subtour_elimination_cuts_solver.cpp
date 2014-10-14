@@ -148,7 +148,7 @@ void SubtourEliminationCutsSolver::add_groetschel_sigma_cut_if_violated(std::vec
     for(int i = 1; i <= 2*n; i++) { if(sigma.in_S[i]) { my_S.push_back(i); } }
     
     std::vector<double> outflow_S(my_S.size(), 0);
-    for(int i = 0; i < my_S.size(); i++) {
+    for(auto i = 0u; i < my_S.size(); i++) {
         for(int j = 1; j <= 2*n; j++) {
             if(sol.x[my_S[i]][j] > 0) { outflow_S[i] += sol.x[my_S[i]][j]; }
         }
@@ -174,7 +174,7 @@ void SubtourEliminationCutsSolver::add_groetschel_pi_cut_if_violated(std::vector
     for(int i = 1; i <= 2*n; i++) { if(pi.in_S[i]) { my_S.push_back(i); } }
     
     std::vector<double> inflow_S(my_S.size(), 0);
-    for(int i = 0; i < my_S.size(); i++) {
+    for(auto i = 0u; i < my_S.size(); i++) {
         for(int j = 1; j <= 2*n; j++) {
             if(sol.x[j][my_S[i]] > 0) { inflow_S[i] += sol.x[j][my_S[i]]; }
         }
@@ -279,13 +279,13 @@ void SubtourEliminationCutsSolver::actually_add_groetschel_pi_cut(std::vector<Il
 double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(std::vector<int> my_S, ch::sets_info sigma) {
     double lhs {0};
     
-    for(int k = 0; k < my_S.size() - 1; k++) {
+    for(auto k = 0u; k < my_S.size() - 1; k++) {
         lhs += sol.x[my_S[k]][my_S[k+1]];
         if(k >= 1) {
             lhs += 2 * sol.x[my_S[k]][my_S[0]];
         }
         if(k >= 2) {
-            for(int l = 1; l < k; l++) {
+            for(auto l = 1u; l < k; l++) {
                 lhs += sol.x[my_S[k]][my_S[l]];
             }
         }
@@ -303,7 +303,7 @@ double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(std::vector<
 double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(std::vector<int> my_S, ch::sets_info pi) {
     double lhs {0};
     
-    for(int k = 0; k < my_S.size(); k++) {
+    for(auto k = 0u; k < my_S.size(); k++) {
         if(k < my_S.size() - 1) {
             lhs += sol.x[my_S[k]][my_S[k+1]];
         }
@@ -311,7 +311,7 @@ double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(std::vector<int
             lhs += 2 * sol.x[my_S[0]][my_S[k]];
         }
         if(k >= 3) {
-            for(int l = 2; l < k; l++) {
+            for(auto l = 2u; l < k; l++) {
                 lhs += sol.x[my_S[k]][my_S[l]];
             }
         }

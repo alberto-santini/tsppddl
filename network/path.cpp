@@ -12,10 +12,10 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
     int visited_nodes {1};
     std::vector<int> visited_sources;
     
-    if(path.size() != 2 * n + 2) {
+    if(path.size() != (size_t)(2 * n + 2)) {
         std::cout << "Wrong path length: " << path.size() << " vs. " << 2 * n + 2 << std::endl;
         std::cout << "Path: ";
-        for(int i = 0; i < path.size(); i++) { std::cout << path[i] << " "; }
+        for(auto i = 0u; i < path.size(); i++) { std::cout << path[i] << " "; }
         std::cout << std::endl;
         throw std::runtime_error("Path length is != 2 * n + 2");
     }

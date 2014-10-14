@@ -28,7 +28,7 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
         int i {g[*vi].id};
         
         if(*vi == end_depot_v) {
-            for(int j = 0; j < cost[i].size(); j++) {
+            for(auto j = 0u; j < cost[i].size(); j++) {
                 this->cost[i][j] = -1;
             }
             continue;

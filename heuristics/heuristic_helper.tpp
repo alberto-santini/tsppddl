@@ -40,7 +40,7 @@ std::pair<bool, Path> HeuristicHelper::insert(const std::shared_ptr<const Graph>
             return std::make_pair(false, Path());
         }
         
-        for(int j = x + 2; j < p.path.size() + 2; j++) {
+        for(auto j = (size_t)(x + 2); j < p.path.size() + 2; j++) {
             np.path[j] = p.path[j-2];
             np.load[j] = np.load[j-1] + g->demand[np.path[j]];
             
@@ -54,11 +54,11 @@ std::pair<bool, Path> HeuristicHelper::insert(const std::shared_ptr<const Graph>
             return std::make_pair(false, Path());
         }
         
-        for(int j = x + 1; j <= y; j++) {
+        for(auto j = (size_t)(x + 1); j <= (size_t)(y); j++) {
             np.path[j] = p.path[j-1];
             np.load[j] = np.load[j-1] + g->demand[np.path[j]];
         
-            int next_port_draught {(j < y ? g->draught[p.path[j]] : g->draught[n+i])};
+            int next_port_draught {(j < (size_t)y ? g->draught[p.path[j]] : g->draught[n+i])};
             if(np.load[j] > std::min({g->draught[np.path[j]], next_port_draught, Q})) {
                 return std::make_pair(false, Path());
             }
@@ -71,7 +71,7 @@ std::pair<bool, Path> HeuristicHelper::insert(const std::shared_ptr<const Graph>
             return std::make_pair(false, Path());
         }
     
-        for(int j = y + 2; j < p.path.size() + 2; j++) {
+        for(auto j = (size_t)(y + 2); j < p.path.size() + 2; j++) {
             np.path[j] = p.path[j-2];
             np.load[j] = np.load[j-1] + g->demand[np.path[j]];
                 

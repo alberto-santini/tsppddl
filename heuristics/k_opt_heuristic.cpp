@@ -25,7 +25,7 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
     for(int i = 0; i <= 2 * n + 1; i++) {
         for(int j = 0; j <= 2 * n + 1; j++) {
             if(c[i][j] >= 0) {
-                for(int sol = 0; sol < sols_x.size(); sol++) {
+                for(auto sol = 0u; sol < sols_x.size(); sol++) {
                     if(sols_x[sol][i][j] == 1) {
                         s[i][j]++;
                         alpha++;
@@ -35,10 +35,10 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
         }
     }
     
-    for(int sol = 0; sol < N; sol++) {
+    for(auto sol = 0u; sol < N; sol++) {
         for(int i = 0; i <= 2 * n + 1; i++) {
             for(int j = 0; j <= 2 * n + 1; j++) {
-                if(s[i][j] == sol) {
+                if(s[i][j] == (int)sol) {
                     t[sol]++;
                     beta = sol;
                 }
@@ -108,10 +108,10 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
         }
     }
     
-    if(p.path.size() != 2 * n + 2) {
+    if(p.path.size() != (size_t)(2 * n + 2)) {
         std::cerr << "Path length: " << p.path.size() << " - expected: " << (2*n+2) << std::endl;
         std::cerr << "Path: ";
-        for(int i = 0; i < p.path.size(); i++) {
+        for(auto i = 0u; i < p.path.size(); i++) {
             std::cerr << p.path[i] << " ";
         }
         std::cerr << std::endl;

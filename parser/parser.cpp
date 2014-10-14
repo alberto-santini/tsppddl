@@ -25,7 +25,6 @@ Graph Parser::generate_graph() const {
     ptree pt;
     read_json(file_name, pt);
     
-    int np {pt.get<int>("num_ports")};
     int n {pt.get<int>("num_requests")};
     int capacity {pt.get<int>("capacity")};
     
@@ -36,7 +35,7 @@ Graph Parser::generate_graph() const {
     BOOST_FOREACH(const ptree::value_type& port_child, pt.get_child("ports")) {
         ports.push_back(port(port_child.second.get<int>("id"), port_child.second.get<int>("draught")));
     }
-    
+        
     BOOST_FOREACH(const ptree::value_type& request_child, pt.get_child("requests")) {
         requests.push_back(request(request_child.second.get<int>("origin"), request_child.second.get<int>("destination"), request_child.second.get<int>("demand")));
     }

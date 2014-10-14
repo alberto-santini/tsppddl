@@ -8,8 +8,8 @@
 #include <vector>
 
 class KOptHeuristic {
-    int k;
     std::shared_ptr<const Graph> g;
+    int k;
     std::vector<Path> initial_solutions;
     
     std::vector<std::vector<int>> get_x_values(const Path& p) const;

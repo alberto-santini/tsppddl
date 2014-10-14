@@ -41,7 +41,7 @@ int ch::sets_info::first_non_tabu() const {
 }
 
 void ch::sets_info::print_set(std::ostream& os, const bvec& set) const {
-    for(int i = 1; i < set.size(); i++) { if(set[i]) { os << i << " "; } }
+    for(auto i = 1u; i < set.size(); i++) { if(set[i]) { os << i << " "; } }
 }
 
 void ch::sets_info::print_S(std::ostream& os) const {
