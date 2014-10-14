@@ -4,11 +4,11 @@ std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() {
     auto n = g->g[graph_bundle].n;
     std::vector<IloRange> cuts;
     
-    for(auto i = 1; i <= 2*n; i++) {
+    for(auto i = 1; i <= n; i++) {
         auto j1 = -1, j2 = -1;
         auto best_val_1 = 0.0, best_val_2 = 0.0;
         
-        for(auto j = 1; j <= 2*n; j++) {
+        for(auto j = 1; j <= n; j++) {
             auto val_1 = sol.x[i][n+j] + sol.x[n+j][i] + sol.x[i][j];
             auto val_2 = sol.x[i][n+j] + sol.x[n+j][i] + sol.x[n+i][n+j];
             
@@ -26,7 +26,7 @@ std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() {
         if(j1 == -1 && j2 == -1) { continue; }
         
         auto k1 = -1, k2 = -1;
-        for(auto k = 1; k <= 2*n; k++) {
+        for(auto k = 1; k <= n; k++) {
             auto val_1 = best_val_1 + sol.x[j1][n+k] + sol.x[k][n+i] + sol.x[n+k][j1] + sol.x[n+i][k] + sol.x[i][n+k];
             auto val_2 = best_val_2 + sol.x[j1][n+k] + sol.x[k][n+i] + sol.x[n+k][j2] + sol.x[n+i][k];
             
