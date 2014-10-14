@@ -5,9 +5,9 @@
 Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, const int capacity) : demand{demand}, draught{draught}, cost{cost} {
     int n {(static_cast<int>(demand.size()) - 2) / 2};
     
-    assert(demand.size() == 2 * n + 2);
-    assert(draught.size() == 2 * n + 2);
-    assert(cost.size() == 2 * n + 2);
+    assert(demand.size() == (size_t)(2 * n + 2));
+    assert(draught.size() == (size_t)(2 * n + 2));
+    assert(cost.size() == (size_t)(2 * n + 2));
     
     g[graph_bundle] = GraphInfo {n, capacity};
 
