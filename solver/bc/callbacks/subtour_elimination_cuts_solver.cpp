@@ -40,7 +40,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
     
     time_p start_time {high_resolution_clock::now()};
     
-    // As a very rough way to avoid separating the same cuts many times, we keep truck of
+    // As a very rough way to avoid separating the same cuts many times, we keep track of
     // 1. The first element of S and
     // 2. Of the sum of all the elements of S
     // We hash S -> (first, sum) and only add S's with unique hashes.

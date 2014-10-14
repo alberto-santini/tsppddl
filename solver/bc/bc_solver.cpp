@@ -5,6 +5,8 @@
 
 #include <ilcplex/ilocplex.h>
 
+#include <boost/filesystem.hpp>
+
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -12,9 +14,10 @@
 #include <iostream>
 #include <iterator>
 #include <ratio>
+#include <sstream>
 #include <stdexcept>
 
-BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_name) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name} {
+BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, initial_solutions{initial_solutions} {
     initial_solution = find_best_initial_solution();
     initial_solution.verify_feasible(g);
     int n {g->g[graph_bundle].n};
@@ -30,6 +33,10 @@ BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path
             }
         }
     }
+    
+    boost::filesystem::path i_path(instance_path);
+    std::stringstream ss; ss << i_path.stem();
+    instance_name = ss.str();
 }
 
 Path BcSolver::find_best_initial_solution() {
@@ -58,7 +65,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     double lb;
     double total_cplex_time;
     
-    global::g_total_number_of_cuts_added = 0;
+    global::g_total_number_of_feasibility_cuts_added = 0;
+    global::g_total_number_of_subtour_cuts_added = 0;
+    global::g_total_number_of_generalized_order_cuts_added = 0;
     global::g_total_time_spent_separating_cuts = 0;
 
     int n {g->g[graph_bundle].n};
@@ -182,7 +191,10 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
         
         time_spent_at_root = time_span.count();
-        number_of_cuts_added_at_root = global::g_total_number_of_cuts_added;
+        number_of_cuts_added_at_root =
+            global::g_total_number_of_feasibility_cuts_added +
+            global::g_total_number_of_subtour_cuts_added +
+            global::g_total_number_of_generalized_order_cuts_added;
         lb_at_root = cplex.getBestObjValue();
         ub_at_root = cplex.getObjValue();
 
@@ -256,7 +268,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         results_file << ub_at_root << "\t";
         results_file << lb_at_root << "\t";
         results_file << (ub_at_root - lb_at_root) / ub_at_root << "\t";
-        results_file << global::g_total_number_of_cuts_added << "\t";
+        results_file << global::g_total_number_of_feasibility_cuts_added << "\t";
+        results_file << global::g_total_number_of_subtour_cuts_added << "\t";
+        results_file << global::g_total_number_of_generalized_order_cuts_added << "\t";
         results_file << number_of_cuts_added_at_root << "\t";
         results_file << total_bb_nodes_explored << std::endl;
         

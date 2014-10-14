@@ -1,6 +1,7 @@
 #include <global.h>
 #include <solver/bc/callbacks/cuts_lazy_constraint.h>
 #include <solver/bc/callbacks/feasibility_cuts_max_flow_solver.h>
+#include <solver/bc/callbacks/generalized_order_solver.h>
 #include <solver/bc/callbacks/subtour_elimination_cuts_solver.h>
 
 IloCplex::CallbackI* CutsLazyConstraint::duplicateCallback() const {
@@ -11,23 +12,27 @@ void CutsLazyConstraint::main() {
     auto sol = compute_x_values();
         
     auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
-    
-    // std::cout << "Adding " << feas_cuts.size() << " feasibility lazy constraints" << std::endl;
-    
+        
     for(IloRange cut : feas_cuts) {
         add(cut, IloCplex::UseCutForce).end();
-        global::g_total_number_of_cuts_added++;
+        global::g_total_number_of_feasibility_cuts_added++;
     }
     
     if(apply_valid_cuts) {
         SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
-        auto valid_cuts = sub_solv.separate_valid_cuts();
+        auto valid_cuts_1 = sub_solv.separate_valid_cuts();
 
-        // std::cout << "Adding " << valid_cuts.size() << " valid lazy constraints" << std::endl;
-
-        for(IloRange& cut : valid_cuts) {
+        for(IloRange& cut : valid_cuts_1) {
             add(cut, IloCplex::UseCutForce).end();
-            global::g_total_number_of_cuts_added++;
+            global::g_total_number_of_subtour_cuts_added++;
+        }
+        
+        GeneralizedOrderSolver go_solv {g, sol, env, x, eps};
+        auto valid_cuts_2 = go_solv.separate_valid_cuts();
+        
+        for(IloRange& cut : valid_cuts_2) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_generalized_order_cuts_added++;
         }
     }
 }
