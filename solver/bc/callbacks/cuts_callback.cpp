@@ -17,7 +17,7 @@ void CutsCallback::main() {
     
     if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
         auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
-                
+
         for(IloRange& cut : feas_cuts) {
             add(cut, IloCplex::UseCutForce).end();
             global::g_total_number_of_feasibility_cuts_added++;
@@ -26,7 +26,7 @@ void CutsCallback::main() {
         if(apply_valid_cuts) {
             SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
             auto valid_cuts_1 = sub_solv.separate_valid_cuts();
-            
+
             for(IloRange& cut : valid_cuts_1) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_subtour_cuts_added++;
@@ -34,7 +34,7 @@ void CutsCallback::main() {
             
             GeneralizedOrderSolver go_solv {g, sol, env, x, eps};
             auto valid_cuts_2 = go_solv.separate_valid_cuts();
-        
+
             for(IloRange& cut : valid_cuts_2) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_generalized_order_cuts_added++;
