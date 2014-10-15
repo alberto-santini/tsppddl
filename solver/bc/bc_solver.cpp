@@ -5,7 +5,7 @@
 
 #include <ilcplex/ilocplex.h>
 
-#include <boost/filesystem.hpp>
+// #include <boost/filesystem.hpp>
 
 #include <chrono>
 #include <ctime>
@@ -34,9 +34,10 @@ BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path
         }
     }
     
-    boost::filesystem::path i_path(instance_path);
-    std::stringstream ss; ss << i_path.stem();
-    instance_name = ss.str();
+    // boost::filesystem::path i_path(instance_path);
+    // std::stringstream ss; ss << i_path.stem();
+    // instance_name = ss.str();
+    instance_name = instance_path;
 }
 
 Path BcSolver::find_best_initial_solution() {
