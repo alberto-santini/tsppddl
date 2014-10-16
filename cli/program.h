@@ -13,6 +13,7 @@ class Program {
     std::vector<Path> heuristic_solutions;
     
     void load(const std::string& filename);
+    void print_usage();
 
 public:
     Program() : g{nullptr} {}

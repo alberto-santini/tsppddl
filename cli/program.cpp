@@ -16,6 +16,11 @@ void Program::load(const std::string& filename) {
 }
 
 void Program::autorun(const std::vector<std::string>& args) {
+    if(args.size() != 4) {
+        print_usage();
+        return;
+    }
+    
     std::string file_name {args[0]};
 
     load(file_name);
@@ -30,14 +35,25 @@ void Program::autorun(const std::vector<std::string>& args) {
         BcSolver bsolv {g, heuristic_solutions, args[0]};
         bsolv.solve_with_branch_and_cut(tce);
     } else if(args[1] == "subgradient") {
+        bool lg_mtz {args[2] == "yes"};
+        bool lg_prec {args[3] == "yes"};
+        
         HeuristicSolver hsolv {g};
         heuristic_solutions = hsolv.solve();
         
         SubgradientSolver ssolv {g, heuristic_solutions, args[0], 1000};
-        ssolv.solve();
-    } else {
-        std::cout << "Possible args: " << std::endl;
-        std::cout << "tsppddl <instance> branch_and_cut <cut_every_n_nodes> <2-cycles_elimination>" << std::endl;
-        std::cout << "tsppddl <instance> subgradient" << std::endl;
+        ssolv.solve(lg_mtz, lg_prec);
     }
+}
+
+void Program::print_usage() {
+    std::cout << "Usage: " << std::endl;
+    std::cout << "\t./tsppddl <instance> branch_and_cut <n> <yes/no>" << std::endl;
+    std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
+    std::cout << "\t\t n: a number specifying how often to separate cuts (every <n> nodes)" << std::endl;
+    std::cout << "\t\t yes/no: yes to add 2-cycle elimination constraints, no to skip them" << std::endl;
+    std::cout << "\t./tsppddl <instance> subgradient <yes/no> <yes/no>" << std::endl;
+    std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
+    std::cout << "\t\t yes/no: yes to lagrangeanly relax mtz constraints, no to keep them in the model" << std::endl;
+    std::cout << "\t\t yes/no: yes to lagrangeanly relax precedence constraints, no to keep them in the model" << std::endl;
 }
