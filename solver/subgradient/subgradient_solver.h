@@ -28,12 +28,12 @@ class SubgradientSolver {
     int iteration_limit;
     double best_sol;
     
-public:
-    SubgradientSolver(std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, std::string instance_name, int iteration_limit) : g{g}, initial_solutions{initial_solutions}, instance_name{instance_name}, iteration_limit{iteration_limit}, best_sol{std::numeric_limits<double>::max()} {}
     void print_headers(std::ofstream& results_file) const;
-    void print_result_row(std::ofstream& results_file, double result, double best_sol, int subgradient_iteration, double iteration_time, double cplex_obj, double obj_const_term, int violated_mtz, int loose_mtz, int tight_mtz, int violated_prec, int loose_prec, int tight_prec, double theta, double step_lambda, double step_mu, double avg_lambda_before, double avg_mu_before, double avg_l, double avg_m, bool improved) const;
+    void print_result_row(std::ofstream& results_file, double result, double best_sol, int subgradient_iteration, double iteration_time, double cplex_obj, double obj_const_term, int violated_mtz, int loose_mtz, int tight_mtz, int violated_prec, int loose_prec, int tight_prec, double theta, double step_lambda, double step_mu, double avg_lambda_before, double avg_mu_before, double avg_l, double avg_m, bool improved, bool lg_mtz, bool lg_prec) const;
     void print_final_results(std::ofstream& results_file, double ub, double lb) const;
-    void solve();
+public:
+    SubgradientSolver(std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, std::string instance_path, int iteration_limit);
+    void solve(bool lg_mtz, bool lg_prec);
 };
 
 #endif

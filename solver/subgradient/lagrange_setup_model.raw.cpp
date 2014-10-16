@@ -1,24 +1,40 @@
 // ROWS
+std::stringstream name;
 
 for(int i = 0; i <= 2*n; i++) {
-    outdegree.add(IloRange(env, 1.0, 1.0));
+    name.str(""); name << "cst_outdegree_" << i;
+    outdegree.add(IloRange(env, 1.0, 1.0, name.str().c_str()));
 }
 for(int i = 1; i <= 2*n + 1; i++) {
-    indegree.add(IloRange(env, 1.0, 1.0));
+    name.str(""); name << "cst_indegree_" << i;
+    indegree.add(IloRange(env, 1.0, 1.0, name.str().c_str()));
 }
 for(int i = 1; i <= 2*n; i++) {
-    load.add(IloRange(env, d[i], d[i]));
+    name.str(""); name << "cst_load_" << i;
+    load.add(IloRange(env, d[i], d[i], name.str().c_str()));
 }
 for(int i = 0; i <= 2*n + 1; i++) {
     for(int j = 0; j <= 2*n + 1; j++) {
         if(c[i][j] >= 0) {
-            y_lower.add(IloRange(env, -IloInfinity, 0.0));
-            y_upper.add(IloRange(env, 0.0, IloInfinity));
+            name.str(""); name << "cst_y_lower_" << i << "_" << j;
+            y_lower.add(IloRange(env, -IloInfinity, 0.0, name.str().c_str()));
+            name.str(""); name << "cst_y_upper_" << i << "_" << j;
+            y_upper.add(IloRange(env, 0.0, IloInfinity, name.str().c_str()));
+            if(!lg_mtz) {
+                name.str(""); name << "cst_mtz_" << i << "_" << j;
+                mtz.add(IloRange(env, -IloInfinity, 2*n, name.str().c_str()));
+            }
         }
     }
 }
-initial_load.add(IloRange(env, 0.0, 0.0));
-initial_order.add(IloRange(env, 0.0, 0.0));
+initial_load.add(IloRange(env, 0.0, 0.0, "cst_initial_load"));
+initial_order.add(IloRange(env, 0.0, 0.0, "cst_initial_order"));
+if(!lg_prec) {
+    for(int i = 1; i <= n; i++) {
+        name.str(""); name << "cst_prec_" << i;
+        prec.add(IloRange(env, -IloInfinity, 1.0, name.str().c_str()));
+    }
+}
 
 // COLUMNS
 
@@ -28,7 +44,11 @@ for(int i = 0; i <= 2*n + 1; i++) {
             double obj_coeff {0};
             
             obj_coeff += c[i][j];
-            obj_coeff += (2*n + 1) * lambda[i][j];
+            
+            if(lg_mtz) {
+                obj_coeff += (2*n + 1) * lambda[i][j];
+            }
+            
             IloNumColumn col = obj(obj_coeff);
                                     
             for(int ii = 0; ii <= 2*n; ii++) {
@@ -63,15 +83,31 @@ for(int i = 0; i <= 2*n + 1; i++) {
                         
                         col += y_lower[col_n](alpha);
                         col += y_upper[col_n](beta);
+                        
+                        if(!lg_mtz) {
+                            if(i == ii && j == jj) {
+                                col += mtz[col_n](2*n + 1);
+                            } else {
+                                col += mtz[col_n](0);
+                            }
+                        }
+                        
                         col_n++;
                     }
                 }
             }
-                        
+
             col += initial_load[0](0);
             col += initial_order[0](0);
-                        
-            IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool);
+            
+            if(!lg_prec) {
+                for(int ii = 1; ii <= n; ii++) {
+                    col += prec[ii-1](0);
+                }
+            }
+             
+            name.str(""); name << "x_" << i << "_" << j;          
+            IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, name.str().c_str());
             variables_x.add(v);
             col.end();
         }
@@ -112,15 +148,27 @@ for(int i = 0; i <= 2*n + 1; i++) {
                         
                         col += y_lower[col_n](coeff);
                         col += y_upper[col_n](coeff);
+                        
+                        if(!lg_mtz) {
+                            col += mtz[col_n](0.0);
+                        }
+                        
                         col_n++;
                     }
+                }
+            }
+            
+            if(!lg_prec) {
+                for(int ii = 1; ii <= n; ii++) {
+                    col += prec[ii-1](0);
                 }
             }
             
             col += initial_load[0](i == 0 ? 1 : 0);
             col += initial_order[0](0);
             
-            IloNumVar v(col, 0.0, Q, IloNumVar::Int);
+            name.str(""); name << "y_" << i << "_" << j;
+            IloNumVar v(col, 0.0, Q, IloNumVar::Int, name.str().c_str());
             variables_y.add(v);
             col.end();
         }
@@ -130,15 +178,19 @@ for(int i = 0; i <= 2*n + 1; i++) {
 for(int i = 0; i <= 2*n + 1; i++) {
     double obj_coeff {0};
     
-    for(int j = 0; j <= 2*n + 1; j++) {
-        if(c[i][j] >= 0) { obj_coeff += lambda[i][j]; }
-        if(c[j][i] >= 0) { obj_coeff -= lambda[j][i]; }
+    if(lg_mtz) {
+        for(int j = 0; j <= 2*n + 1; j++) {
+            if(c[i][j] >= 0) { obj_coeff += lambda[i][j]; }
+            if(c[j][i] >= 0) { obj_coeff -= lambda[j][i]; }
+        }
     }
     
-    if(i >= 1 && i <= n) {
-        obj_coeff += mu[i];
-    } else if(i >= n+1 && i <= 2*n) {
-        obj_coeff -= mu[i-n];
+    if(lg_prec) {
+        if(i >= 1 && i <= n) {
+            obj_coeff += mu[i];
+        } else if(i >= n+1 && i <= 2*n) {
+            obj_coeff -= mu[i-n];
+        }
     }
     
     IloNumColumn col = obj(obj_coeff);
@@ -161,6 +213,17 @@ for(int i = 0; i <= 2*n + 1; i++) {
             if(c[ii][jj] >= 0) {
                 col += y_lower[col_n](0);
                 col += y_upper[col_n](0);
+                
+                if(!lg_mtz) {
+                    if(i == ii) {
+                        col += mtz[col_n](1);
+                    } else if(i == jj) {
+                        col += mtz[col_n](-1);
+                    } else {
+                        col += mtz[col_n](0);
+                    }
+                }
+                
                 col_n++;
             }
         }
@@ -169,7 +232,20 @@ for(int i = 0; i <= 2*n + 1; i++) {
     col += initial_load[0](0);
     col += initial_order[0](i == 0 ? 1 : 0);
     
-    IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int);
+    if(!lg_prec) {
+        for(int ii = 1; ii <= n; ii++) {
+            if(i == ii) {
+                col += prec[ii-1](1);
+            } else if(n + i == ii) {
+                col += prec[ii-1](-1);
+            } else {
+                col += prec[ii-1](0);
+            }
+        }
+    }
+    
+    name.str(""); name << "t_" << i;
+    IloNumVar v(col, 0.0, 2 * n + 1, IloNumVar::Int, name.str().c_str());
     variables_tt.add(v);
     col.end();
 }

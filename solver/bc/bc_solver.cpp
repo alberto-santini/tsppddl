@@ -6,6 +6,8 @@
 #include <ilcplex/ilocplex.h>
 
 // #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 #include <chrono>
 #include <ctime>
@@ -34,10 +36,19 @@ BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path
         }
     }
     
+    // PORTABLE WAY:
     // boost::filesystem::path i_path(instance_path);
     // std::stringstream ss; ss << i_path.stem();
     // instance_name = ss.str();
-    instance_name = instance_path;
+    
+    // NOT-PORTABLE WAY:
+    std::vector<std::string> path_parts;
+    boost::split(path_parts, instance_path, boost::is_any_of("/"));
+    std::vector<std::string> file_parts;
+    boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
+    file_parts.pop_back();
+    
+    instance_name = boost::algorithm::join(file_parts, ".");
 }
 
 Path BcSolver::find_best_initial_solution() {
