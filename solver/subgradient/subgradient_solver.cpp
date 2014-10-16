@@ -35,7 +35,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     using namespace std::chrono;
     
     int n {g->g[graph_bundle].n};
-    int n_arcs {num_edges(g->g)};
+    int n_arcs {(int)num_edges(g->g)};
     int Q {g->g[graph_bundle].capacity};
     demand_t d {g->demand};
     draught_t l {g->draught};
