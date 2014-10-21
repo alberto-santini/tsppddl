@@ -110,7 +110,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
             for(int i = 0; i <= 2*n + 1; i++) {
                 if(lg_mtz) { 
                     for(int j = 0; j <= 2*n + 1; j++) {
-                        if(c[i][j] >= 0) { obj_const_term -= 2*n * lambda[i][j]; }
+                        if(c[i][j] >= 0) { obj_const_term -= (2*n + 1) * lambda[i][j]; }
                     }
                 }
                 if(lg_prec) {
