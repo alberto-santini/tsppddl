@@ -299,7 +299,7 @@ void SubgradientSolver::print_headers(std::ofstream& results_file) const {
     results_file << "            GAP";
     results_file << "                MTZ";
     results_file << "                PRC";
-    results_file << "     THETA";
+    results_file << "       THETA";
     results_file << "       STEP LD";
     results_file << "       STEP MU";
     results_file << "      AVG LD";
@@ -318,7 +318,7 @@ void SubgradientSolver::print_headers(std::ofstream& results_file) const {
     results_file << "--------------*";
     results_file << "------------------*";
     results_file << "------------------*";
-    results_file << "---------*";
+    results_file << "-----------*";
     results_file << "-------------*";
     results_file << "-------------*";
     results_file << "-----------*";
@@ -352,7 +352,7 @@ void SubgradientSolver::print_result_row(std::ofstream& results_file, double res
     } else {
         results_file << std::setw(5) << "-" << "  " << std::setw(5) << "-" << "  " << std::setw(5) << "-";
     }
-    results_file << std::setw(10) << theta;
+    results_file << std::setw(12) << theta;
     if(lg_mtz) {
         results_file << std::setw(14) << step_lambda;
     } else {
