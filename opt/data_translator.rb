@@ -44,7 +44,7 @@ File.open(original_file_name, "r").each do |line|
     if parsing_distances_line >= num_ports
       parsing_distances = false
     else
-      distances[parsing_distances_line] = line.split.map(&:to_i)
+      distances[parsing_distances_line] = line.split.map(&:to_i).map{|d| d == 1 ? 0 : d }
     end
     parsing_distances_line += 1
   end
