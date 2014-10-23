@@ -297,35 +297,35 @@ void SubgradientSolver::print_mult_dump(std::ofstream& dump_file, const std::vec
     int n {g->g[graph_bundle].n};
     cost_t c {g->cost};
 	
-	dump_file << "(i,j)\t";
+	dump_file << "        ";
     for(int i = 0; i <= 2*n + 1; i++) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(c[i][j] >= 0) {
-				dump_file << "(" << std::setw(2) << i << "," << std::setw(2) << j << ")  \t";
+				dump_file << "(" << std::setw(2) << i << "," << std::setw(2) << j << ")    ";
 			}
 		}
 	}
 	dump_file << std::endl;
 	
-	dump_file << "L\t";
+	dump_file << "L     ";
     for(int i = 0; i <= 2*n + 1; i++) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(c[i][j] >= 0) {
-				dump_file << std::setw(9) << L[i][j] << "\t";
+				dump_file << std::setw(9) << L[i][j] << "  ";
 			}
 		}
 	}
 	dump_file << std::endl;
 
-	dump_file << "lbd\t";
+	dump_file << "lambda";
     for(int i = 0; i <= 2*n + 1; i++) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(c[i][j] >= 0) {
-				dump_file << std::setw(9) << lambda[i][j] << "\t";
+				dump_file << std::setw(9) << lambda[i][j] << "  ";
 			}
 		}
 	}
-	dump_file << std::endl;
+	dump_file << std::endl << std::endl;
 }
 
 void SubgradientSolver::print_headers(std::ofstream& results_file) const {
