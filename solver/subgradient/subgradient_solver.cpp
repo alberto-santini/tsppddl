@@ -94,8 +94,11 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     double theta = 2.0;
     
     std::ofstream results_file;
-    results_file.open("./subgradient_results/results/" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out);    
+    results_file.open("./subgradient_results/results/" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out);
     print_headers(results_file);
+	
+	std::ofstream mult_dump;
+	if(n < 3) { mult_dump.open("./subgradient_results/mult_dump" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out); }
     
     cplex.exportModel("./subgradient_results/model.lp");
     
@@ -221,7 +224,8 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
             if(lg_prec) { avg_mu_before = avg_mu_before / n; avg_m = avg_m / n; }
                         
             print_result_row(results_file, result, best_sol, subgradient_iteration, iteration_time, cplex.getObjValue(), obj_const_term, violated_mtz, loose_mtz, tight_mtz, violated_prec, loose_prec, tight_prec, theta, step_lambda, step_mu, avg_lambda_before, avg_mu_before, avg_l, avg_m, improved, lg_mtz, lg_prec);
-                        
+			if(n < 3) { print_mult_dump(mult_dump, L, lambda); }
+
             if(exit_condition) {
                 results_file << std::endl << "Proven optimal! (by exit condition)" << std::endl;
                 print_final_results(results_file, best_sol, best_bound);
@@ -287,6 +291,41 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     
     results_file.close();
     env.end();
+}
+
+void SubgradientSolver::print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda) const {
+    int n {g->g[graph_bundle].n};
+    cost_t c {g->cost};
+	
+	dump_file << "(i,j)\t";
+    for(int i = 0; i <= 2*n + 1; i++) {
+        for(int j = 0; j <= 2*n + 1; j++) {
+            if(c[i][j] >= 0) {
+				dump_file << "(" << std::setw(2) << i << "," << std::setw(2) << j << ")  \t";
+			}
+		}
+	}
+	dump_file << std::endl;
+	
+	dump_file << "L\t";
+    for(int i = 0; i <= 2*n + 1; i++) {
+        for(int j = 0; j <= 2*n + 1; j++) {
+            if(c[i][j] >= 0) {
+				dump_file << std::setw(9) << L[i][j] << ")\t";
+			}
+		}
+	}
+	dump_file << std::endl;
+	
+	dump_file << "(i,j)\t";
+    for(int i = 0; i <= 2*n + 1; i++) {
+        for(int j = 0; j <= 2*n + 1; j++) {
+            if(c[i][j] >= 0) {
+				dump_file << std::setw(9) << lambda[i][j] << ")\t";
+			}
+		}
+	}
+	dump_file << std::endl;
 }
 
 void SubgradientSolver::print_headers(std::ofstream& results_file) const {
