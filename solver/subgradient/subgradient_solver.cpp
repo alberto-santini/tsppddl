@@ -311,17 +311,17 @@ void SubgradientSolver::print_mult_dump(std::ofstream& dump_file, const std::vec
     for(int i = 0; i <= 2*n + 1; i++) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(c[i][j] >= 0) {
-				dump_file << std::setw(9) << L[i][j] << ")\t";
+				dump_file << std::setw(9) << L[i][j] << "\t";
 			}
 		}
 	}
 	dump_file << std::endl;
-	
-	dump_file << "(i,j)\t";
+
+	dump_file << "lbd\t";
     for(int i = 0; i <= 2*n + 1; i++) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(c[i][j] >= 0) {
-				dump_file << std::setw(9) << lambda[i][j] << ")\t";
+				dump_file << std::setw(9) << lambda[i][j] << "\t";
 			}
 		}
 	}
