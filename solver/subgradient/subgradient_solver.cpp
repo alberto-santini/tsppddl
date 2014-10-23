@@ -98,7 +98,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     print_headers(results_file);
 	
 	std::ofstream mult_dump;
-	if(n < 3) { mult_dump.open("./subgradient_results/mult_dump" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out); }
+	if(n < 3) { mult_dump.open("./subgradient_results/mult_dump_" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out); }
     
     cplex.exportModel("./subgradient_results/model.lp");
     
