@@ -50,6 +50,7 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
                 (
                     (i <= n) &&
                     (j > n) &&
+                    (j != i + n) &&
                     (g[*vi].demand + std::abs(g[*vj].demand) > std::min(std::min(g[*vi].draught, g[*vj].draught), capacity))
                 ) ||
                 (
