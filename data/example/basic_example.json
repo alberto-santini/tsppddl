@@ -1,14 +1,14 @@
 {
     "num_ports": 3,
     "ports": [
-        {"id": 0, "draught": 10, "depot": true, "x": 0, "y": 0},
-        {"id": 1, "draught": 10, "depot": false, "x": -1, "y": 0},
-        {"id": 2, "draught": 10, "depot": false, "x": 1, "y": 0}
+        {"id": 0, "draught": 10, "depot":  true, "x":  0, "y": 0},
+        {"id": 1, "draught":  8, "depot": false, "x": -1, "y": 0},
+        {"id": 2, "draught": 10, "depot": false, "x":  1, "y": 0}
     ],
     "num_requests": 2,
     "requests": [
-        {"origin": 1, "destination": 2, "demand": 1},
-        {"origin": 2, "destination": 1, "demand": 1}
+        {"origin": 1, "destination": 2, "demand": 5},
+        {"origin": 2, "destination": 1, "demand": 5}
     ],
     "capacity": 10,
     "distances": [
