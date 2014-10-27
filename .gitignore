@@ -23,13 +23,18 @@
 .history
 Makefile
 
+# support files
 *.lp
 *.dot
 *.png
 *.txt
 
+# executables and objects
 tsppddl
+*.ii
+*.s
 
+# output files
 kopt*
 subgradient_results
 subgradient_results/*
