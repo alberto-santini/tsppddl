@@ -9,7 +9,7 @@
 #include <vector>
 
 class Program {
-    std::shared_ptr<const Graph> g;
+    std::unique_ptr<const Graph> g;
     std::vector<Path> heuristic_solutions;
     
     void load(const std::string& filename);

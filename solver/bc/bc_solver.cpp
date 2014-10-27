@@ -19,16 +19,16 @@
 #include <sstream>
 #include <stdexcept>
 
-BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, initial_solutions{initial_solutions} {
+BcSolver::BcSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, initial_solutions{initial_solutions} {
     initial_solution = find_best_initial_solution();
     initial_solution.verify_feasible(g);
-    int n {g->g[graph_bundle].n};
+    auto n = g.g[graph_bundle].n;
     
     initial_x_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
     initial_y_val = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
 
     if(initial_solution.total_cost > 0) {
-        for(int l = 0; l < 2 * n + 2; l++) {
+        for(auto l = 0; l < 2 * n + 2; l++) {
             if(l < 2 * n + 2 - 1) {
                 initial_x_val[initial_solution.path[l]][initial_solution.path[l+1]] = 1;
                 initial_y_val[initial_solution.path[l]][initial_solution.path[l+1]] = initial_solution.load[l];
@@ -42,9 +42,9 @@ BcSolver::BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path
     // instance_name = ss.str();
     
     // NOT-PORTABLE WAY:
-    std::vector<std::string> path_parts;
+    auto path_parts = std::vector<std::string>();
     boost::split(path_parts, instance_path, boost::is_any_of("/"));
-    std::vector<std::string> file_parts;
+    auto file_parts = std::vector<std::string>();
     boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
     file_parts.pop_back();
     
@@ -68,25 +68,22 @@ void BcSolver::solve_with_branch_and_cut(bool tce) const {
 std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     using namespace std::chrono;
 
-    long total_bb_nodes_explored;
-    long number_of_cuts_added_at_root;
-    double time_spent_at_root;
-    double ub_at_root;
-    double lb_at_root;
-    double ub;
-    double lb;
-    double total_cplex_time;
+    auto total_bb_nodes_explored = (long)0;
+    auto number_of_cuts_added_at_root = (long)0;
+    auto time_spent_at_root = 0.0;
+    auto ub_at_root = 0.0;
+    auto lb_at_root = 0.0;
+    auto ub = 0.0;
+    auto lb = 0.0;
+    auto total_cplex_time = 0.0;
     
     global::g_total_number_of_feasibility_cuts_added = 0;
     global::g_total_number_of_subtour_cuts_added = 0;
     global::g_total_number_of_generalized_order_cuts_added = 0;
     global::g_total_time_spent_separating_cuts = 0;
 
-    int n {g->g[graph_bundle].n};
-    int Q {g->g[graph_bundle].capacity};
-    demand_t d {g->demand};
-    draught_t l {g->draught};
-    cost_t c {g->cost};
+    auto n = g.g[graph_bundle].n;
+    auto Q = g.g[graph_bundle].capacity;
 
     IloEnv env;
     IloModel model(env);
@@ -132,10 +129,10 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         IloNumVarArray initial_vars(env);
         IloNumArray initial_values(env);
         
-        int col_idx {0};
-        for(int i = 0; i <= 2 * n + 1; i++) {
-            for(int j = 0; j <= 2 * n + 1; j++) {
-                if(c[i][j] >= 0) {
+        auto col_idx = 0;
+        for(auto i = 0; i <= 2 * n + 1; i++) {
+            for(auto j = 0; j <= 2 * n + 1; j++) {
+                if(g.cost[i][j] >= 0) {
                     initial_vars.add(variables_x[col_idx]);
                     initial_values.add(initial_x_val[i][j]);
                     initial_vars.add(variables_y[col_idx]);
@@ -155,12 +152,12 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         if(k_opt) { constraints.add(k_opt_constraint); }
         
         IloNumArray preferences(env);
-        for(int i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
+        for(auto i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
         
         if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
             IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
             env.getImpl()->useDetailedDisplay(IloTrue);
-            for(int i = 0; i < constraints.getSize(); i++) {
+            for(auto i = 0; i < constraints.getSize(); i++) {
                 if(conflict[i] == IloCplex::ConflictMember) {
                     std::cout << "Proven conflict: " << constraints[i] << std::endl;
                 }
@@ -175,9 +172,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     }
 
     // Add callbacks to separate cuts
-    std::shared_ptr<const Graph> gr_with_reverse {std::make_shared<const Graph>(g->make_reverse_graph())};
+    auto gr_with_reverse = g.make_reverse_graph();
     if(global::g_search_for_cuts_every_n_nodes > 0) {
-        bool apply_valid_cuts {!k_opt};
+        auto apply_valid_cuts = !k_opt;
         cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
         cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
     }
@@ -190,7 +187,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     cplex.setParam(IloCplex::Threads, 1);
     cplex.setParam(IloCplex::NodeLim, 0);
         
-    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    auto t_start = high_resolution_clock::now();
 
     // Solve root node
     if(!cplex.solve()) {
@@ -199,8 +196,8 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
     } else {
-        high_resolution_clock::time_point t_end {high_resolution_clock::now()};
-        duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+        auto t_end = high_resolution_clock::now();
+        auto time_span = duration_cast<duration<double>>(t_end - t_start);
         
         time_spent_at_root = time_span.count();
         number_of_cuts_added_at_root =
@@ -220,8 +217,8 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         }
     }
 
-    high_resolution_clock::time_point t_end_total {high_resolution_clock::now()};
-    duration<double> time_span_total {duration_cast<duration<double>>(t_end_total - t_start)};
+    auto t_end_total = high_resolution_clock::now();
+    auto time_span_total = duration_cast<duration<double>>(t_end_total - t_start);
 
     IloAlgorithm::Status status = cplex.getStatus();
     std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
@@ -244,11 +241,11 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     if(!k_opt) { std::cerr << "BcSolver::solve()\tSolution:" << std::endl; }
 
     // Get solution
-    int col_index {0};
-    std::vector<std::vector<int>> solution_x(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(c[i][j] >= 0) {
+    auto col_index = 0;
+    auto solution_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    for(auto i = 0; i <= 2 * n + 1; i++) {
+        for(auto j = 0; j <= 2 * n + 1; j++) {
+            if(g.cost[i][j] >= 0) {
                 if(x[col_index] > 0.0001) {
                     solution_x[i][j] = 1;
                     if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }

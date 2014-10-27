@@ -13,12 +13,11 @@ namespace global {
 }
 
 int main(int argc, char* argv[]) {
-    std::vector<std::string> args(argv + 1, argv + argc);
+    auto args = std::vector<std::string>(argv + 1, argv + argc);
     
-    // std::srand(unsigned(std::time(0)));
     std::srand(123321); // For reproducibility
     
-    Program p;
+    auto p = Program();
     p.autorun(args);
     
     return 0;

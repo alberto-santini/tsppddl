@@ -4,13 +4,12 @@
 #include <network/graph.h>
 #include <network/path.h>
 
-#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 class BcSolver {
-    std::shared_ptr<const Graph> g;
+    const Graph& g;
     
     std::vector<Path> initial_solutions;
     Path initial_solution; // Best one
@@ -27,7 +26,7 @@ class BcSolver {
     std::vector<std::vector<int>> solve(bool k_opt, bool tce) const;
     
 public:
-    BcSolver(const std::shared_ptr<const Graph>& g, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
+    BcSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
     void solve_with_branch_and_cut(bool tce) const;
     std::vector<std::vector<int>> solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs);
 };

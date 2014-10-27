@@ -2,13 +2,13 @@
 #define NODE_H
 
 struct Node {
-    int id;
+    unsigned int id;
     int demand;
     int draught;
     bool depot;
     
     Node() {}
-    Node(const int id, const int demand, const int draught) : id{id}, demand{demand}, draught{draught}, depot{id == 0} {}
+    Node(unsigned int id, int demand, int draught) : id{id}, demand{demand}, draught{draught}, depot{id == 0} {}
 };
 
 #endif

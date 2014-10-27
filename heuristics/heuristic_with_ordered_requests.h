@@ -8,7 +8,6 @@
 #include <chrono>
 #include <ctime>
 #include <limits>
-#include <memory>
 #include <ratio>
 #include <stdexcept>
 #include <utility>
@@ -16,10 +15,10 @@
 template<class RC, class IC>
 class HeuristicWithOrderedRequests : public Heuristic {
     IC insertion_comparator;
-    bool insert(const int req);
+    bool insert(int req);
 
 public:
-    HeuristicWithOrderedRequests(const std::shared_ptr<const Graph> g, const RC rc, const IC ic);
+    HeuristicWithOrderedRequests(const Graph& g, const RC& rc, const IC& ic);
     Path solve();
 };
 

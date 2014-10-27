@@ -2,30 +2,32 @@
 
 #include <algorithm>
 
-Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, const int capacity) : demand{demand}, draught{draught}, cost{cost} {
-    int n {(static_cast<int>(demand.size()) - 2) / 2};
+Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity) : demand{demand}, draught{draught}, cost{cost} {
+    auto n = (size_t)((demand.size() - 2) / 2);
     
-    assert(demand.size() == (size_t)(2 * n + 2));
-    assert(draught.size() == (size_t)(2 * n + 2));
-    assert(cost.size() == (size_t)(2 * n + 2));
+    assert(demand.size() == (2 * n + 2));
+    assert(draught.size() == (2 * n + 2));
+    assert(cost.size() == (2 * n + 2));
     
-    g[graph_bundle] = GraphInfo {n, capacity};
+    g[graph_bundle] = GraphInfo(n, capacity);
 
-    Node start_depot {0, demand[0], draught[0]}, end_depot {2*n+1, demand[2*n+1], draught[2*n+1]};
-    vertex_t start_depot_v {add_vertex(g)}; g[start_depot_v] = start_depot;
-    vertex_t end_depot_v {add_vertex(g)}; g[end_depot_v] = end_depot;
+    auto start_depot = Node(0, demand[0], draught[0]), end_depot = Node(2*n+1, demand[2*n+1], draught[2*n+1]);
+    auto start_depot_v = add_vertex(g);
+    g[start_depot_v] = start_depot;
+    auto end_depot_v = add_vertex(g);
+    g[end_depot_v] = end_depot;
     
-    for(int i = 1; i <= n; i++) {
-        Node origin {i, demand[i], draught[i]}, destination {n + i, demand[n + i], draught[n + i]};
-        vertex_t origin_v {add_vertex(g)}; g[origin_v] = origin;
-        vertex_t destination_v {add_vertex(g)}; g[destination_v] = destination;
+    for(auto i = 1u; i <= n; i++) {
+        auto origin = Node(i, demand[i], draught[i]), destination = Node(n + i, demand[n + i], draught[n + i]);
+        auto origin_v = add_vertex(g); g[origin_v] = origin;
+        auto destination_v = add_vertex(g); g[destination_v] = destination;
     }
         
-    int arc_id {0};
+    auto arc_id = 0;
     vi_t vi, vi_end, vj, vj_end;
     
     for(std::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
-        int i {g[*vi].id};
+        auto i = g[*vi].id;
         
         if(*vi == end_depot_v) {
             for(auto j = 0u; j < cost[i].size(); j++) {
@@ -35,7 +37,7 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
         }
         
         for(std::tie(vj, vj_end) = vertices(g); vj != vj_end; ++vj) {
-            int j {g[*vj].id};
+            auto j = g[*vj].id;
             
             if( (*vi == *vj) ||
                 (*vj == start_depot_v) ||
@@ -65,24 +67,26 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
             }
             
             this->cost[i][j] = cost[i][j];
-            Arc arc {arc_id++, cost[i][j]};
-            edge_t edge {add_edge(*vi, *vj, g).first}; g[edge] = arc;
+            auto arc = Arc(arc_id++, cost[i][j]);
+            auto edge = add_edge(*vi, *vj, g).first;
+            g[edge] = arc;
         }
     }
 }
 
 Graph Graph::make_reverse_graph() const {
-    Graph gr(*this);
+    auto gr = Graph(*this);
+    auto arc_id = num_edges(gr.g);
     vi_t vi, vi_end, vj, vj_end;
-    int arc_id {static_cast<int>(num_edges(gr.g))};
     
     for(std::tie(vi, vi_end) = vertices(gr.g); vi != vi_end; ++vi) {
         for(std::tie(vj, vj_end) = vertices(gr.g); vj != vj_end; ++vj) {
             if(edge(*vi, *vj, gr.g).second && !edge(*vj, *vi, gr.g).second) {
                 // Take the cost from the arc in the opposite direction
                 gr.cost[gr.g[*vj].id][gr.g[*vi].id] = gr.cost[gr.g[*vi].id][gr.g[*vj].id];
-                Arc arc {arc_id++, gr.cost[gr.g[*vj].id][gr.g[*vi].id]};
-                edge_t edge {add_edge(*vj, *vi, gr.g).first}; gr.g[edge] = arc;
+                auto arc = Arc(arc_id++, gr.cost[gr.g[*vj].id][gr.g[*vi].id]);
+                auto edge = add_edge(*vj, *vi, gr.g).first;
+                gr.g[edge] = arc;
             }
         }
     }

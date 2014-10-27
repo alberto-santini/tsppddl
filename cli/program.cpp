@@ -11,8 +11,8 @@
 #include <string>
 
 void Program::load(const std::string& filename) {
-    Parser par {filename};
-    g = std::make_shared<Graph>(par.generate_graph());
+    auto par = Parser(filename);
+    g = std::make_unique<Graph>(par.generate_graph());
 }
 
 void Program::autorun(const std::vector<std::string>& args) {
@@ -21,27 +21,31 @@ void Program::autorun(const std::vector<std::string>& args) {
         return;
     }
     
-    std::string file_name {args[0]};
+    auto file_name = args[0];
 
     load(file_name);
 
     if(args[1] == "branch_and_cut") {
         global::g_search_for_cuts_every_n_nodes = std::stoi(args[2]);
-        bool tce {args[3] == "yes"};
         
-        HeuristicSolver hsolv {g};
+        // Two-cycles elimination
+        auto tce = (args[3] == "yes");
+        
+        auto hsolv = HeuristicSolver(*g);
         heuristic_solutions = hsolv.solve();
         
-        BcSolver bsolv {g, heuristic_solutions, args[0]};
+        auto bsolv = BcSolver(*g, heuristic_solutions, args[0]);
         bsolv.solve_with_branch_and_cut(tce);
     } else if(args[1] == "subgradient") {
-        bool lg_mtz {args[2] == "yes"};
-        bool lg_prec {args[3] == "yes"};
+        auto lg_mtz = (args[2] == "yes");
+        auto lg_prec = (args[3] == "yes");
         
-        HeuristicSolver hsolv {g};
+        auto hsolv = HeuristicSolver(*g);
         heuristic_solutions = hsolv.solve();
         
-        SubgradientSolver ssolv {g, heuristic_solutions, args[0], 1000};
+        auto max_number_of_subgradient_iterations = 1000;
+        
+        auto ssolv = SubgradientSolver(*g, heuristic_solutions, args[0], max_number_of_subgradient_iterations);
         ssolv.solve(lg_mtz, lg_prec);
     }
 }

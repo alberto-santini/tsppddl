@@ -12,17 +12,17 @@
 
 using namespace boost;
 
-typedef std::vector<int> demand_t;
-typedef std::vector<int> draught_t;
-typedef int cost_val_t;
-typedef std::vector<cost_val_t> cost_row_t;
-typedef std::vector<cost_row_t> cost_t;
+using demand_t = std::vector<int>;
+using draught_t = std::vector<int>;
+using cost_val_t = int;
+using cost_row_t = std::vector<cost_val_t>;
+using cost_t = std::vector<cost_row_t>;
 
-typedef adjacency_list<listS, listS, directedS, Node, Arc, GraphInfo> graph_t;
-typedef graph_traits<graph_t>::vertex_descriptor vertex_t;
-typedef graph_traits<graph_t>::edge_descriptor edge_t;
-typedef graph_traits<graph_t>::vertex_iterator vi_t;
-typedef graph_traits<graph_t>::edge_iterator ei_t;
+using graph_t = adjacency_list<listS, listS, directedS, Node, Arc, GraphInfo>;
+using vertex_t = graph_traits<graph_t>::vertex_descriptor;
+using edge_t = graph_traits<graph_t>::edge_descriptor;
+using vi_t = graph_traits<graph_t>::vertex_iterator;
+using ei_t = graph_traits<graph_t>::edge_iterator;
 
 class Graph {    
 public:
@@ -31,7 +31,7 @@ public:
     draught_t draught;
     cost_t cost;
     
-    Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, const int capacity);
+    Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity);
     Graph make_reverse_graph() const;
 };
 

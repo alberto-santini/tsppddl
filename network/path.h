@@ -14,7 +14,7 @@ public:
     
     Path() : path{std::vector<int>()}, load{std::vector<int>()}, total_load{0}, total_cost{0} {}
         
-    void verify_feasible(std::shared_ptr<const Graph> g);
+    void verify_feasible(const Graph& g);
 };
 
 #endif

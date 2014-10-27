@@ -1,8 +1,8 @@
 #include <solver/bc/callbacks/generalized_order_solver.h>
 
 std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() {
-    auto n = g->g[graph_bundle].n;
-    std::vector<IloRange> cuts;
+    auto n = g.g[graph_bundle].n;
+    auto cuts = std::vector<IloRange>();
     
     for(auto i = 1; i <= n; i++) {
         auto j1 = -1, j2 = -1;
@@ -56,10 +56,10 @@ std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() {
             IloExpr lhs(env);
             IloNum rhs = 2;
             
-            int col_index {0};
-            for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                    if(g->cost[ii][jj] >= 0) {
+            auto col_index = 0;
+            for(auto ii = 0; ii <= 2 * n + 1; ii++) {
+                for(auto jj = 0; jj <= 2 * n + 1; jj++) {
+                    if(g.cost[ii][jj] >= 0) {
                         if(ii == i && jj == n + j1) {
                             lhs += x[col_index];
                         }
@@ -99,10 +99,10 @@ std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() {
             IloExpr lhs(env);
             IloNum rhs = 2;
             
-            int col_index {0};
-            for(int ii = 0; ii <= 2 * n + 1; ii++) {
-                for(int jj = 0; jj <= 2 * n + 1; jj++) {
-                    if(g->cost[ii][jj] >= 0) {
+            auto col_index = 0;
+            for(auto ii = 0; ii <= 2 * n + 1; ii++) {
+                for(auto jj = 0; jj <= 2 * n + 1; jj++) {
+                    if(g.cost[ii][jj] >= 0) {
                         if(ii == i && jj == n + j2) {
                             lhs += x[col_index];
                         }

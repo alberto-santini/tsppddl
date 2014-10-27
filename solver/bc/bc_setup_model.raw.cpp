@@ -1,22 +1,22 @@
 // ROWS
 
-for(int i = 0; i <= 2*n; i++) {
+for(auto i = 0; i <= 2*n; i++) {
     outdegree.add(IloRange(env, 1.0, 1.0));
     outdegree[i].setName(("outdegree_" + std::to_string(i)).c_str());
 }
-for(int i = 1; i <= 2*n + 1; i++) {
+for(auto i = 1; i <= 2*n + 1; i++) {
     indegree.add(IloRange(env, 1.0, 1.0));
     indegree[i-1].setName(("indegree_" + std::to_string(i)).c_str());
 }
-for(int i = 1; i <= 2*n; i++) {
-    load.add(IloRange(env, d[i], d[i]));
+for(auto i = 1; i <= 2*n; i++) {
+    load.add(IloRange(env, g.demand[i], g.demand[i]));
     load[i-1].setName(("load_" + std::to_string(i)).c_str());
 }
 
-int col_n {0};
-for(int i = 0; i <= 2*n + 1; i++) {
-    for(int j = 0; j <= 2*n + 1; j++) {
-        if(c[i][j] >= 0) {
+auto col_n = 0;
+for(auto i = 0; i <= 2*n + 1; i++) {
+    for(auto j = 0; j <= 2*n + 1; j++) {
+        if(g.cost[i][j] >= 0) {
             y_lower.add(IloRange(env, -IloInfinity, 0.0));
             y_lower[col_n].setName(("y_lower_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
             y_upper.add(IloRange(env, 0.0, IloInfinity));
@@ -30,9 +30,9 @@ initial_load[0].setName("initial_load");
 
 if(tce) {
     col_n = 0;
-    for(int i = 0; i <= 2*n + 1; i++) {
-        for(int j = i + 1; j <= 2*n + 1; j++) {
-            if(c[i][j] >= 0 && c[j][i] >= 0) {
+    for(auto i = 0; i <= 2*n + 1; i++) {
+        for(auto j = i + 1; j <= 2*n + 1; j++) {
+            if(g.cost[i][j] >= 0 && g.cost[j][i] >= 0) {
                 two_cycles_elimination.add(IloRange(env, -IloInfinity, 1.0));
                 two_cycles_elimination[col_n++].setName(("tce_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
             }
@@ -47,45 +47,45 @@ if(k_opt) {
 
 // COLUMNS
 
-for(int i = 0; i <= 2*n + 1; i++) {
-    for(int j = 0; j <= 2*n + 1; j++) {
-        if(c[i][j] >= 0) {
-            IloNumColumn col = obj(c[i][j]);
+for(auto i = 0; i <= 2*n + 1; i++) {
+    for(auto j = 0; j <= 2*n + 1; j++) {
+        if(g.cost[i][j] >= 0) {
+            IloNumColumn col = obj(g.cost[i][j]);
                                     
-            for(int ii = 0; ii <= 2*n; ii++) {
-                int coeff {0};
+            for(auto ii = 0; ii <= 2*n; ii++) {
+                auto coeff = 0;
                 if(i == ii) { coeff = 1; }
                 col += outdegree[ii](coeff);
             }
                         
-            for(int jj = 1; jj <= 2*n + 1; jj++) {
-                int coeff {0};
+            for(auto jj = 1; jj <= 2*n + 1; jj++) {
+                auto coeff = 0;
                 if(j == jj) { coeff = 1; }
                 col += indegree[jj-1](coeff);
             }
                         
-            for(int ii = 1; ii <= 2*n; ii++) {
+            for(auto ii = 1; ii <= 2*n; ii++) {
                 col += load[ii-1](0);
             }
                         
-            int col_n {0};
-            for(int ii = 0; ii <= 2*n + 1; ii++) {
-                for(int jj = 0; jj <= 2*n + 1; jj++) {
-                    if(c[ii][jj] >= 0) {
-                        int alpha {0};
-                        int beta {0};
+            auto col_n = 0;
+            for(auto ii = 0; ii <= 2*n + 1; ii++) {
+                for(auto jj = 0; jj <= 2*n + 1; jj++) {
+                    if(g.cost[ii][jj] >= 0) {
+                        auto alpha = 0;
+                        auto beta = 0;
                         
                         if(i == ii && j == jj) {
-                            if(i >= 1 && i <= n && j >= 1 && j <= n) { alpha = d[i]; }
-                            if(i >= n+1 && i <= 2*n && j >= n+1 && j <= 2*n) { alpha = -d[j]; }
+                            if(i >= 1 && i <= n && j >= 1 && j <= n) { alpha = g.demand[i]; }
+                            if(i >= n+1 && i <= 2*n && j >= n+1 && j <= 2*n) { alpha = -g.demand[j]; }
                             if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) {
                                 if(j != i+n) {
-                                    alpha = d[i] - d[j];
+                                    alpha = g.demand[i] - g.demand[j];
                                 } else {
-                                    alpha = d[i];
+                                    alpha = g.demand[i];
                                 }
                             }
-                            beta = std::min(std::min(Q - std::max(0, d[j]), l[i]), l[j] - std::max(0, d[j]));
+                            beta = std::min(std::min(Q - std::max(0, g.demand[j]), g.draught[i]), g.draught[j] - std::max(0, g.demand[j]));
                         }
                         
                         col += y_lower[col_n](alpha);
@@ -99,10 +99,10 @@ for(int i = 0; i <= 2*n + 1; i++) {
             
             if(tce) {
                 col_n = 0;
-                for(int ii = 0; ii <= 2*n + 1; ii++) {
-                    for(int jj = ii + 1; jj <= 2*n + 1; jj++) {
-                        if(c[ii][jj] >= 0 && c[jj][ii] >= 0) {
-                            int coeff {0};
+                for(auto ii = 0; ii <= 2*n + 1; ii++) {
+                    for(auto jj = ii + 1; jj <= 2*n + 1; jj++) {
+                        if(g.cost[ii][jj] >= 0 && g.cost[jj][ii] >= 0) {
+                            auto coeff = 0;
 
                             if((i == ii && j == jj) || (i == jj && j == ii)) {
                                 coeff = 1;
@@ -125,21 +125,21 @@ for(int i = 0; i <= 2*n + 1; i++) {
     }
 }
 
-for(int i = 0; i <= 2*n + 1; i++) {
-    for(int j = 0; j <= 2*n + 1; j++) {
-        if(c[i][j] >= 0) {
+for(auto i = 0; i <= 2*n + 1; i++) {
+    for(auto j = 0; j <= 2*n + 1; j++) {
+        if(g.cost[i][j] >= 0) {
             IloNumColumn col = obj(0);
                         
-            for(int ii = 0; ii <= 2*n; ii++) {
+            for(auto ii = 0; ii <= 2*n; ii++) {
                 col += outdegree[ii](0);
             }
             
-            for(int jj = 1; jj <= 2*n + 1; jj++) {
+            for(auto jj = 1; jj <= 2*n + 1; jj++) {
                 col += indegree[jj-1](0);
             }
             
-            for(int ii = 1; ii <= 2*n; ii++) {
-                int coeff {0};
+            for(auto ii = 1; ii <= 2*n; ii++) {
+                auto coeff = 0;
                 
                 if(i == ii) { coeff = 1; }
                 if(j == ii) { coeff = -1; }
@@ -147,11 +147,11 @@ for(int i = 0; i <= 2*n + 1; i++) {
                 col += load[ii-1](coeff);
             }
             
-            int col_n {0};
-            for(int ii = 0; ii <= 2*n + 1; ii++) {
-                for(int jj = 0; jj <= 2*n + 1; jj++) {
-                    if(c[ii][jj] >= 0) {
-                        int coeff {0};
+            auto col_n = 0;
+            for(auto ii = 0; ii <= 2*n + 1; ii++) {
+                for(auto jj = 0; jj <= 2*n + 1; jj++) {
+                    if(g.cost[ii][jj] >= 0) {
+                        auto coeff = 0;
 
                         if(i == ii && j == jj) {
                             coeff = -1;
@@ -168,9 +168,9 @@ for(int i = 0; i <= 2*n + 1; i++) {
             
             if(tce) {
                 col_n = 0;
-                for(int ii = 0; ii <= 2*n + 1; ii++) {
-                    for(int jj = ii + 1; jj <= 2*n + 1; jj++) {
-                        if(c[ii][jj] >= 0 && c[jj][ii] >= 0) {
+                for(auto ii = 0; ii <= 2*n + 1; ii++) {
+                    for(auto jj = ii + 1; jj <= 2*n + 1; jj++) {
+                        if(g.cost[ii][jj] >= 0 && g.cost[jj][ii] >= 0) {
                             col += two_cycles_elimination[col_n++](0);
                         }
                     }

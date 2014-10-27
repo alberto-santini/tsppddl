@@ -4,9 +4,10 @@
 #include <network/graph.h>
 #include <network/path.h>
 
+#include <ilcplex/ilocplex.h>
+
 #include <functional>
 #include <limits>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -22,7 +23,7 @@ namespace sg_compare {
 }
 
 class SubgradientSolver {
-    std::shared_ptr<const Graph> g;
+    const Graph& g;
     std::vector<Path> initial_solutions;
     std::string instance_name;
     int iteration_limit;
@@ -31,9 +32,10 @@ class SubgradientSolver {
     void print_headers(std::ofstream& results_file) const;
     void print_result_row(std::ofstream& results_file, double result, double best_sol, int subgradient_iteration, double iteration_time, double cplex_obj, double obj_const_term, int violated_mtz, int loose_mtz, int tight_mtz, int violated_prec, int loose_prec, int tight_prec, double theta, double step_lambda, double step_mu, double avg_lambda_before, double avg_mu_before, double avg_l, double avg_m, bool improved, bool lg_mtz, bool lg_prec) const;
     void print_final_results(std::ofstream& results_file, double ub, double lb) const;
-	void print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda) const;
+    void print_mult_dump_headers(std::ofstream& dump_file) const;
+	void print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const;
 public:
-    SubgradientSolver(std::shared_ptr<const Graph> g, const std::vector<Path>& initial_solutions, std::string instance_path, int iteration_limit);
+    SubgradientSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path, int iteration_limit);
     void solve(bool lg_mtz, bool lg_prec);
 };
 

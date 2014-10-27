@@ -12,7 +12,6 @@
 #include <boost/range/numeric.hpp>
 
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -25,7 +24,7 @@ namespace CallbacksHelper {
         bool is_integer;
         std::vector<std::vector<double>> x;
         
-        solution(bool i, std::vector<std::vector<double>> x) : is_integer{i}, x{x} {}
+        solution(bool i, const std::vector<std::vector<double>>& x) : is_integer{i}, x{x} {}
     };
     
     struct sets_info {
@@ -40,7 +39,7 @@ namespace CallbacksHelper {
         
         sets_info() {}
         
-        sets_info(int n, bvec in_S, bvec in_tabu, ivec tabu_start, bvec in_fs, double fs, bvec in_ss, double ss, bvec in_ts, double ts, double lhs) : n{n}, in_S{in_S}, in_tabu{in_tabu}, tabu_start{tabu_start}, in_fs{in_fs}, fs{fs}, in_ss{in_ss}, ss{ss}, in_ts{in_ts}, ts{ts}, lhs{lhs} {}
+        sets_info(int n, const bvec& in_S, const bvec& in_tabu, const ivec& tabu_start, const bvec& in_fs, double fs, const bvec& in_ss, double ss, const bvec& in_ts, double ts, double lhs) : n{n}, in_S{in_S}, in_tabu{in_tabu}, tabu_start{tabu_start}, in_fs{in_fs}, fs{fs}, in_ss{in_ss}, ss{ss}, in_ts{in_ts}, ts{ts}, lhs{lhs} {}
         
         // Methods for writing easier to read for(...) loops
         bool is_in_S(int i) const;

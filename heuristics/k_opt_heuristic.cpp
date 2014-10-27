@@ -8,23 +8,22 @@
 #include <stdexcept>
 
 Path KOptHeuristic::solve_with_multiple_columns() const {
-    unsigned long int N {initial_solutions.size()};
-    int n {g->g[graph_bundle].n};
-    cost_t c {g->cost};
+    auto N = initial_solutions.size();
+    auto n = g.g[graph_bundle].n;
         
-    std::vector<std::vector<std::vector<int>>> sols_x;
-    for(const Path& p : initial_solutions) {
+    auto sols_x = std::vector<std::vector<std::vector<int>>>();
+    for(const auto& p : initial_solutions) {
         sols_x.push_back(get_x_values(p));
     }
     
-    std::vector<std::vector<int>> s(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    std::vector<int> t(N, 0);
-    int alpha {0};
-    int beta {0};
+    auto s = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    auto t = std::vector<int>(N, 0);
+    auto alpha = 0;
+    auto beta = 0;
     
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(c[i][j] >= 0) {
+    for(auto i = 0; i <= 2 * n + 1; i++) {
+        for(auto j = 0; j <= 2 * n + 1; j++) {
+            if(g.cost[i][j] >= 0) {
                 for(auto sol = 0u; sol < sols_x.size(); sol++) {
                     if(sols_x[sol][i][j] == 1) {
                         s[i][j]++;
@@ -36,8 +35,8 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
     }
     
     for(auto sol = 0u; sol < N; sol++) {
-        for(int i = 0; i <= 2 * n + 1; i++) {
-            for(int j = 0; j <= 2 * n + 1; j++) {
+        for(auto i = 0; i <= 2 * n + 1; i++) {
+            for(auto j = 0; j <= 2 * n + 1; j++) {
                 if(s[i][j] == (int)sol) {
                     t[sol]++;
                     beta = sol;
@@ -46,28 +45,25 @@ Path KOptHeuristic::solve_with_multiple_columns() const {
         }
     }
     
-    BcSolver msolv {g, initial_solutions, "k-opt"};
-    std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
+    auto msolv = BcSolver(g, initial_solutions, "k-opt");
+    auto solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
     return get_path(solution_x);
 }
 
 Path KOptHeuristic::solve() const {
-    int n {g->g[graph_bundle].n};
-    cost_t c {g->cost};
-    Path best_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
-    
-    std::vector<std::vector<int>> sol_x {get_x_values(best_solution)};
-    
-    BcSolver msolv {g, initial_solutions, "k-opt"};
-    std::vector<std::vector<int>> solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
+    auto n = g.g[graph_bundle].n;
+    auto best_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+    auto sol_x = get_x_values(best_solution);
+    auto msolv = BcSolver(g, initial_solutions, "k-opt");
+    auto solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
     return get_path(solution_x);
 }
 
 std::vector<std::vector<int>> KOptHeuristic::get_x_values(const Path& p) const {
-    int n {g->g[graph_bundle].n};
-    std::vector<std::vector<int>> x(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    auto n = g.g[graph_bundle].n;
+    auto x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
     
-    for(int i = 0; i < 2 * n + 1; i++) {
+    for(auto i = 0; i < 2 * n + 1; i++) {
         x[p.path[i]][p.path[i+1]] = 1;
     }
     
@@ -75,13 +71,10 @@ std::vector<std::vector<int>> KOptHeuristic::get_x_values(const Path& p) const {
 }
 
 Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
-    cost_t c {g->cost};
-    demand_t d {g->demand};
-    
-    int current_node {0};
-    std::vector<int> visited_nodes(0);
-    int current_load {0};
-    int n {g->g[graph_bundle].n};
+    auto current_node = 0;
+    auto visited_nodes = std::vector<int>(0);
+    auto current_load = 0;
+    auto n = g.g[graph_bundle].n;
     
     Path p;
     p.path.reserve(2 * n + 2); p.load.reserve(2 * n + 2);
@@ -94,13 +87,13 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
             std::cerr << ">> Cycle: the path comes back to " << *cycle << std::endl;
             throw std::runtime_error("K-opt heuristic produced a path with a cycle!");
         }
-        for(int j = 0; j <= 2 * n + 1; j++) {
+        for(auto j = 0; j <= 2 * n + 1; j++) {
             if(std::abs(x[current_node][j] - 1) < 0.0001) {
                 p.path.push_back(j);
-                current_load += d[j];
+                current_load += g.demand[j];
                 p.load.push_back(current_load);
-                if(d[j] > 0) { p.total_load += d[j]; }
-                p.total_cost += c[current_node][j];
+                if(g.demand[j] > 0) { p.total_load += g.demand[j]; }
+                p.total_cost += g.cost[current_node][j];
                 visited_nodes.push_back(current_node);
                 current_node = j;
                 break;
@@ -116,8 +109,8 @@ Path KOptHeuristic::get_path(const std::vector<std::vector<int>>& x) const {
         }
         std::cerr << std::endl;
         std::cerr << "X: " << std::endl;
-        for(int i = 0; i <= 2*n+1; i++) {
-            for(int j = 0; j <= 2*n+1; j++) {
+        for(auto i = 0; i <= 2*n+1; i++) {
+            for(auto j = 0; j <= 2*n+1; j++) {
                 if(x[i][j] > 0.0) {
                     std::cerr << "x[" << i << "][" << j << "] = " << x[i][j] << std::endl;
                 }

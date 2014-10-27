@@ -6,7 +6,7 @@ struct Arc {
     int cost;
     
     Arc() {}
-    Arc(const int id, const int cost) : id{id}, cost{cost} {}
+    Arc(int id, int cost) : id{id}, cost{cost} {}
 };
 
 #endif

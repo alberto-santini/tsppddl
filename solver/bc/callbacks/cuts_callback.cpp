@@ -12,13 +12,13 @@ IloCplex::CallbackI* CutsCallback::duplicateCallback() const {
 }
 
 void CutsCallback::main() {
-    long node_number = getNnodes();
+    auto node_number = getNnodes();
     auto sol = compute_x_values();
     
     if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
         auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
 
-        for(IloRange& cut : feas_cuts) {
+        for(auto& cut : feas_cuts) {
             add(cut, IloCplex::UseCutForce).end();
             global::g_total_number_of_feasibility_cuts_added++;
         }
@@ -27,15 +27,15 @@ void CutsCallback::main() {
             SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
             auto valid_cuts_1 = sub_solv.separate_valid_cuts();
 
-            for(IloRange& cut : valid_cuts_1) {
+            for(auto& cut : valid_cuts_1) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_subtour_cuts_added++;
             }
             
-            GeneralizedOrderSolver go_solv {g, sol, env, x, eps};
+            auto go_solv = GeneralizedOrderSolver(g, sol, env, x, eps);
             auto valid_cuts_2 = go_solv.separate_valid_cuts();
 
-            for(IloRange& cut : valid_cuts_2) {
+            for(auto& cut : valid_cuts_2) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_generalized_order_cuts_added++;
             }
@@ -44,16 +44,15 @@ void CutsCallback::main() {
 }
 
 ch::solution CutsCallback::compute_x_values() const {
-    int n {g->g[graph_bundle].n};
-    cost_t c {g->cost};
-    std::vector<std::vector<double>> xvals(2*n+2, std::vector<double>(2*n+2, 0));
-    bool is_integer {true};
+    auto n = g.g[graph_bundle].n;
+    auto xvals = std::vector<std::vector<double>>(2*n+2, std::vector<double>(2*n+2, 0));
+    auto is_integer = true;
 
-    int col_index {0};
-    for(int i = 0; i <= 2 * n + 1; i++) {
-        for(int j = 0; j <= 2 * n + 1; j++) {
-            if(c[i][j] >= 0) {
-                IloNum n = getValue(x[col_index++]);
+    auto col_index = 0;
+    for(auto i = 0; i <= 2 * n + 1; i++) {
+        for(auto j = 0; j <= 2 * n + 1; j++) {
+            if(g.cost[i][j] >= 0) {
+                auto n = getValue(x[col_index++]);
                 if(n > eps) {
                     if(n < 1 - eps) {
                         is_integer = false;

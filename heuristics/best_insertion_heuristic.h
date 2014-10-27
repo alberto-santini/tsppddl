@@ -8,7 +8,6 @@
 #include <chrono>
 #include <ctime>
 #include <limits>
-#include <memory>
 #include <ratio>
 
 template<class IC>
@@ -16,7 +15,7 @@ class BestInsertionHeuristic : public Heuristic {
     IC insertion_comparator;
     
 public:
-    BestInsertionHeuristic(const std::shared_ptr<const Graph> g, const IC ic);
+    BestInsertionHeuristic(const Graph& g, const IC& ic);
     Path solve();
 };
 

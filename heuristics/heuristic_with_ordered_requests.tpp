@@ -1,5 +1,5 @@
 template<class RC, class IC>
-HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const std::shared_ptr<const Graph> g, const RC rc, const IC ic) : Heuristic{g}, insertion_comparator(ic) {
+HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const Graph& g, const RC& rc, const IC& ic) : Heuristic{g}, insertion_comparator(ic) {
     std::sort(remaining_requests.begin(), remaining_requests.end(), rc);
     std::reverse(remaining_requests.begin(), remaining_requests.end()); // Reverse to be able to pop_back() the best
 }
@@ -8,10 +8,10 @@ template<class RC, class IC>
 Path HeuristicWithOrderedRequests<RC, IC>::solve() {
     using namespace std::chrono;
     
-    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    auto t_start = high_resolution_clock::now();
     
     while(this->remaining_requests.size() > 0) {
-        int req {remaining_requests.back()};
+        auto req = remaining_requests.back();
         if(insert(req)) {
             this->remaining_requests.pop_back();
         } else {
@@ -19,18 +19,18 @@ Path HeuristicWithOrderedRequests<RC, IC>::solve() {
         }
     }
     
-    high_resolution_clock::time_point t_end {high_resolution_clock::now()};
-    duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+    auto t_end = high_resolution_clock::now();
+    auto time_span = duration_cast<duration<double>>(t_end - t_start);
     global::g_total_time_spent_by_heuristics += time_span.count();
     
     return this->p;
 }
 
 template<class RC, class IC>
-bool HeuristicWithOrderedRequests<RC, IC>::insert(const int req) {
-    int best_cost {std::numeric_limits<int>::max()};
-    int best_load {std::numeric_limits<int>::max()};
-    bool managed_to_insert {false};
+bool HeuristicWithOrderedRequests<RC, IC>::insert(int req) {
+    auto best_cost = std::numeric_limits<int>::max();
+    auto best_load = std::numeric_limits<int>::max();
+    auto managed_to_insert = false;
     Path new_path;
     
     for(auto x = 1u; x < this->p.path.size(); x++) {

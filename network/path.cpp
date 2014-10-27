@@ -3,14 +3,12 @@
 #include <iostream>
 #include <stdexcept>
 
-void Path::verify_feasible(std::shared_ptr<const Graph> g) {
-    // std::cout << "***** Verifying the feasibility of a heuristic solution!" << std::endl;
-    
-    int n {g->g[graph_bundle].n};
-    int Q {g->g[graph_bundle].capacity};
-    int current_load {0};
-    int visited_nodes {1};
-    std::vector<int> visited_sources;
+void Path::verify_feasible(const Graph& g) {
+    auto n = g.g[graph_bundle].n;
+    auto Q = g.g[graph_bundle].capacity;
+    auto current_load = 0;
+    auto visited_nodes = 1;
+    auto visited_sources = std::vector<int>();
     
     if(path.size() != (size_t)(2 * n + 2)) {
         std::cout << "Wrong path length: " << path.size() << " vs. " << 2 * n + 2 << std::endl;
@@ -20,8 +18,8 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
         throw std::runtime_error("Path length is != 2 * n + 2");
     }
     
-    for(int i = 1; i <= 2 * n + 1; i++) {
-        int current_node = path[i];
+    for(auto i = 1; i <= 2 * n + 1; i++) {
+        auto current_node = path[i];
         visited_nodes++;
         
         if(current_node == 2 * n + 1 && visited_nodes < 2 * n + 2) {
@@ -34,8 +32,8 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
         }
         
         if(current_node > n && current_node < 2 * n + 1) {
-            bool source_visited {false};
-            for(int j : visited_sources) {
+            auto source_visited = false;
+            for(auto j : visited_sources) {
                 if(j == current_node - n) {
                     source_visited = true;
                 }
@@ -46,18 +44,16 @@ void Path::verify_feasible(std::shared_ptr<const Graph> g) {
             }
         }
         
-        if(current_load > std::min(Q, g->draught[current_node])) {
-            std::cout << "Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g->draught[current_node] << ")" << std::endl;
+        if(current_load > std::min(Q, g.draught.at(current_node))) {
+            std::cout << "Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
             throw std::runtime_error("Wrong load!");
         }
         
-        current_load += g->demand[current_node];
+        current_load += g.demand.at(current_node);
         
-        if(current_load > std::min(Q, g->draught[current_node])) {
-            std::cout << "Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g->draught[current_node] << ")" << std::endl;
+        if(current_load > std::min(Q, g.draught.at(current_node))) {
+            std::cout << "Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
             throw std::runtime_error("Wrong load!");
         }
     }
-    
-    // std::cout << "***** Solution feasible!" << std::endl;
 }

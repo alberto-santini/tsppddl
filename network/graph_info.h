@@ -6,7 +6,7 @@ struct GraphInfo {
     int capacity;
     
     GraphInfo() {}
-    GraphInfo(const int n, const int capacity) : n{n}, capacity{capacity} {}
+    GraphInfo(int n, int capacity) : n{n}, capacity{capacity} {}
 };
 
 #endif

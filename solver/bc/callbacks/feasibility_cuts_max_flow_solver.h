@@ -7,11 +7,10 @@
 #include <ilcplex/ilocplex.h>
 #include <ilcplex/ilocplexi.h>
 
-#include <memory>
 #include <vector>
 
 namespace FeasibilityCutsMaxFlowSolver {
-    std::vector<IloRange> separate_feasibility_cuts(std::shared_ptr<const Graph> g, std::shared_ptr<const Graph> gr, ch::solution sol, IloNumVarArray x, double eps);
+    std::vector<IloRange> separate_feasibility_cuts(const Graph& g, const Graph& gr, const ch::solution& sol, const IloNumVarArray& x, double eps);
 }
 
 #endif

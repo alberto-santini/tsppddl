@@ -1,20 +1,20 @@
 template<class IC>
-BestInsertionHeuristic<IC>::BestInsertionHeuristic(const std::shared_ptr<const Graph> g, const IC ic) : Heuristic{g}, insertion_comparator(ic) {}
+BestInsertionHeuristic<IC>::BestInsertionHeuristic(const Graph& g, const IC& ic) : Heuristic{g}, insertion_comparator(ic) {}
 
 template<class IC>
 Path BestInsertionHeuristic<IC>::solve() {
     using namespace std::chrono;
     
-    high_resolution_clock::time_point t_start {high_resolution_clock::now()};
+    auto t_start = high_resolution_clock::now();
     
     while(this->remaining_requests.size() > 0) {
-        int best_cost {std::numeric_limits<int>::max()};
-        int best_load {0};
-        int best_request {this->remaining_requests.at(0)};
-        bool managed_to_insert {false};
+        auto best_cost = std::numeric_limits<int>::max();
+        auto best_load = 0;
+        auto best_request = this->remaining_requests.at(0);
+        auto managed_to_insert = false;
         Path new_path;
         
-        for(int req : this->remaining_requests) {
+        for(auto req : this->remaining_requests) {
             for(auto x = 1u; x < this->p.path.size(); x++) {
                 for(auto y = x; y < this->p.path.size(); y++) {
                     auto result = HeuristicHelper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, best_cost, best_load);
@@ -37,8 +37,8 @@ Path BestInsertionHeuristic<IC>::solve() {
         }
     }
     
-    high_resolution_clock::time_point t_end {high_resolution_clock::now()};
-    duration<double> time_span {duration_cast<duration<double>>(t_end - t_start)};
+    auto t_end = high_resolution_clock::now();
+    auto time_span = duration_cast<duration<double>>(t_end - t_start);
     global::g_total_time_spent_by_heuristics += time_span.count();
     
     return this->p;
