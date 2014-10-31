@@ -180,7 +180,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     }
 
     // Export model to file
-    if(!k_opt) { cplex.exportModel("model.lp"); }
+    // if(!k_opt) { cplex.exportModel("model.lp"); }
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
@@ -194,6 +194,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
         std::cerr << "BcSolver::solve()\tCPLEX problem encountered at root node." << std::endl;
         std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
         std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+        cplex.exportModel("model_err.lp");
         throw std::runtime_error("Some error occurred or the problem is infeasible.");
     } else {
         auto t_end = high_resolution_clock::now();
@@ -213,6 +214,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
             std::cerr << "BcSolver::solve()\tCPLEX problem encountered after the root node." << std::endl;
             std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
             std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+            cplex.exportModel("model_err.lp");
             throw std::runtime_error("Some error occurred or the problem is infeasible.");
         }
     }

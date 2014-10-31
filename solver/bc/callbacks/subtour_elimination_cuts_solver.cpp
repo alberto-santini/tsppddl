@@ -74,6 +74,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         
         auto added_mem_pi = false, added_mem_sigma = false;
         auto m_pi = memory(), m_sigma = memory();
+        
         if(params.bc.subtour_sep_memory) {
             auto f = boost::find(best_pi.in_S, true);
             if(f != boost::end(best_pi.in_S)) {
