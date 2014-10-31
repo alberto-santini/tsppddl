@@ -20,7 +20,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             y_lower.add(IloRange(env, -IloInfinity, 0.0, name.str().c_str()));
             name.str(""); name << "cst_y_upper_" << i << "_" << j;
             y_upper.add(IloRange(env, 0.0, IloInfinity, name.str().c_str()));
-            if(!lg_mtz) {
+            if(!params.sg.relax_mtz) {
                 name.str(""); name << "cst_mtz_" << i << "_" << j;
                 mtz.add(IloRange(env, -IloInfinity, 2*n, name.str().c_str()));
             }
@@ -29,7 +29,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
 }
 initial_load.add(IloRange(env, 0.0, 0.0, "cst_initial_load"));
 initial_order.add(IloRange(env, 0.0, 0.0, "cst_initial_order"));
-if(!lg_prec) {
+if(!params.sg.relax_prec) {
     for(auto i = 1; i <= n; i++) {
         name.str(""); name << "cst_prec_" << i;
         prec.add(IloRange(env, -IloInfinity, 1.0, name.str().c_str()));
@@ -45,7 +45,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             
             obj_coeff += g.cost[i][j];
             
-            if(lg_mtz) {
+            if(params.sg.relax_mtz) {
                 obj_coeff += (2*n + 1) * lambda[i][j];
             }
             
@@ -90,7 +90,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                         col += y_lower[col_n](alpha);
                         col += y_upper[col_n](beta);
                         
-                        if(!lg_mtz) {
+                        if(!params.sg.relax_mtz) {
                             if(i == ii && j == jj) {
                                 col += mtz[col_n](2*n + 1);
                             } else {
@@ -106,7 +106,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             col += initial_load[0](0);
             col += initial_order[0](0);
             
-            if(!lg_prec) {
+            if(!params.sg.relax_prec) {
                 for(auto ii = 1; ii <= n; ii++) {
                     col += prec[ii-1](0);
                 }
@@ -155,7 +155,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                         col += y_lower[col_n](coeff);
                         col += y_upper[col_n](coeff);
                         
-                        if(!lg_mtz) {
+                        if(!params.sg.relax_mtz) {
                             col += mtz[col_n](0.0);
                         }
                         
@@ -164,7 +164,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            if(!lg_prec) {
+            if(!params.sg.relax_prec) {
                 for(int ii = 1; ii <= n; ii++) {
                     col += prec[ii-1](0);
                 }
@@ -184,14 +184,14 @@ for(auto i = 0; i <= 2*n + 1; i++) {
 for(auto i = 0; i <= 2*n + 1; i++) {
     auto obj_coeff = 0.0;
     
-    if(lg_mtz) {
+    if(params.sg.relax_mtz) {
         for(int j = 0; j <= 2*n + 1; j++) {
             if(g.cost[i][j] >= 0) { obj_coeff += lambda[i][j]; }
             if(g.cost[j][i] >= 0) { obj_coeff -= lambda[j][i]; }
         }
     }
     
-    if(lg_prec) {
+    if(params.sg.relax_prec) {
         if(i >= 1 && i <= n) {
             obj_coeff += mu[i];
         } else if(i >= n+1 && i <= 2*n) {
@@ -220,7 +220,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 col += y_lower[col_n](0);
                 col += y_upper[col_n](0);
                 
-                if(!lg_mtz) {
+                if(!params.sg.relax_mtz) {
                     if(i == ii) {
                         col += mtz[col_n](1);
                     } else if(i == jj) {
@@ -238,7 +238,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
     col += initial_load[0](0);
     col += initial_order[0](i == 0 ? 1 : 0);
     
-    if(!lg_prec) {
+    if(!params.sg.relax_prec) {
         for(auto ii = 1; ii <= n; ii++) {
             if(i == ii) {
                 col += prec[ii-1](1);

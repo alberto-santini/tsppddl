@@ -19,7 +19,7 @@ void CutsLazyConstraint::main() {
     }
     
     if(apply_valid_cuts) {
-        SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
+        SubtourEliminationCutsSolver sub_solv {g, params, sol, env, x, eps};
         auto valid_cuts_1 = sub_solv.separate_valid_cuts();
 
         for(auto& cut : valid_cuts_1) {

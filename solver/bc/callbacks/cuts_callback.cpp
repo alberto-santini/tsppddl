@@ -15,7 +15,7 @@ void CutsCallback::main() {
     auto node_number = getNnodes();
     auto sol = compute_x_values();
     
-    if(sol.is_integer || (node_number % global::g_search_for_cuts_every_n_nodes == 0)) {
+    if(sol.is_integer || (node_number % params.bc.cut_every_n_nodes == 0)) {
         auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
 
         for(auto& cut : feas_cuts) {
@@ -24,7 +24,7 @@ void CutsCallback::main() {
         }
         
         if(apply_valid_cuts) {
-            SubtourEliminationCutsSolver sub_solv {g, sol, env, x, eps};
+            SubtourEliminationCutsSolver sub_solv {g, params, sol, env, x, eps};
             auto valid_cuts_1 = sub_solv.separate_valid_cuts();
 
             for(auto& cut : valid_cuts_1) {

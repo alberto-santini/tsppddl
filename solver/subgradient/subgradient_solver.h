@@ -3,6 +3,7 @@
 
 #include <network/graph.h>
 #include <network/path.h>
+#include <parser/program_params.h>
 
 #include <ilcplex/ilocplex.h>
 
@@ -24,9 +25,9 @@ namespace sg_compare {
 
 class SubgradientSolver {
     const Graph& g;
+    const ProgramParams& params;
     std::vector<Path> initial_solutions;
     std::string instance_name;
-    int iteration_limit;
     double best_sol;
     
     void print_headers(std::ofstream& results_file) const;
@@ -35,8 +36,8 @@ class SubgradientSolver {
     void print_mult_dump_headers(std::ofstream& dump_file) const;
 	void print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const;
 public:
-    SubgradientSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path, int iteration_limit);
-    void solve(bool lg_mtz, bool lg_prec);
+    SubgradientSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path);
+    void solve();
 };
 
 #endif

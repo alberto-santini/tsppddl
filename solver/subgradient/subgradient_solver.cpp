@@ -11,9 +11,10 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
-SubgradientSolver::SubgradientSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path, int iteration_limit) : g{g}, initial_solutions{initial_solutions}, iteration_limit{iteration_limit}, best_sol{std::numeric_limits<double>::max()} {
+SubgradientSolver::SubgradientSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions}, best_sol{std::numeric_limits<double>::max()} {
     // PORTABLE WAY:
     // boost::filesystem::path i_path(instance_path);
     // std::stringstream ss; ss << i_path.stem();
@@ -188,7 +189,7 @@ void SubgradientSolver::print_final_results(std::ofstream& results_file, double 
     results_file << "Gap %: " << std::setprecision(12) << (100 * (ub - lb) / ub) << std::endl;
 };
 
-void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
+void SubgradientSolver::solve() {
     using namespace std::chrono;
     
     auto n = g.g[graph_bundle].n;
@@ -199,12 +200,12 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     best_sol = best_heur_path->total_cost;
     
     // Initial multipliers: all 1.0
-    auto lambda = std::vector<std::vector<double>>(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
-    auto mu = std::vector<double>(n+1, 1.0); // I include mu[0] for convenience
+    auto lambda = std::vector<std::vector<double>>(2 * n + 2, std::vector<double>(2 * n + 2, params.sg.initial_lambda));
+    auto mu = std::vector<double>(n+1, params.sg.initial_mu); // I include mu[0] for convenience
     
     auto best_bound = 0.0;
-    auto best_lambda = std::vector<std::vector<double>>(2 * n + 2, std::vector<double>(2 * n + 2, 1.0));
-    auto best_mu = std::vector<double>(n+1, 1.0);
+    auto best_lambda = std::vector<std::vector<double>>(2 * n + 2, std::vector<double>(2 * n + 2, params.sg.initial_lambda));
+    auto best_mu = std::vector<double>(n+1, params.sg.initial_mu);
     
     IloEnv env;
     IloModel model(env);
@@ -231,10 +232,10 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     model.add(obj);
     model.add(variables_x); model.add(variables_y); model.add(variables_tt);
     model.add(outdegree); model.add(indegree); model.add(load); model.add(y_lower); model.add(y_upper); model.add(initial_load); model.add(initial_order);
-    if(!lg_mtz) {
+    if(!params.sg.relax_mtz) {
         model.add(mtz);
     }
-    if(!lg_prec) {
+    if(!params.sg.relax_prec) {
         model.add(prec);
     }
     
@@ -243,23 +244,25 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::Threads, 4);
     
-    auto subgradient_iteration = 0;
+    auto subgradient_iteration = (unsigned int)0;
     auto rounds_without_improvement = 0;
     auto theta = 2.0;
     
+    std::stringstream ss;
     std::ofstream results_file;
-    results_file.open("./subgradient_results/results/" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out);
+    ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_" << instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
+    results_file.open(ss.str(), std::ios::out);
     print_headers(results_file);
 	
+    ss.str("");
 	std::ofstream mult_dump;
-	if(n < 3) {
-        mult_dump.open("./subgradient_results/mult_dump_" + instance_name + (lg_mtz ? "_mtz" : "") + (lg_prec ? "_prec" : "") + ".txt", std::ios::out);
+	if(n < 4) {
+        ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_dump_" << instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
+        mult_dump.open(ss.str(), std::ios::out);
         print_mult_dump_headers(mult_dump);
     }
-    
-    cplex.exportModel("./subgradient_results/model.lp");
-    
-    while(subgradient_iteration++ <= iteration_limit) {
+        
+    while(subgradient_iteration++ <= params.sg.max_iter) {
         auto t_start = high_resolution_clock::now();
         
         if(cplex.solve()) {
@@ -268,12 +271,12 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
             
             auto obj_const_term = 0.0;
             for(auto i = 0; i <= 2*n + 1; i++) {
-                if(lg_mtz) { 
+                if(params.sg.relax_mtz) { 
                     for(auto j = 0; j <= 2*n + 1; j++) {
                         if(g.cost[i][j] >= 0) { obj_const_term -= (2*n + 1) * lambda[i][j]; }
                     }
                 }
-                if(lg_prec) {
+                if(params.sg.relax_prec) {
                     if(i >= 1 && i <= n) { obj_const_term += mu[i]; }
                 }
             }
@@ -290,8 +293,8 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
             
             if(improved) {
                 best_bound = result;
-                if(lg_mtz) { best_lambda = lambda; }
-                if(lg_prec) { best_mu = mu; }
+                if(params.sg.relax_mtz) { best_lambda = lambda; }
+                if(params.sg.relax_prec) { best_mu = mu; }
                 rounds_without_improvement = 0;
             } else {
                 rounds_without_improvement++;
@@ -318,7 +321,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
             
             auto col_n = 0;
             for(auto i = 0; i <= 2*n + 1; i++) {
-                if(lg_mtz) {
+                if(params.sg.relax_mtz) {
                     for(auto j = 0; j <= 2*n + 1; j++) {
                         if(g.cost[i][j] >= 0) {
                             L[i][j] = t[i] + 1 - (2*n + 1) * (1 - x[col_n++]) - t[j];
@@ -328,7 +331,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                         }
                     }
                 }
-                if(lg_prec) {
+                if(params.sg.relax_prec) {
                     if(i >= 1 && i <= n) {
                         M[i] = t[i] + 1 - t[n+i];
                         MM += pow(M[i], 2);
@@ -338,20 +341,20 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                 }
             }
                         
-            // Halve theta after 5 rounds without improvement
-            if(rounds_without_improvement > 0 && rounds_without_improvement % 5 == 0) {
-                theta /= 2;
+            // Halve theta after N rounds without improvement
+            if(rounds_without_improvement > 0 && rounds_without_improvement % params.sg.iter_reduce_theta == 0) {
+                theta /= params.sg.theta_reduce_factor;
             }
                         
             auto step_lambda = 0.0;
-            if(lg_mtz) { step_lambda = theta * (best_sol - result) / LL; }
+            if(params.sg.relax_mtz) { step_lambda = theta * (best_sol - result) / LL; }
             auto step_mu = 0.0;
-            if(lg_prec) { step_mu = theta * (best_sol - result) / MM; }
+            if(params.sg.relax_prec) { step_mu = theta * (best_sol - result) / MM; }
             
             auto exit_condition = true;
             
             for(auto i = 0; i <= 2*n + 1; i++) {
-                if(lg_mtz) {
+                if(params.sg.relax_mtz) {
                     for(auto j = 0; j <= 2*n + 1; j++) {
                         if(g.cost[i][j] >= 0) {
                             if(L[i][j] > 0.0 && !sg_compare::floating_equal(L[i][j], 0.0)) { violated_mtz++; }
@@ -366,7 +369,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                         }
                     }
                 }
-                if(lg_prec) {
+                if(params.sg.relax_prec) {
                     if(i >= 1 && i <= n) {
                         if(M[i] > 0.0 && !sg_compare::floating_equal(M[i], 0.0)) { violated_prec++; }
                         else if(M[i] < 0.0 && !sg_compare::floating_equal(M[i], 0.0)) { loose_prec++; }
@@ -381,17 +384,17 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                 }
             }
                         
-            if(lg_mtz) {
+            if(params.sg.relax_mtz) {
                 avg_lambda_before = avg_lambda_before / n_arcs;
                 avg_l = avg_l / n_arcs;
             }
-            if(lg_prec) {
+            if(params.sg.relax_prec) {
                 avg_mu_before = avg_mu_before / n;
                 avg_m = avg_m / n;
             }
                         
-            print_result_row(results_file, result, best_sol, subgradient_iteration, iteration_time, cplex.getObjValue(), obj_const_term, violated_mtz, loose_mtz, tight_mtz, violated_prec, loose_prec, tight_prec, theta, step_lambda, step_mu, avg_lambda_before, avg_mu_before, avg_l, avg_m, improved, lg_mtz, lg_prec);
-			if(n < 3) { print_mult_dump(mult_dump, L, lambda, x, t); }
+            print_result_row(results_file, result, best_sol, subgradient_iteration, iteration_time, cplex.getObjValue(), obj_const_term, violated_mtz, loose_mtz, tight_mtz, violated_prec, loose_prec, tight_prec, theta, step_lambda, step_mu, avg_lambda_before, avg_mu_before, avg_l, avg_m, improved, params.sg.relax_mtz, params.sg.relax_prec);
+			if(n < 4) { print_mult_dump(mult_dump, L, lambda, x, t); }
             
             x.end(); t.end();
 
@@ -418,7 +421,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                             
                             x_obj_coeff += g.cost[i][j];
                             
-                            if(lg_mtz) {
+                            if(params.sg.relax_mtz) {
                                 x_obj_coeff += (2*n + 1) * lambda[i][j];
                                 t_obj_coeff += lambda[i][j];
                             }
@@ -426,14 +429,14 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
                             obj.setLinearCoef(variables_x[num_col++], x_obj_coeff);
                         }
                         
-                        if(lg_mtz) {
+                        if(params.sg.relax_mtz) {
                             if(g.cost[j][i] >= 0) {
                                 t_obj_coeff -= lambda[j][i];
                             }
                         }
                     }
 
-                    if(lg_prec) {
+                    if(params.sg.relax_prec) {
                         if(i >= 1 && i <= n) {
                             t_obj_coeff += mu[i];
                         } else if(i >= n+1 && i <= 2*n) {
@@ -453,7 +456,7 @@ void SubgradientSolver::solve(bool lg_mtz, bool lg_prec) {
         }        
     }
     
-    if(subgradient_iteration > iteration_limit) {
+    if(subgradient_iteration > params.sg.max_iter) {
         results_file << std::endl << "Iterations limit reached!" << std::endl;
         print_final_results(results_file, best_sol, best_bound);
     }

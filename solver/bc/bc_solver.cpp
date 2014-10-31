@@ -19,7 +19,7 @@
 #include <sstream>
 #include <stdexcept>
 
-BcSolver::BcSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, initial_solutions{initial_solutions} {
+BcSolver::BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions} {
     initial_solution = find_best_initial_solution();
     initial_solution.verify_feasible(g);
     auto n = g.g[graph_bundle].n;
@@ -58,14 +58,14 @@ Path BcSolver::find_best_initial_solution() {
 std::vector<std::vector<int>> BcSolver::solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs) {
     k_opt_lhs = lhs;
     k_opt_rhs = rhs;
-    return solve(true, true);
+    return solve(true);
 }
 
-void BcSolver::solve_with_branch_and_cut(bool tce) const {
-    solve(false, tce);
+void BcSolver::solve_with_branch_and_cut() const {
+    solve(false);
 }
 
-std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
+std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     using namespace std::chrono;
 
     auto total_bb_nodes_explored = (long)0;
@@ -105,7 +105,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
 
     #include <solver/bc/bc_setup_model.raw.cpp>
     
-    model.add(obj);    
+    model.add(obj);
     model.add(variables_x);
     model.add(variables_y);
     
@@ -115,7 +115,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     model.add(y_lower);
     model.add(load);
     model.add(initial_load);
-    if(tce) {
+    if(params.bc.two_cycles_elim) {
         model.add(two_cycles_elimination);
     }
     if(k_opt) {
@@ -144,28 +144,28 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
         
         cplex.addMIPStart(initial_vars, initial_values);
         
-        IloConstraintArray constraints(env);
-        constraints.add(outdegree); constraints.add(indegree);
-        constraints.add(y_upper); constraints.add(y_lower);
-        constraints.add(load); constraints.add(initial_load);
-        if(tce) { constraints.add(two_cycles_elimination); }
-        if(k_opt) { constraints.add(k_opt_constraint); }
-        
-        IloNumArray preferences(env);
-        for(auto i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
-        
-        if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
-            IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
-            env.getImpl()->useDetailedDisplay(IloTrue);
-            for(auto i = 0; i < constraints.getSize(); i++) {
-                if(conflict[i] == IloCplex::ConflictMember) {
-                    std::cout << "Proven conflict: " << constraints[i] << std::endl;
-                }
-                if(conflict[i] == IloCplex::ConflictPossibleMember) {
-                    std::cout << "Possible conflict: " << constraints[i] << std::endl;
-                }
-            }
-        }
+        // IloConstraintArray constraints(env);
+        // constraints.add(outdegree); constraints.add(indegree);
+        // constraints.add(y_upper); constraints.add(y_lower);
+        // constraints.add(load); constraints.add(initial_load);
+        // if(params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
+        // if(k_opt) { constraints.add(k_opt_constraint); }
+        //
+        // IloNumArray preferences(env);
+        // for(auto i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
+        //
+        // if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
+        //     IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
+        //     env.getImpl()->useDetailedDisplay(IloTrue);
+        //     for(auto i = 0; i < constraints.getSize(); i++) {
+        //         if(conflict[i] == IloCplex::ConflictMember) {
+        //             std::cout << "Proven conflict: " << constraints[i] << std::endl;
+        //         }
+        //         if(conflict[i] == IloCplex::ConflictPossibleMember) {
+        //             std::cout << "Possible conflict: " << constraints[i] << std::endl;
+        //         }
+        //     }
+        // }
         
         initial_values.end();
         initial_vars.end();
@@ -173,10 +173,10 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
 
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_graph();
-    if(global::g_search_for_cuts_every_n_nodes > 0) {
+    if(params.bc.cut_every_n_nodes > 0) {
         auto apply_valid_cuts = !k_opt;
-        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
-        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts));
+        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts, params));
+        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts, params));
     }
 
     // Export model to file
@@ -261,11 +261,11 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt, bool tce) const {
     // Print solution
     if(!k_opt) {
         std::ofstream results_file;
-        results_file.open("results.txt", std::ios::out | std::ios::app);
+        results_file.open(params.bc.results_dir + "results.txt", std::ios::out | std::ios::app);
         
         results_file << instance_name << "\t";
-        results_file << global::g_search_for_cuts_every_n_nodes << "\t";
-        results_file << std::boolalpha << tce << "\t";
+        results_file << params.bc.cut_every_n_nodes << "\t";
+        results_file << std::boolalpha << params.bc.two_cycles_elim << "\t";
         results_file << total_cplex_time << "\t";
         results_file << global::g_total_time_spent_by_heuristics << "\t";
         results_file << global::g_total_time_spent_separating_cuts << "\t";

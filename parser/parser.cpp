@@ -23,7 +23,7 @@ Graph Parser::generate_graph() const {
     };
         
     ptree pt;
-    read_json(file_name, pt);
+    read_json(instance_file_name, pt);
     
     auto n = pt.get<int>("num_requests");
     auto capacity = pt.get<int>("capacity");
@@ -77,4 +77,30 @@ Graph Parser::generate_graph() const {
     }
     
     return Graph(demand, draught, cost, capacity);
+}
+
+ProgramParams Parser::read_program_params() const {
+    using namespace boost::property_tree;
+    
+    ptree pt;
+    read_json(params_file_name, pt);
+    
+    return ProgramParams(
+        SubgradientParams(
+            pt.get<bool>("subgradient.relax_mtz"),
+            pt.get<bool>("subgradient.relax_prec"),
+            pt.get<double>("subgradient.initial_lambda"),
+            pt.get<double>("subgradient.initial_mu"),
+            pt.get<unsigned int>("subgradient.iter_reduce_theta"),
+            pt.get<double>("subgradient.theta_reduce_fact"),
+            pt.get<unsigned int>("subgradient.max_iter"),
+            pt.get<std::string>("subgradient.results_dir")
+        ),
+        BranchAndCutParams(
+            pt.get<unsigned int>("branch_and_cut.cut_every_n_nodes"),
+            pt.get<bool>("branch_and_cut.two_cycles_elim"),
+            pt.get<bool>("branch_and_cut.subtour_sep_memory"),
+            pt.get<std::string>("branch_and_cut.results_dir")
+        )
+    );
 }

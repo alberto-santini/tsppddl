@@ -73,7 +73,7 @@ std::vector<Path> HeuristicSolver::solve() const {
     paths.push_back(p);
     
     for(auto k = 2; k < 5; k++) {
-        auto h7 = KOptHeuristic(g, k, paths);
+        auto h7 = KOptHeuristic(g, params, k, paths);
         p = h7.solve();
         std::cout << "Heuristic solution (k = " << k << "): " << p.total_cost << std::endl;
         paths.push_back(p);

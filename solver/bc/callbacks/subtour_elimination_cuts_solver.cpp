@@ -7,7 +7,7 @@
 #include <iostream>
 #include <ratio>
 
-SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(const Graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps}, n{g.g[graph_bundle].n} {
+SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(const Graph& g, const ProgramParams& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, params{params}, sol{sol}, env{env}, x{x}, eps{eps}, n{g.g[graph_bundle].n} {
     pi = ch::sets_info(n,
             bvec(2*n+2, false),
             bvec(2*n+2, false),
@@ -72,23 +72,25 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
             }
         }
         
-        auto f = boost::find(best_pi.in_S, true);
-        auto m_pi = memory(), m_sigma = memory();
         auto added_mem_pi = false, added_mem_sigma = false;
-        if(f != boost::end(best_pi.in_S)) {
-            m_pi = memory(
-                f - boost::begin(best_pi.in_S),
-                boost::accumulate(best_pi.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
-            );
-            added_mem_pi = (std::find(cuts_memory_pi.begin(), cuts_memory_pi.end(), m_pi) != cuts_memory_pi.end());
-        }
-        f = boost::find(best_sigma.in_S, true);
-        if(f != boost::end(best_sigma.in_S)) {
-            m_sigma = memory(
-                f - boost::begin(best_sigma.in_S),
-                boost::accumulate(best_sigma.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
-            );
-            added_mem_sigma = (std::find(cuts_memory_sigma.begin(), cuts_memory_sigma.end(), m_sigma) != cuts_memory_sigma.end());
+        auto m_pi = memory(), m_sigma = memory();
+        if(params.bc.subtour_sep_memory) {
+            auto f = boost::find(best_pi.in_S, true);
+            if(f != boost::end(best_pi.in_S)) {
+                m_pi = memory(
+                    f - boost::begin(best_pi.in_S),
+                    boost::accumulate(best_pi.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
+                );
+                added_mem_pi = (std::find(cuts_memory_pi.begin(), cuts_memory_pi.end(), m_pi) != cuts_memory_pi.end());
+            }
+            f = boost::find(best_sigma.in_S, true);
+            if(f != boost::end(best_sigma.in_S)) {
+                m_sigma = memory(
+                    f - boost::begin(best_sigma.in_S),
+                    boost::accumulate(best_sigma.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
+                );
+                added_mem_sigma = (std::find(cuts_memory_sigma.begin(), cuts_memory_sigma.end(), m_sigma) != cuts_memory_sigma.end());
+            }
         }
         
         if(bn_pi == -1) { throw std::runtime_error("Best pi node can't be -1"); }
@@ -96,7 +98,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         update_info(pi, best_pi, bn_pi, iter);
         
         // Bonus: we can recycle set pi to add the groetschel pi cut
-        if(!added_mem_pi) {
+        if(!params.bc.subtour_sep_memory || !added_mem_pi) {
             add_pi_cut_if_violated(cuts, pi);
             add_groetschel_pi_cut_if_violated(cuts, pi);
             cuts_memory_pi.push_back(m_pi);
@@ -107,7 +109,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         update_info(sigma, best_sigma, bn_sigma, iter);
         
         // Bonus: we can recycle set sigma to add the groetschel sigma cut
-        if(!added_mem_sigma) {
+        if(!params.bc.subtour_sep_memory || !added_mem_sigma) {
             add_sigma_cut_if_violated(cuts, sigma);
             add_groetschel_sigma_cut_if_violated(cuts, sigma);
             cuts_memory_sigma.push_back(m_sigma);

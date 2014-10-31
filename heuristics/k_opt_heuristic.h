@@ -3,11 +3,13 @@
 
 #include <network/graph.h>
 #include <network/path.h>
+#include <parser/program_params.h>
 
 #include <vector>
 
 class KOptHeuristic {
     const Graph& g;
+    const ProgramParams& params;
     int k;
     std::vector<Path> initial_solutions;
     
@@ -15,9 +17,8 @@ class KOptHeuristic {
     Path get_path(const std::vector<std::vector<int>>& x) const;
     
 public:
-    KOptHeuristic(const Graph& g, int k, const std::vector<Path>& initial_solutions) : g{g}, k{k}, initial_solutions{initial_solutions} {}
+    KOptHeuristic(const Graph& g, const ProgramParams& params, int k, const std::vector<Path>& initial_solutions) : g{g}, params{params}, k{k}, initial_solutions{initial_solutions} {}
     Path solve() const;
-    Path solve_with_multiple_columns() const;
 };
 
 #endif

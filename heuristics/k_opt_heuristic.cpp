@@ -7,54 +7,11 @@
 #include <limits>
 #include <stdexcept>
 
-Path KOptHeuristic::solve_with_multiple_columns() const {
-    auto N = initial_solutions.size();
-    auto n = g.g[graph_bundle].n;
-        
-    auto sols_x = std::vector<std::vector<std::vector<int>>>();
-    for(const auto& p : initial_solutions) {
-        sols_x.push_back(get_x_values(p));
-    }
-    
-    auto s = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    auto t = std::vector<int>(N, 0);
-    auto alpha = 0;
-    auto beta = 0;
-    
-    for(auto i = 0; i <= 2 * n + 1; i++) {
-        for(auto j = 0; j <= 2 * n + 1; j++) {
-            if(g.cost[i][j] >= 0) {
-                for(auto sol = 0u; sol < sols_x.size(); sol++) {
-                    if(sols_x[sol][i][j] == 1) {
-                        s[i][j]++;
-                        alpha++;
-                    }
-                }
-            }
-        }
-    }
-    
-    for(auto sol = 0u; sol < N; sol++) {
-        for(auto i = 0; i <= 2 * n + 1; i++) {
-            for(auto j = 0; j <= 2 * n + 1; j++) {
-                if(s[i][j] == (int)sol) {
-                    t[sol]++;
-                    beta = sol;
-                }
-            }
-        }
-    }
-    
-    auto msolv = BcSolver(g, initial_solutions, "k-opt");
-    auto solution_x = msolv.solve_for_k_opt(s, alpha - 12 * k * beta);
-    return get_path(solution_x);
-}
-
 Path KOptHeuristic::solve() const {
     auto n = g.g[graph_bundle].n;
     auto best_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
     auto sol_x = get_x_values(best_solution);
-    auto msolv = BcSolver(g, initial_solutions, "k-opt");
+    auto msolv = BcSolver(g, params, initial_solutions, "k-opt");
     auto solution_x = msolv.solve_for_k_opt(sol_x, 2 * n - k);
     return get_path(solution_x);
 }

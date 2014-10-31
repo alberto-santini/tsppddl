@@ -2,6 +2,7 @@
 #define SUBTOUR_ELIMINATION_CUTS_SOLVER_H
 
 #include <network/graph.h>
+#include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
 
 #include <ilcplex/ilocplex.h>
@@ -11,6 +12,7 @@
 
 class SubtourEliminationCutsSolver {
     const Graph& g;
+    const ProgramParams& params;
     ch::solution sol;
     IloEnv env;
     IloNumVarArray x;
@@ -44,7 +46,7 @@ class SubtourEliminationCutsSolver {
     void actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const ch::sets_info& sigma);
     
 public:
-    SubtourEliminationCutsSolver(const Graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps);
+    SubtourEliminationCutsSolver(const Graph& g, const ProgramParams& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps);
     std::vector<IloRange> separate_valid_cuts();
 };
 

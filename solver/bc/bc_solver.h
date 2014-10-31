@@ -3,6 +3,7 @@
 
 #include <network/graph.h>
 #include <network/path.h>
+#include <parser/program_params.h>
 
 #include <string>
 #include <utility>
@@ -10,6 +11,7 @@
 
 class BcSolver {
     const Graph& g;
+    const ProgramParams& params;
     
     std::vector<Path> initial_solutions;
     Path initial_solution; // Best one
@@ -23,11 +25,11 @@ class BcSolver {
     int k_opt_rhs;
     
     Path find_best_initial_solution();
-    std::vector<std::vector<int>> solve(bool k_opt, bool tce) const;
+    std::vector<std::vector<int>> solve(bool k_opt) const;
     
 public:
-    BcSolver(const Graph& g, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
-    void solve_with_branch_and_cut(bool tce) const;
+    BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
+    void solve_with_branch_and_cut() const;
     std::vector<std::vector<int>> solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs);
 };
 

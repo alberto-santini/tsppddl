@@ -28,7 +28,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
 initial_load.add(IloRange(env, 0.0, 0.0));
 initial_load[0].setName("initial_load");
 
-if(tce) {
+if(params.bc.two_cycles_elim) {
     col_n = 0;
     for(auto i = 0; i <= 2*n + 1; i++) {
         for(auto j = i + 1; j <= 2*n + 1; j++) {
@@ -97,7 +97,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                         
             col += initial_load[0](0);
             
-            if(tce) {
+            if(params.bc.two_cycles_elim) {
                 col_n = 0;
                 for(auto ii = 0; ii <= 2*n + 1; ii++) {
                     for(auto jj = ii + 1; jj <= 2*n + 1; jj++) {
@@ -166,7 +166,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             
             col += initial_load[0](i == 0 ? 1 : 0);
             
-            if(tce) {
+            if(params.bc.two_cycles_elim) {
                 col_n = 0;
                 for(auto ii = 0; ii <= 2*n + 1; ii++) {
                     for(auto jj = ii + 1; jj <= 2*n + 1; jj++) {
