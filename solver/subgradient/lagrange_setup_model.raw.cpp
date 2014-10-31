@@ -77,7 +77,13 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                         if(i == ii && j == jj) {
                             if(i >= 1 && i <= n && j >= 1 && j <= n) { alpha = g.demand[i]; }
                             if(i >= n+1 && i <= 2*n && j >= n+1 && j <= 2*n) { alpha = -g.demand[j]; }
-                            if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) { alpha = g.demand[i] - g.demand[j]; }
+                            if(i >= 1 && i <= n && j >= n+1 && j <= 2*n) {
+                                if(j != i+n) {
+                                    alpha = g.demand[i] - g.demand[j];
+                                } else {
+                                    alpha = g.demand[i];
+                                }
+                            }
                             beta = std::min(std::min(Q - std::max(0, g.demand[j]), g.draught[i]), g.draught[j] - std::max(0, g.demand[j]));
                         }
                         
