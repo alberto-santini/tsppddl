@@ -65,6 +65,61 @@ void BcSolver::solve_with_branch_and_cut() const {
     solve(false);
 }
 
+// Check if (i,j) -> (j,k) can be a subpath of a feasible path
+// It assumes that (i,j) and (j,k) both exist
+// It assumes that 1 <= i,j,k <= 2n
+// It returns true if any path containing that subpath should be eliminated
+bool BcSolver::is_path_eliminable(int i, int j, int k) const {
+    auto n = g.g[graph_bundle].n;
+    auto Q = g.g[graph_bundle].capacity;
+        
+    if(i == n + k) {
+        return true;
+    }
+    
+    if(i <= n) {
+        if(j <= n) {
+            if(k <= n) {
+                return (g.demand.at(i) + g.demand.at(j) + g.demand.at(k) > std::min(Q, g.draught.at(k)));
+            } else {
+                return (    k != n+i && k != n+j && (
+                                (g.demand.at(i) + g.demand.at(j) + g.demand.at(k-n) >
+                                    std::min(Q, std::min(g.draught.at(j), g.draught.at(k)))) ||
+                                (g.demand.at(i) + g.demand.at(k-n) >
+                                    std::min(Q, g.draught.at(k)))
+                            )
+                       );
+            }
+        } else {
+            if(k <= n) {
+                return (j != n+i && (g.demand.at(i) + g.demand.at(k) > std::min(Q, g.draught.at(k))));
+            } else {
+                return (    j != n+i && k != n+i && (
+                                (g.demand.at(i) + g.demand.at(j-n) + g.demand.at(k-n) >
+                                    std::min(Q, std::min(g.draught.at(i), g.draught.at(j)))) ||
+                                (g.demand.at(i) + g.demand.at(k-n) >
+                                    std::min(Q, g.draught.at(k)))
+                            )
+                       );
+            }
+        }
+    } else {
+        if(j <= n) {
+            if(k <= n) {
+                return false;
+            } else {
+                return (k != n+j && g.demand.at(i-n) + g.demand.at(k-n) > std::min(Q, g.draught.at(i)));
+            }
+        } else {
+            if(k <= n) {
+                return false;
+            } else {
+                return (g.demand.at(i-n) + g.demand.at(j-n) + g.demand.at(k-n) > std::min(Q, g.draught.at(i)));
+            }
+        }
+    }
+}
+
 std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     using namespace std::chrono;
 
@@ -99,6 +154,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     IloRangeArray load(env);
     IloRangeArray initial_load(env);
     IloRangeArray two_cycles_elimination(env);
+    IloRangeArray subpath_elimination(env);
     IloRangeArray k_opt_constraint(env);
 
     IloObjective obj = IloMinimize(env);
@@ -117,6 +173,9 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     model.add(initial_load);
     if(params.bc.two_cycles_elim) {
         model.add(two_cycles_elimination);
+    }
+    if(params.bc.subpath_elim) {
+        model.add(subpath_elimination);
     }
     if(k_opt) {
         model.add(k_opt_constraint);
@@ -180,7 +239,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     }
 
     // Export model to file
-    // if(!k_opt) { cplex.exportModel("model.lp"); }
+    if(!k_opt) { cplex.exportModel("model.lp"); }
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
@@ -268,6 +327,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
         results_file << instance_name << "\t";
         results_file << params.bc.cut_every_n_nodes << "\t";
         results_file << std::boolalpha << params.bc.two_cycles_elim << "\t";
+        results_file << std::boolalpha << params.bc.subpath_elim << "\t";
         results_file << total_cplex_time << "\t";
         results_file << global::g_total_time_spent_by_heuristics << "\t";
         results_file << global::g_total_time_spent_separating_cuts << "\t";

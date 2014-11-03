@@ -19,10 +19,11 @@ struct SubgradientParams {
 struct BranchAndCutParams {
     unsigned int    cut_every_n_nodes;
     bool            two_cycles_elim;
+    bool            subpath_elim;
     bool            subtour_sep_memory;
     std::string     results_dir;
     
-    BranchAndCutParams(unsigned int cut_every_n_nodes, bool two_cycles_elim, bool subtour_sep_memory, std::string results_dir) : cut_every_n_nodes{cut_every_n_nodes}, two_cycles_elim{two_cycles_elim}, subtour_sep_memory{subtour_sep_memory}, results_dir{std::move(results_dir)} {}
+    BranchAndCutParams(unsigned int cut_every_n_nodes, bool two_cycles_elim, bool subpath_elim, bool subtour_sep_memory, std::string results_dir) : cut_every_n_nodes{cut_every_n_nodes}, two_cycles_elim{two_cycles_elim}, subpath_elim{subpath_elim}, subtour_sep_memory{subtour_sep_memory}, results_dir{std::move(results_dir)} {}
 };
 
 struct ProgramParams {

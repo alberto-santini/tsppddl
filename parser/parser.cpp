@@ -99,6 +99,7 @@ ProgramParams Parser::read_program_params() const {
         BranchAndCutParams(
             pt.get<unsigned int>("branch_and_cut.cut_every_n_nodes"),
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
+            pt.get<bool>("branch_and_cut.subpath_elim"),
             pt.get<bool>("branch_and_cut.subtour_sep_memory"),
             pt.get<std::string>("branch_and_cut.results_dir")
         )

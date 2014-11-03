@@ -12,6 +12,7 @@
     "branch_and_cut": {
         "cut_every_n_nodes":    1,
         "two_cycles_elim":      true,
+        "subpath_elim":         true,
         "subtour_sep_memory":   true,
         "results_dir":          "results/branch_and_cut/"
     }

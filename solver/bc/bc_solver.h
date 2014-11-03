@@ -26,6 +26,7 @@ class BcSolver {
     
     Path find_best_initial_solution();
     std::vector<std::vector<int>> solve(bool k_opt) const;
+    bool is_path_eliminable(int i, int j, int k) const;
     
 public:
     BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
