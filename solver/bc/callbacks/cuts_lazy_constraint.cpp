@@ -17,24 +17,6 @@ void CutsLazyConstraint::main() {
         add(cut, IloCplex::UseCutForce).end();
         global::g_total_number_of_feasibility_cuts_added++;
     }
-    
-    if(apply_valid_cuts) {
-        SubtourEliminationCutsSolver sub_solv {g, params, sol, env, x, eps};
-        auto valid_cuts_1 = sub_solv.separate_valid_cuts();
-
-        for(auto& cut : valid_cuts_1) {
-            add(cut, IloCplex::UseCutForce).end();
-            global::g_total_number_of_subtour_cuts_added++;
-        }
-        
-        auto go_solv = GeneralizedOrderSolver(g, sol, env, x, eps);
-        auto valid_cuts_2 = go_solv.separate_valid_cuts();
-        
-        for(auto& cut : valid_cuts_2) {
-            add(cut, IloCplex::UseCutForce).end();
-            global::g_total_number_of_generalized_order_cuts_added++;
-        }
-    }
 }
 
 ch::solution CutsLazyConstraint::compute_x_values() const {
