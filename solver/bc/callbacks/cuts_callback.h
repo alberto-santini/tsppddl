@@ -22,20 +22,19 @@ class CutsCallback : public IloCplex::UserCutCallbackI {
     const Graph& g;
     const Graph& gr;
     double eps;
-    bool apply_valid_cuts;
     const ProgramParams& params;
     
     ch::solution compute_x_values() const;
     
 public:
-    CutsCallback(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, bool apply_valid_cuts, const ProgramParams& params) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, apply_valid_cuts{apply_valid_cuts}, params{params} {}
+    CutsCallback(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, const ProgramParams& params) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, params{params} {}
     
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback CutsCallbackHandle(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, bool apply_valid_cuts, const ProgramParams& params) {
-    return (IloCplex::Callback(new(env) CutsCallback(env, x, g, gr, eps, apply_valid_cuts, params)));
+inline IloCplex::Callback CutsCallbackHandle(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, const ProgramParams& params) {
+    return (IloCplex::Callback(new(env) CutsCallback(env, x, g, gr, eps, params)));
 }
 
 #endif

@@ -101,6 +101,9 @@ ProgramParams Parser::read_program_params() const {
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
             pt.get<bool>("branch_and_cut.subpath_elim"),
             pt.get<bool>("branch_and_cut.subtour_sep_memory"),
+            pt.get<bool>("branch_and_cut.separate_subtour_elimination"),
+            pt.get<bool>("branch_and_cut.separate_precedence"),
+            pt.get<bool>("branch_and_cut.separate_capacity"),
             pt.get<std::string>("branch_and_cut.results_dir")
         )
     );

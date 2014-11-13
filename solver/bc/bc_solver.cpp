@@ -233,9 +233,8 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_graph();
     if(params.bc.cut_every_n_nodes > 0) {
-        auto apply_valid_cuts = !k_opt;
-        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts, params));
-        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), apply_valid_cuts, params));
+        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
     }
 
     // Export model to file

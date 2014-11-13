@@ -21,9 +21,27 @@ struct BranchAndCutParams {
     bool            two_cycles_elim;
     bool            subpath_elim;
     bool            subtour_sep_memory;
+    bool            separate_subtour_elimination;
+    bool            separate_precedence;
+    bool            separate_capacity;
     std::string     results_dir;
     
-    BranchAndCutParams(unsigned int cut_every_n_nodes, bool two_cycles_elim, bool subpath_elim, bool subtour_sep_memory, std::string results_dir) : cut_every_n_nodes{cut_every_n_nodes}, two_cycles_elim{two_cycles_elim}, subpath_elim{subpath_elim}, subtour_sep_memory{subtour_sep_memory}, results_dir{std::move(results_dir)} {}
+    BranchAndCutParams( unsigned int cut_every_n_nodes,
+                        bool two_cycles_elim,
+                        bool subpath_elim,
+                        bool subtour_sep_memory,
+                        bool separate_subtour_elimination,
+                        bool separate_precedence,
+                        bool separate_capacity,
+                        std::string results_dir) :
+                        cut_every_n_nodes{cut_every_n_nodes},
+                        two_cycles_elim{two_cycles_elim},
+                        subpath_elim{subpath_elim},
+                        subtour_sep_memory{subtour_sep_memory},
+                        separate_subtour_elimination{separate_subtour_elimination},
+                        separate_precedence{separate_precedence},
+                        separate_capacity{separate_capacity},
+                        results_dir{std::move(results_dir)} {}
 };
 
 struct ProgramParams {

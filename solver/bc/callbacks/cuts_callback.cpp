@@ -24,45 +24,34 @@ void CutsCallback::main() {
             global::g_total_number_of_feasibility_cuts_added++;
         }
         
-        if(apply_valid_cuts) {
+        if(params.bc.separate_subtour_elimination) {
             auto sub_solv = SubtourEliminationCutsSolver(g, params, sol, env, x, eps);
             auto valid_cuts_1 = sub_solv.separate_valid_cuts();
-            // auto n_cuts_1 = valid_cuts_1.size();
 
             for(auto& cut : valid_cuts_1) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_subtour_cuts_added++;
             }
-            
-            // if(n_cuts_1 > 0) {
-            //     std::cerr << "Subtour elimination: added " << n_cuts_1 << " cuts" << std::endl;
-            // }
-            
+        }
+        
+        if(params.bc.separate_precedence) {
             auto go_solv = GeneralizedOrderSolver(g, sol, env, x, eps);
             auto valid_cuts_2 = go_solv.separate_valid_cuts();
-            // auto n_cuts_2 = valid_cuts_2.size();
 
             for(auto& cut : valid_cuts_2) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_generalized_order_cuts_added++;
             }
-            
-            // if(n_cuts_2 > 0) {
-            //     std::cerr << "Generalised order: added " << n_cuts_2 << " cuts" << std::endl;
-            // }
-            
+        }
+        
+        if(params.bc.separate_capacity) {
             auto cap_solv = CapacitySolver(g, sol, env, x, eps);
             auto valid_cuts_3 = cap_solv.separate_valid_cuts();
-            // auto n_cuts_3 = valid_cuts_3.size();
-            
+        
             for(auto& cut : valid_cuts_3) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_capacity_cuts_added++;
             }
-            
-            // if(n_cuts_3 > 0) {
-            //     std::cerr << "Capacity: added " << n_cuts_3 << " cuts" << std::endl;
-            // }
         }
     }
 }
