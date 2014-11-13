@@ -57,6 +57,13 @@ namespace CallbacksHelper {
     private:
         void print_set(std::ostream& os, const bvec& set) const;
     };
+    
+    struct best_node {
+        int node;
+        double flow;
+        
+        best_node(int node, double flow) : node{node}, flow{flow} {}
+    };
 }
 
 namespace ch = CallbacksHelper;

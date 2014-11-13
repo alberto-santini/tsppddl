@@ -9,6 +9,7 @@ namespace global {
     long g_total_number_of_feasibility_cuts_added = 0;
     long g_total_number_of_subtour_cuts_added = 0;
     long g_total_number_of_generalized_order_cuts_added = 0;
+    long g_total_number_of_capacity_cuts_added = 0;
 }
 
 int main(int argc, char* argv[]) {

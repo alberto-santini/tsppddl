@@ -7,6 +7,7 @@ namespace global {
     extern long g_total_number_of_feasibility_cuts_added;
     extern long g_total_number_of_subtour_cuts_added;
     extern long g_total_number_of_generalized_order_cuts_added;
+    extern long g_total_number_of_capacity_cuts_added;
 }
 
 #endif

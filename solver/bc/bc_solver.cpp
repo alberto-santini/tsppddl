@@ -342,6 +342,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
         results_file << global::g_total_number_of_feasibility_cuts_added << "\t";
         results_file << global::g_total_number_of_subtour_cuts_added << "\t";
         results_file << global::g_total_number_of_generalized_order_cuts_added << "\t";
+        results_file << global::g_total_number_of_capacity_cuts_added << "\t";
         results_file << number_of_cuts_added_at_root << "\t";
         results_file << total_bb_nodes_explored << std::endl;
         
