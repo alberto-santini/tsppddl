@@ -18,7 +18,7 @@ class GeneralizedOrderSolver {
     
 public:
     GeneralizedOrderSolver(const Graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {}
-    std::vector<IloRange> separate_valid_cuts();
+    std::vector<IloRange> separate_valid_cuts() const;
 };
 
 #endif
