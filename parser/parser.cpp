@@ -22,7 +22,7 @@ Graph Parser::generate_graph() const {
         request(int origin, int destination, int demand) : origin{origin}, destination{destination}, demand{demand} {}
     };
         
-    ptree pt;
+    auto pt = ptree();
     read_json(instance_file_name, pt);
     
     auto n = pt.get<int>("num_requests");
@@ -47,9 +47,10 @@ Graph Parser::generate_graph() const {
         }
         port_cost.push_back(port_cost_row);
     }
-        
+    
     auto demand = demand_t(2*n+2, 0);
     auto draught = draught_t(2*n+2, 0);
+    
     demand[0] = 0; demand[2*n+1] = 0;
     draught[0] = ports[0].draught; draught[2*n+1] = ports[0].draught;
 
@@ -82,7 +83,7 @@ Graph Parser::generate_graph() const {
 ProgramParams Parser::read_program_params() const {
     using namespace boost::property_tree;
     
-    ptree pt;
+    auto pt = ptree();
     read_json(params_file_name, pt);
     
     return ProgramParams(
@@ -104,6 +105,8 @@ ProgramParams Parser::read_program_params() const {
             pt.get<bool>("branch_and_cut.separate_subtour_elimination"),
             pt.get<bool>("branch_and_cut.separate_precedence"),
             pt.get<bool>("branch_and_cut.separate_capacity"),
+            pt.get<bool>("branch_and_cut.separate_simplified_fork"),
+            pt.get<bool>("branch_and_cut.print_relaxation_graph"),
             pt.get<std::string>("branch_and_cut.results_dir")
         )
     );

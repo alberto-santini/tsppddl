@@ -17,6 +17,8 @@
         "separate_subtour_elimination": true,
         "separate_precedence":          true,
         "separate_capacity":            true,
+        "separate_simplified_fork":     false,
+        "print_relaxation_graph":       false,
         "results_dir":                  "results/branch_and_cut/"
     }
 }

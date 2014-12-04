@@ -38,3 +38,5 @@ tsppddl
 kopt*
 subgradient_results
 subgradient_results/*
+graphs
+graphs/*

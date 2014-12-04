@@ -3,6 +3,7 @@
 #include <solver/bc/callbacks/capacity_solver.h>
 #include <solver/bc/callbacks/feasibility_cuts_max_flow_solver.h>
 #include <solver/bc/callbacks/generalized_order_solver.h>
+#include <solver/bc/callbacks/simplified_fork_solver.h>
 #include <solver/bc/callbacks/subtour_elimination_cuts_solver.h>
 
 #include <fstream>
@@ -51,6 +52,18 @@ void CutsCallback::main() {
             for(auto& cut : valid_cuts_3) {
                 add(cut, IloCplex::UseCutForce).end();
                 global::g_total_number_of_capacity_cuts_added++;
+            }
+        }
+        
+        if(params.bc.separate_simplified_fork) {
+            auto sfork_solv = SimplifiedForkSolver(g, sol, env, x, eps);
+            auto valid_cuts_4 = sfork_solv.separate_valid_cuts();
+            
+            std::cerr << valid_cuts_4.size();
+            
+            for(auto& cut : valid_cuts_4) {
+                add(cut, IloCplex::UseCutForce).end();
+                global::g_total_number_of_simplified_fork_cuts_addedd++;
             }
         }
     }

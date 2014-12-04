@@ -1,6 +1,8 @@
 #include <global.h>
+#include <network/graph_writer.h>
 #include <solver/bc/callbacks/cuts_callback.h>
 #include <solver/bc/callbacks/cuts_lazy_constraint.h>
+#include <solver/bc/callbacks/print_relaxation_graph.h>
 #include <solver/bc/bc_solver.h>
 
 #include <ilcplex/ilocplex.h>
@@ -65,61 +67,6 @@ void BcSolver::solve_with_branch_and_cut() const {
     solve(false);
 }
 
-// Check if (i,j) -> (j,k) can be a subpath of a feasible path
-// It assumes that (i,j) and (j,k) both exist
-// It assumes that 1 <= i,j,k <= 2n
-// It returns true if any path containing that subpath should be eliminated
-bool BcSolver::is_path_eliminable(int i, int j, int k) const {
-    auto n = g.g[graph_bundle].n;
-    auto Q = g.g[graph_bundle].capacity;
-        
-    if(i == n + k) {
-        return true;
-    }
-    
-    if(i <= n) {
-        if(j <= n) {
-            if(k <= n) {
-                return (g.demand.at(i) + g.demand.at(j) + g.demand.at(k) > std::min(Q, g.draught.at(k)));
-            } else {
-                return (    k != n+i && k != n+j && (
-                                (g.demand.at(i) + g.demand.at(j) + g.demand.at(k-n) >
-                                    std::min(Q, std::min(g.draught.at(j), g.draught.at(k)))) ||
-                                (g.demand.at(i) + g.demand.at(k-n) >
-                                    std::min(Q, g.draught.at(k)))
-                            )
-                       );
-            }
-        } else {
-            if(k <= n) {
-                return (j != n+i && (g.demand.at(i) + g.demand.at(k) > std::min(Q, g.draught.at(k))));
-            } else {
-                return (    j != n+i && k != n+i && (
-                                (g.demand.at(i) + g.demand.at(j-n) + g.demand.at(k-n) >
-                                    std::min(Q, std::min(g.draught.at(i), g.draught.at(j)))) ||
-                                (g.demand.at(i) + g.demand.at(k-n) >
-                                    std::min(Q, g.draught.at(k)))
-                            )
-                       );
-            }
-        }
-    } else {
-        if(j <= n) {
-            if(k <= n) {
-                return false;
-            } else {
-                return (k != n+j && g.demand.at(i-n) + g.demand.at(k-n) > std::min(Q, g.draught.at(i)));
-            }
-        } else {
-            if(k <= n) {
-                return false;
-            } else {
-                return (g.demand.at(i-n) + g.demand.at(j-n) + g.demand.at(k-n) > std::min(Q, g.draught.at(i)));
-            }
-        }
-    }
-}
-
 std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     using namespace std::chrono;
 
@@ -145,7 +92,6 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
 
     IloNumVarArray variables_x(env);
     IloNumVarArray variables_y(env);
-    IloNumVarArray variables_tt(env);
     
     IloRangeArray outdegree(env);
     IloRangeArray indegree(env);
@@ -236,14 +182,25 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
         cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
         cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
     }
+    
+    // Add callback to print graphviz stuff
+    if(!k_opt && params.bc.print_relaxation_graph) {
+        cplex.use(PrintRelaxationGraphCallbackHandle(env, variables_x, variables_y, instance_name, g));
+    }
 
     // Export model to file
-    if(!k_opt) { cplex.exportModel("model.lp"); }
+    if(!k_opt) {
+        cplex.exportModel("model.lp");
+    }
     
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::Threads, 4);
     cplex.setParam(IloCplex::NodeLim, 0);
+    
+    if(k_opt) {
+        cplex.setOut(env.getNullStream());
+    }
         
     auto t_start = high_resolution_clock::now();
 
@@ -280,9 +237,11 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     auto t_end_total = high_resolution_clock::now();
     auto time_span_total = duration_cast<duration<double>>(t_end_total - t_start);
 
-    IloAlgorithm::Status status = cplex.getStatus();
-    std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
-    std::cerr << "BcSolver::solve()\tObjective value: " << cplex.getObjValue() << std::endl;
+    if(!k_opt) {
+        IloAlgorithm::Status status = cplex.getStatus();
+        std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
+        std::cerr << "BcSolver::solve()\tObjective value: " << cplex.getObjValue() << std::endl;
+    }
 
     total_bb_nodes_explored = cplex.getNnodes();
     lb = cplex.getBestObjValue();
@@ -290,7 +249,7 @@ std::vector<std::vector<int>> BcSolver::solve(bool k_opt) const {
     total_cplex_time = time_span_total.count();
     
     if(k_opt) { global::g_total_time_spent_by_heuristics += total_cplex_time; }
-
+    
     IloNumArray x(env);
     IloNumArray y(env);
     IloNumArray t(env);
