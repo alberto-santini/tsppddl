@@ -11,14 +11,16 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
     
     g[graph_bundle] = GraphInfo(n, capacity);
 
-    auto start_depot = Node(0, demand[0], draught[0]), end_depot = Node(2*n+1, demand[2*n+1], draught[2*n+1]);
+    auto start_depot = Node(0, demand[0], draught[0]);
+    auto end_depot = Node(2*n+1, demand[2*n+1], draught[2*n+1]);
     auto start_depot_v = add_vertex(g);
     g[start_depot_v] = start_depot;
     auto end_depot_v = add_vertex(g);
     g[end_depot_v] = end_depot;
     
     for(auto i = 1u; i <= n; i++) {
-        auto origin = Node(i, demand[i], draught[i]), destination = Node(n + i, demand[n + i], draught[n + i]);
+        auto origin = Node(i, demand[i], draught[i]);
+        auto destination = Node(n + i, demand[n + i], draught[n + i]);
         auto origin_v = add_vertex(g); g[origin_v] = origin;
         auto destination_v = add_vertex(g); g[destination_v] = destination;
     }
@@ -70,6 +72,77 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
             auto arc = Arc(arc_id++, cost[i][j]);
             auto edge = add_edge(*vi, *vj, g).first;
             g[edge] = arc;
+        }
+    }
+    
+    populate_list_of_infeasible_3_paths();
+}
+
+void Graph::populate_list_of_infeasible_3_paths() {
+    auto n = g[graph_bundle].n;
+    
+    for(auto i = 1; i <= 2*n; i++) {
+        for(auto j = 1; j <= 2*n; j++) {
+            for(auto k = 1; k <= 2*n; k++) {
+                if(cost[i][j] >= 0 && cost[j][k] >= 0 && is_path_eliminable(i, j, k)) {
+                    infeasible_3_paths.push_back({i, j, k});
+                }
+            }
+        }
+    }
+}
+
+// Check if (i,j) -> (j,k) can be a subpath of a feasible path
+// It assumes that (i,j) and (j,k) both exist
+// It assumes that 1 <= i,j,k <= 2n
+// It returns true if any path containing that subpath should be eliminated
+bool Graph::is_path_eliminable(int i, int j, int k) const {
+    auto n = g[graph_bundle].n;
+    auto Q = g[graph_bundle].capacity;
+        
+    if(i == n + k) {
+        return true;
+    }
+    
+    if(i <= n) {
+        if(j <= n) {
+            if(k <= n) {
+                return (demand.at(i) + demand.at(j) + demand.at(k) > std::min(Q, draught.at(k)));
+            } else {
+                return (    k != n+i && k != n+j && (
+                                (demand.at(i) + demand.at(j) + demand.at(k-n) >
+                                    std::min(Q, std::min(draught.at(j), draught.at(k)))) ||
+                                (demand.at(i) + demand.at(k-n) >
+                                    std::min(Q, draught.at(k)))
+                            )
+                       );
+            }
+        } else {
+            if(k <= n) {
+                return (j != n+i && (demand.at(i) + demand.at(k) > std::min(Q, draught.at(k))));
+            } else {
+                return (    j != n+i && k != n+i && (
+                                (demand.at(i) + demand.at(j-n) + demand.at(k-n) >
+                                    std::min(Q, std::min(draught.at(i), draught.at(j)))) ||
+                                (demand.at(i) + demand.at(k-n) >
+                                    std::min(Q, draught.at(k)))
+                            )
+                       );
+            }
+        }
+    } else {
+        if(j <= n) {
+            if(k <= n) {
+                return false;
+            } else {
+                return (k != n+j && demand.at(i-n) + demand.at(k-n) > std::min(Q, draught.at(i)));
+            }
+        } else {
+            if(k <= n) {
+                return false;
+            } else {
+                return (demand.at(i-n) + demand.at(j-n) + demand.at(k-n) > std::min(Q, draught.at(i)));
+            }
         }
     }
 }

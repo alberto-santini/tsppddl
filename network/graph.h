@@ -8,6 +8,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
+#include <utility>
 #include <vector>
 
 using namespace boost;
@@ -24,12 +25,17 @@ using edge_t = graph_traits<graph_t>::edge_descriptor;
 using vi_t = graph_traits<graph_t>::vertex_iterator;
 using ei_t = graph_traits<graph_t>::edge_iterator;
 
-class Graph {    
+class Graph {
+    bool is_path_eliminable(int i, int j, int k) const;
+    void populate_list_of_infeasible_3_paths();
+    
 public:
     graph_t g;
     demand_t demand;
     draught_t draught;
     cost_t cost;
+    
+    std::vector<std::vector<int>> infeasible_3_paths;
     
     Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity);
     Graph make_reverse_graph() const;

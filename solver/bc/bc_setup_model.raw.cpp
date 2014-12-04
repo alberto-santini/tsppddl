@@ -42,15 +42,9 @@ if(params.bc.two_cycles_elim) {
 
 if(params.bc.subpath_elim) {
     row_n = 0;
-    for(auto i = 1; i <= 2*n; i++) {
-        for(auto j = 1; j <= 2*n; j++) {
-            for(auto k = 1; k <= 2*n; k++) {
-                if(g.cost[i][j] >= 0 && g.cost[j][k] >= 0 && is_path_eliminable(i, j, k)) {
-                    subpath_elimination.add(IloRange(env, -IloInfinity, 1.0));
-                    subpath_elimination[row_n++].setName(("sube_" + std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k)).c_str());
-                }
-            }
-        }
+    for(const auto& p : g.infeasible_3_paths) {
+        subpath_elimination.add(IloRange(env, -IloInfinity, 1.0));
+        subpath_elimination[row_n++].setName(("sube_" + std::to_string(p[0]) + "_" + std::to_string(p[1]) + "_" + std::to_string(p[2])).c_str());
     }
 }
 
@@ -117,17 +111,11 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             
             if(params.bc.subpath_elim) {
                 row_n = 0;
-                for(auto ii = 1; ii <= 2*n; ii++) {
-                    for(auto jj = 1; jj <= 2*n; jj++) {
-                        for(auto kk = 1; kk <= 2*n; kk++) {
-                            if(g.cost[ii][jj] >= 0 && g.cost[jj][kk] >= 0 && is_path_eliminable(ii, jj, kk)) {
-                                if((i == ii && j == jj) || (i == jj && j == kk)) {
-                                    col += subpath_elimination[row_n](1);
-                                }
-                                row_n++;
-                            }
-                        }
+                for(const auto& p : g.infeasible_3_paths) {
+                    if((i == p[0] && j == p[1]) || (i == p[1] && j == p[2])) {
+                        col += subpath_elimination[row_n](1);
                     }
+                    row_n++;
                 }
             }
             
