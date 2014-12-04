@@ -27,13 +27,13 @@ void Program::autorun(const std::vector<std::string>& args) {
 
     if(args[2] == "branch_and_cut") {
         auto hsolv = HeuristicSolver(*g, *params);
-        heuristic_solutions = hsolv.solve();
+        auto heuristic_solutions = hsolv.solve();
         
         auto bsolv = BcSolver(*g, *params, heuristic_solutions, args[0]);
         bsolv.solve_with_branch_and_cut();
     } else if(args[2] == "subgradient") {        
         auto hsolv = HeuristicSolver(*g, *params);
-        heuristic_solutions = hsolv.solve();
+        auto heuristic_solutions = hsolv.solve();
         
         auto ssolv = SubgradientSolver(*g, *params, heuristic_solutions, args[0]);
         ssolv.solve();

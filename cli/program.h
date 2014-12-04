@@ -12,7 +12,6 @@
 class Program {
     std::unique_ptr<const Graph> g;
     std::unique_ptr<const ProgramParams> params;
-    std::vector<Path> heuristic_solutions;
     
     void load(const std::string& params_filename, const std::string& instance_filename);
     void print_usage();
