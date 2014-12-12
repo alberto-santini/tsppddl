@@ -41,43 +41,59 @@ std::vector<Path> HeuristicSolver::solve() const {
     };
     
     auto p = Path();
+    std::cout << "Heuristic solutions:         \t";
+    
     
     auto h1 = MaxRegretHeuristic<decltype(ic1), decltype(rg1)>(g, ic1, rg1);
     p = h1.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
 
     auto h2 = MaxRegretHeuristic<decltype(ic2), decltype(rg2)>(g, ic2, rg2);
     p = h2.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
     
     auto h3 = HeuristicWithOrderedRequests<decltype(rc1), decltype(ic3)>(g, rc1, ic3);
     p = h3.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
     
     auto h4 = HeuristicWithOrderedRequests<decltype(rc2), decltype(ic3)>(g, rc2, ic3);
     p = h4.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
     
     auto h5 = BestInsertionHeuristic<decltype(ic1)>(g, ic1);
     p = h5.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
     
     auto h6 = BestInsertionHeuristic<decltype(ic2)>(g, ic2);
     p = h6.solve();
-    std::cout << "Heuristic solution: " << p.total_cost << std::endl;
-    paths.push_back(p);
+    std::cout << p.total_cost << "\t";
+    if(p.total_cost > 0) { paths.push_back(p); }
     
-    for(auto k = 2; k < 5; k++) {
-        auto h7 = KOptHeuristic(g, params, k, paths);
-        p = h7.solve();
-        std::cout << "Heuristic solution (k = " << k << "): " << p.total_cost << std::endl;
-        paths.push_back(p);
+    std::cout << std::endl;
+    
+    auto k_opt_paths = std::vector<Path>();
+    for(const auto& limit_pair : params.ko.instance_size_limits) {
+        if((unsigned int)g.g[graph_bundle].n <= limit_pair.n) {
+            auto h7 = KOptHeuristic(g, params, limit_pair.k, paths);
+            auto kpaths = h7.solve();
+        
+            std::cout << "Heuristic solutions (k = " << limit_pair.k << "): \t";
+            for(const auto& path : kpaths) {
+                std::cout << path.total_cost << "\t";
+                k_opt_paths.push_back(path);
+            }
+            std::cout << std::endl;
+        }
     }
     
-    return paths;
+    // Inserting paths at the end of k_opt_paths rather than vice-versa, since
+    // k_opt_paths is normally the larger of the two (avoid unnecessary copying)
+    k_opt_paths.insert(k_opt_paths.end(), paths.begin(), paths.end());
+    
+    return k_opt_paths;
 }

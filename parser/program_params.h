@@ -4,6 +4,21 @@
 #include <iostream>
 #include <string>
 
+struct k_opt_limit {
+    unsigned int k;
+    unsigned int n;
+    
+    k_opt_limit(unsigned int k, unsigned int n) : k{k}, n{n} {}
+};
+
+using k_opt_limits = std::vector<k_opt_limit>;
+
+struct KOptParams {
+    k_opt_limits instance_size_limits;
+    
+    KOptParams(k_opt_limits instance_size_limits) : instance_size_limits{std::move(instance_size_limits)} {}
+};
+
 struct SubgradientParams {
     bool            relax_mtz;
     bool            relax_prec;
@@ -71,10 +86,11 @@ struct BranchAndCutParams {
 };
 
 struct ProgramParams {
+    KOptParams          ko;
     SubgradientParams   sg;
     BranchAndCutParams  bc;
     
-    ProgramParams(SubgradientParams sg, BranchAndCutParams bc) : sg{std::move(sg)}, bc{std::move(bc)} {}
+    ProgramParams(KOptParams ko, SubgradientParams sg, BranchAndCutParams bc) : ko{std::move(ko)}, sg{std::move(sg)}, bc{std::move(bc)} {}
 };
 
 #endif

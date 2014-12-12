@@ -25,9 +25,6 @@ for(auto i = 0; i <= 2*n + 1; i++) {
     }
 }
 
-initial_load.add(IloRange(env, 0.0, 0.0));
-initial_load[0].setName("initial_load");
-
 if(params.bc.two_cycles_elim) {
     row_n = 0;
     for(auto i = 0; i <= 2*n + 1; i++) {
@@ -46,11 +43,6 @@ if(params.bc.subpath_elim) {
         subpath_elimination.add(IloRange(env, -IloInfinity, 1.0));
         subpath_elimination[row_n++].setName(("sube_" + std::to_string(p[0]) + "_" + std::to_string(p[1]) + "_" + std::to_string(p[2])).c_str());
     }
-}
-
-if(k_opt) {
-    k_opt_constraint.add(IloRange(env, k_opt_rhs, IloInfinity));
-    k_opt_constraint[0].setName("k_opt_constraint");
 }
 
 // COLUMNS
@@ -120,7 +112,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             }
             
             if(k_opt) {
-                col += k_opt_constraint[0](k_opt_lhs[i][j]);
+                col += k_opt_constraint(k_opt_lhs[i][j]);
             }
 
             IloNumVar v(col, 0.0, 1.0, IloNumVar::Bool, ("x_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
@@ -153,7 +145,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            col += initial_load[0](i == 0 ? 1 : 0);
+            col += initial_load(i == 0 ? 1 : 0);
             
             IloNumVar v(col, 0.0, Q, IloNumVar::Int, ("y_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
             variables_y.add(v);

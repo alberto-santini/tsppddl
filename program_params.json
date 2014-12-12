@@ -20,5 +20,14 @@
         "separate_simplified_fork":     false,
         "print_relaxation_graph":       false,
         "results_dir":                  "results/branch_and_cut/"
+    },
+    "k_opt": {
+        "instance_size_limit": [
+            {"k": 2, "n": 50},
+            {"k": 3, "n": 40},
+            {"k": 4, "n": 30},
+            {"k": 5, "n": 20},
+            {"k": 6, "n": 15}
+        ]
     }
 }

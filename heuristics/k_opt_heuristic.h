@@ -14,11 +14,10 @@ class KOptHeuristic {
     std::vector<Path> initial_solutions;
     
     std::vector<std::vector<int>> get_x_values(const Path& p) const;
-    Path get_path(const std::vector<std::vector<int>>& x) const;
     
 public:
     KOptHeuristic(const Graph& g, const ProgramParams& params, int k, const std::vector<Path>& initial_solutions) : g{g}, params{params}, k{k}, initial_solutions{initial_solutions} {}
-    Path solve() const;
+    std::vector<Path> solve() const;
 };
 
 #endif

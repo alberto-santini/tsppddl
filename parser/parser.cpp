@@ -86,7 +86,15 @@ ProgramParams Parser::read_program_params() const {
     auto pt = ptree();
     read_json(params_file_name, pt);
     
+    auto instance_size_limits = k_opt_limits();
+    BOOST_FOREACH(const ptree::value_type& limit_pair, pt.get_child("k_opt.instance_size_limit")) {
+        instance_size_limits.push_back(k_opt_limit(limit_pair.second.get<unsigned int>("k"), limit_pair.second.get<unsigned int>("n")));
+    }
+    
     return ProgramParams(
+        KOptParams(
+            instance_size_limits
+        ),
         SubgradientParams(
             pt.get<bool>("subgradient.relax_mtz"),
             pt.get<bool>("subgradient.relax_prec"),

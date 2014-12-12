@@ -9,28 +9,30 @@
 #include <string>
 #include <vector>
 
+using values_matrix = std::vector<std::vector<int>>;
+
 class BcSolver {
     const Graph& g;
     const ProgramParams& params;
     
     std::vector<Path> initial_solutions;
-    Path initial_solution; // Best one
     
     std::string instance_name;
     
-    std::vector<std::vector<int>> initial_x_val;
-    std::vector<std::vector<int>> initial_y_val;
+    // x and y of initial_solutions
+    std::vector<values_matrix> initial_x_val;
+    std::vector<values_matrix> initial_y_val;
     
     std::vector<std::vector<int>> k_opt_lhs;
     int k_opt_rhs;
-    
-    Path find_best_initial_solution();
-    std::vector<std::vector<int>> solve(bool k_opt) const;
+
+    void add_initial_solution_vals();
+    Path solve(bool k_opt) const;
     
 public:
     BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
     void solve_with_branch_and_cut() const;
-    std::vector<std::vector<int>> solve_for_k_opt(const std::vector<std::vector<int>>& lhs, int rhs);
+    Path solve_for_k_opt(const Path& solution, const std::vector<std::vector<int>>& lhs, int rhs);
 };
 
 #endif
