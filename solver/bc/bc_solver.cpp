@@ -134,7 +134,7 @@ Path BcSolver::solve(bool k_opt) const {
     if(params.bc.two_cycles_elim) {
         model.add(two_cycles_elimination);
     }
-    if(params.bc.subpath_elim) {
+    if(params.bc.three_path_elim) {
         model.add(subpath_elimination);
     }
     if(k_opt) {
@@ -192,10 +192,8 @@ Path BcSolver::solve(bool k_opt) const {
 
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_graph();
-    if(params.bc.cut_every_n_nodes > 0) {
-        cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-        cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
-    }
+    cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+    cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
@@ -308,9 +306,6 @@ Path BcSolver::solve(bool k_opt) const {
         results_file.open(params.bc.results_dir + "results.txt", std::ios::out | std::ios::app);
         
         results_file << instance_name << "\t";
-        results_file << params.bc.cut_every_n_nodes << "\t";
-        results_file << std::boolalpha << params.bc.two_cycles_elim << "\t";
-        results_file << std::boolalpha << params.bc.subpath_elim << "\t";
         results_file << total_cplex_time << "\t";
         results_file << global::g_total_time_spent_by_heuristics << "\t";
         results_file << global::g_total_time_spent_separating_cuts << "\t";

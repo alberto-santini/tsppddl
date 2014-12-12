@@ -37,7 +37,7 @@ if(params.bc.two_cycles_elim) {
     }
 }
 
-if(params.bc.subpath_elim) {
+if(params.bc.three_path_elim) {
     row_n = 0;
     for(const auto& p : g.infeasible_3_paths) {
         subpath_elimination.add(IloRange(env, -IloInfinity, 1.0));
@@ -101,7 +101,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            if(params.bc.subpath_elim) {
+            if(params.bc.three_path_elim) {
                 row_n = 0;
                 for(const auto& p : g.infeasible_3_paths) {
                     if((i == p[0] && j == p[1]) || (i == p[1] && j == p[2])) {

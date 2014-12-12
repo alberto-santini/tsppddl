@@ -76,24 +76,24 @@ std::vector<Path> HeuristicSolver::solve() const {
     
     std::cout << std::endl;
     
-    auto k_opt_paths = std::vector<Path>();
+    auto appropriate_k_for_instance_size = 0u;
+    
     for(const auto& limit_pair : params.ko.instance_size_limits) {
-        if((unsigned int)g.g[graph_bundle].n <= limit_pair.n) {
-            auto h7 = KOptHeuristic(g, params, limit_pair.k, paths);
-            auto kpaths = h7.solve();
-        
-            std::cout << "Heuristic solutions (k = " << limit_pair.k << "): \t";
-            for(const auto& path : kpaths) {
-                std::cout << path.total_cost << "\t";
-                k_opt_paths.push_back(path);
-            }
-            std::cout << std::endl;
+        if((unsigned int) g.g[graph_bundle].n <= limit_pair.n && limit_pair.k > appropriate_k_for_instance_size) {
+            appropriate_k_for_instance_size = limit_pair.k;
         }
     }
     
-    // Inserting paths at the end of k_opt_paths rather than vice-versa, since
-    // k_opt_paths is normally the larger of the two (avoid unnecessary copying)
-    k_opt_paths.insert(k_opt_paths.end(), paths.begin(), paths.end());
+    auto h7 = KOptHeuristic(g, params, appropriate_k_for_instance_size, paths);
+    auto k_opt_paths = h7.solve();
+        
+    std::cout << "Heuristic solutions (k = " << appropriate_k_for_instance_size << "): \t";
+    for(const auto& path : k_opt_paths) {
+        std::cout << path.total_cost << "\t";
+    }
+    std::cout << std::endl;
+    
+    paths.insert(paths.end(), k_opt_paths.begin(), k_opt_paths.end());
     
     return k_opt_paths;
 }

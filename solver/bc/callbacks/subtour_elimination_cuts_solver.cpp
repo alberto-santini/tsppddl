@@ -75,7 +75,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         auto added_mem_pi = false, added_mem_sigma = false;
         auto m_pi = memory(), m_sigma = memory();
         
-        if(params.bc.subtour_sep_memory) {
+        if(params.bc.subtour_elim.memory) {
             auto f = boost::find(best_pi.in_S, true);
             if(f != boost::end(best_pi.in_S)) {
                 m_pi = memory(
@@ -99,7 +99,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         update_info(pi, best_pi, bn_pi, iter);
         
         // Bonus: we can recycle set pi to add the groetschel pi cut
-        if(!params.bc.subtour_sep_memory || !added_mem_pi) {
+        if(!params.bc.subtour_elim.memory || !added_mem_pi) {
             add_pi_cut_if_violated(cuts, pi);
             add_groetschel_pi_cut_if_violated(cuts, pi);
             cuts_memory_pi.push_back(m_pi);
@@ -110,7 +110,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
         update_info(sigma, best_sigma, bn_sigma, iter);
         
         // Bonus: we can recycle set sigma to add the groetschel sigma cut
-        if(!params.bc.subtour_sep_memory || !added_mem_sigma) {
+        if(!params.bc.subtour_elim.memory || !added_mem_sigma) {
             add_sigma_cut_if_violated(cuts, sigma);
             add_groetschel_sigma_cut_if_violated(cuts, sigma);
             cuts_memory_sigma.push_back(m_sigma);

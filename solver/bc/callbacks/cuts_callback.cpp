@@ -17,54 +17,54 @@ void CutsCallback::main() {
     auto node_number = getNnodes();
     auto sol = compute_x_values();
     
-    if(sol.is_integer || (node_number % params.bc.cut_every_n_nodes == 0)) {
+    if(sol.is_integer) {
         auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
 
         for(auto& cut : feas_cuts) {
             add(cut, IloCplex::UseCutForce).end();
             global::g_total_number_of_feasibility_cuts_added++;
         }
-        
-        if(params.bc.separate_subtour_elimination) {
-            auto sub_solv = SubtourEliminationCutsSolver(g, params, sol, env, x, eps);
-            auto valid_cuts_1 = sub_solv.separate_valid_cuts();
+    }
+    
+    if(params.bc.subtour_elim.enabled && node_number % params.bc.subtour_elim.cut_every_n_nodes == 0) {
+        auto sub_solv = SubtourEliminationCutsSolver(g, params, sol, env, x, eps);
+        auto valid_cuts_1 = sub_solv.separate_valid_cuts();
 
-            for(auto& cut : valid_cuts_1) {
-                add(cut, IloCplex::UseCutForce).end();
-                global::g_total_number_of_subtour_cuts_added++;
-            }
+        for(auto& cut : valid_cuts_1) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_subtour_cuts_added++;
         }
-        
-        if(params.bc.separate_precedence) {
-            auto go_solv = GeneralizedOrderSolver(g, sol, env, x, eps);
-            auto valid_cuts_2 = go_solv.separate_valid_cuts();
+    }
+    
+    if(params.bc.precedence.enabled && node_number % params.bc.precedence.cut_every_n_nodes == 0) {
+        auto go_solv = GeneralizedOrderSolver(g, sol, env, x, eps);
+        auto valid_cuts_2 = go_solv.separate_valid_cuts();
 
-            for(auto& cut : valid_cuts_2) {
-                add(cut, IloCplex::UseCutForce).end();
-                global::g_total_number_of_generalized_order_cuts_added++;
-            }
+        for(auto& cut : valid_cuts_2) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_generalized_order_cuts_added++;
         }
-        
-        if(params.bc.separate_capacity) {
-            auto cap_solv = CapacitySolver(g, sol, env, x, eps);
-            auto valid_cuts_3 = cap_solv.separate_valid_cuts();
-        
-            for(auto& cut : valid_cuts_3) {
-                add(cut, IloCplex::UseCutForce).end();
-                global::g_total_number_of_capacity_cuts_added++;
-            }
+    }
+    
+    if(params.bc.capacity.enabled && node_number % params.bc.capacity.cut_every_n_nodes == 0) {
+        auto cap_solv = CapacitySolver(g, sol, env, x, eps);
+        auto valid_cuts_3 = cap_solv.separate_valid_cuts();
+    
+        for(auto& cut : valid_cuts_3) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_capacity_cuts_added++;
         }
+    }
+    
+    if(params.bc.simplified_fork.enabled && node_number % params.bc.simplified_fork.cut_every_n_nodes == 0) {
+        auto sfork_solv = SimplifiedForkSolver(g, sol, env, x, eps);
+        auto valid_cuts_4 = sfork_solv.separate_valid_cuts();
         
-        if(params.bc.separate_simplified_fork) {
-            auto sfork_solv = SimplifiedForkSolver(g, sol, env, x, eps);
-            auto valid_cuts_4 = sfork_solv.separate_valid_cuts();
-            
-            std::cerr << valid_cuts_4.size();
-            
-            for(auto& cut : valid_cuts_4) {
-                add(cut, IloCplex::UseCutForce).end();
-                global::g_total_number_of_simplified_fork_cuts_addedd++;
-            }
+        std::cerr << valid_cuts_4.size();
+        
+        for(auto& cut : valid_cuts_4) {
+            add(cut, IloCplex::UseCutForce).end();
+            global::g_total_number_of_simplified_fork_cuts_addedd++;
         }
     }
 }

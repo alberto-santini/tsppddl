@@ -106,16 +106,27 @@ ProgramParams Parser::read_program_params() const {
             pt.get<std::string>("subgradient.results_dir")
         ),
         BranchAndCutParams(
-            pt.get<unsigned int>("branch_and_cut.cut_every_n_nodes"),
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
-            pt.get<bool>("branch_and_cut.subpath_elim"),
-            pt.get<bool>("branch_and_cut.subtour_sep_memory"),
-            pt.get<bool>("branch_and_cut.separate_subtour_elimination"),
-            pt.get<bool>("branch_and_cut.separate_precedence"),
-            pt.get<bool>("branch_and_cut.separate_capacity"),
-            pt.get<bool>("branch_and_cut.separate_simplified_fork"),
+            pt.get<bool>("branch_and_cut.three_path_elim"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
-            pt.get<std::string>("branch_and_cut.results_dir")
+            pt.get<std::string>("branch_and_cut.results_dir"),
+            valid_inequality_with_memory_info(
+                pt.get<unsigned int>("branch_and_cut.subtour_elim_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.enabled"),
+                pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.memory")
+            ),
+            valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.precedence_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.precedence_valid_ineq.enabled")
+            ),
+            valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.capacity_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.capacity_valid_ineq.enabled")
+            ),
+            valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.simplified_fork_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.simplified_fork_valid_ineq.enabled")
+            )
         )
     );
 }
