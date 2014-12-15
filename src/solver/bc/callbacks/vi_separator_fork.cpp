@@ -19,7 +19,7 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
             //      b)  There are nodes != 2n+1 with positive flow from the last node of <path>
             extend_path(path, paths_to_check);
             
-            if(path.size() >= 2u) {
+            if(path.size() >= 3u) {
                 //  2)  Process current <path> = {<node 0>,...,<node l>} and create a set T
                 //      of <j> s.t. {<node 0>,...,<node l>, <j>} is infeasible
                 auto T = create_set_T_for(path);
