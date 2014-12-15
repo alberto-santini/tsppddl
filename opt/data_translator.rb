@@ -1,4 +1,4 @@
-#!/Users/alberto/.rvm/rubies/ruby-2.1.2/bin/ruby
+#!/Users/alberto/.rvm/rubies/ruby-2.1.5/bin/ruby
 
 require 'json'
 
@@ -53,46 +53,67 @@ end
 ports = Array.new
 requests = Array.new
 origins = Array.new
-
-# Forget about demands and draught in the original instances
+destinations = Array.new
 demand = Array.new
 draught = Array.new
 
-max_load = 90
-min_load = 10
-avg_load = ((min_load + max_load) / 2).to_i
+max_demand = 99
+min_demand = 1
+avg_demand = ((min_demand + max_demand) / 2).to_i
 
-h = ARGV[1].to_f
-k = ARGV[2].to_f
+n = ARGV[1].to_i
+h = ARGV[2].to_i
+k = ARGV[3].to_f
+
 instance_name = File.basename(ARGV[0], ".dat").split("_").first
 
-q = (num_ports * h * avg_load).to_i
+depot = (1..num_ports).to_a.sample
+normal_ports = ports - [depot]
 
-0.upto(num_ports - 1) do |i|
-  draught[i] = ((Random.rand >= k) ? q : (q/2 + Random.rand(q/2 + 2)))
-  origins[i] = ((1..num_ports-1).to_a - [i]).sample
+0.upto(n-1) do |request|
+  origins[request] = normal_ports.sample
+  destinations[request] = (normal_ports - [origins[i]]).sample
+  demand[request] = min_demand + Random.rand(max_demand - min_demand + 1)
+  requests[request] = {
+    :origin => origins[request],
+    :destination => destinations[request],
+    :demand => demand[request]
+  }
 end
 
-0.upto(num_ports - 1) do |i|
-  x = Math.log(min_load.to_f / max_load.to_f)
-  demand[i] = [draught[origins[i]], draught[i], min_load * Math.exp(Random.rand(-1.1 * x))].min.to_i
-  # demand[i] = [draught[origins[i]], draught[i], (min_load + Random.rand(max_load - min_load + 1))].min.to_i
-  ports[i] = {:id => i, :draught => draught[i], :depot => (i == 0 ? true : false), :x => posx[i], :y => posy[i]}
+q = [h * avg_demand, demand.max].max
+
+0.upto(num_ports-1) do |port|
+  rnd = Random.rand
+  
+  if rnd <= k
+    draught[port] = q
+  else
+    max_port_demand = 0
+    0.upto(n-1) do |request|
+      if (port == origins[request] || port == destinations[request]) && demand[request] > max_port_demand
+        max_port_demand = demand[request]
+      end
+    end
     
-  unless i == 0
-    requests[i-1] = {:origin => origins[i], :destination => i, :demand => demand[i]}
+    draught[port] = max_port_demand + Random.rand(q - max_port_demand)
   end
+  
+  ports[i] = {
+    :id => port,
+    :draught => draught[port],
+    :depot => (port == depot)
+  }
 end
 
 data = {
   :num_ports => num_ports,
   :ports => ports,
-  :num_requests => num_ports - 1,
   :requests => requests,
   :capacity => q,
   :distances => distances
 }
 
-new_file_name = "../data/new/#{instance_name}_#{h}_#{k}.json"
+new_file_name = "../data/new/#{instance_name}_#{n}_#{h}_#{k}.json"
 
 File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data)}
