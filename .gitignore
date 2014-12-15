@@ -1,42 +1,28 @@
-# Compiled Object files
+# Object files and libraries
 *.slo
 *.lo
 *.o
 *.obj
-
-# Compiled Dynamic libraries
+*.ii
+*.s
+tsppddl
 *.so
 *.dylib
 *.dll
-
-# Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
 
-# Executables
-*.exe
-*.out
-*.app
-
+# Support files
 .history
 Makefile
-
-# support files
 *.lp
-*.dot
+*.dot*
 *.png
 *.txt
 
-# executables and objects
-tsppddl
-*.ii
-*.s
-
-# output files
-kopt*
-subgradient_results
+# Log files
 subgradient_results/*
-graphs
 graphs/*
+results/*
