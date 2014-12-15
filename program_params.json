@@ -7,14 +7,14 @@
         "iter_reduce_theta":            5,
         "theta_reduce_fact":            2,
         "max_iter":                     1000,
-        "results_dir":                  "results/subgradient/"
+        "results_dir":                  "../results/subgradient/"
     },
     "branch_and_cut": {
         "cut_every_n_nodes":            1,
         "two_cycles_elim":              true,
         "subpath_elim":                 true,
         "print_relaxation_graph":       false,
-        "results_dir":                  "results/branch_and_cut/",
+        "results_dir":                  "../results/branch_and_cut/",
         
         "subtour_elim_valid_ineq": {
             "cut_every_n_nodes":        1,
