@@ -5,12 +5,13 @@
 #include <parser/params/k_opt_params.h>
 #include <parser/params/subgradient_params.h>
 
-struct ProgramParams {
-    KOptParams          ko;
-    SubgradientParams   sg;
-    BranchAndCutParams  bc;
+struct program_params  {
+    k_opt_params           ko;
+    subgradient_params     sg;
+    branch_and_cut_params  bc;
     
-    ProgramParams(KOptParams ko, SubgradientParams sg, BranchAndCutParams bc) : ko{std::move(ko)}, sg{std::move(sg)}, bc{std::move(bc)} {}
+    program_params() {}
+    program_params(k_opt_params ko, subgradient_params sg, branch_and_cut_params bc) : ko{std::move(ko)}, sg{std::move(sg)}, bc{std::move(bc)} {}
 };
 
 #endif

@@ -1,21 +1,20 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 
 #include <vector>
 
-class Path {
-public:
-    std::vector<int> path;
-    std::vector<int> load;
+struct path {
+    std::vector<int> path_v;
+    std::vector<int> load_v;
     int total_load;
     int total_cost;
     
-    Path() : path{std::vector<int>()}, load{std::vector<int>()}, total_load{0}, total_cost{0} {}
-    Path(const Graph& g, const std::vector<std::vector<int>>& x);
+    path() : path_v{std::vector<int>()}, load_v{std::vector<int>()}, total_load{0}, total_cost{0} {}
+    path(const tsp_graph& g, const std::vector<std::vector<int>>& x);
         
-    void verify_feasible(const Graph& g) const;
+    void verify_feasible(const tsp_graph& g) const;
 };
 
 #endif

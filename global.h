@@ -9,6 +9,7 @@ namespace global {
     extern long g_total_number_of_generalized_order_cuts_added;
     extern long g_total_number_of_capacity_cuts_added;
     extern long g_total_number_of_simplified_fork_cuts_addedd;
+    extern long g_total_number_of_fork_cuts_addedd;
 }
 
 #endif

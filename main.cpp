@@ -1,4 +1,4 @@
-#include <cli/program.h>
+#include <program/program.h>
 
 #include <cstdlib>
 #include <ctime>
@@ -11,6 +11,7 @@ namespace global {
     long g_total_number_of_generalized_order_cuts_added = 0;
     long g_total_number_of_capacity_cuts_added = 0;
     long g_total_number_of_simplified_fork_cuts_addedd = 0;
+    long g_total_number_of_fork_cuts_addedd = 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -18,8 +19,7 @@ int main(int argc, char* argv[]) {
     
     std::srand(123321); // For reproducibility
     
-    auto p = Program();
-    p.autorun(args);
+    auto p = program(args);
     
     return 0;
 }

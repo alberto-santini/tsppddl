@@ -4,7 +4,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
-Graph Parser::generate_graph() const {
+tsp_graph parser::generate_tsp_graph() const {
     using namespace boost::property_tree;
     
     struct port {
@@ -30,7 +30,7 @@ Graph Parser::generate_graph() const {
     
     auto ports = std::vector<port>();
     auto requests = std::vector<request>();
-    auto port_cost = cost_t();
+    auto port_cost = tsp_graph::cost_t();
     
     BOOST_FOREACH(const ptree::value_type& port_child, pt.get_child("ports")) {
         ports.push_back(port(port_child.second.get<int>("id"), port_child.second.get<int>("draught")));
@@ -41,15 +41,15 @@ Graph Parser::generate_graph() const {
     }
     
     BOOST_FOREACH(const ptree::value_type& cost_row, pt.get_child("distances")) {
-        cost_row_t port_cost_row;
+        tsp_graph::cost_row_t port_cost_row;
         BOOST_FOREACH(const ptree::value_type& cost_val, cost_row.second.get_child("")) {
-            port_cost_row.push_back(cost_val.second.get<cost_val_t>(""));
+            port_cost_row.push_back(cost_val.second.get<tsp_graph::cost_val_t>(""));
         }
         port_cost.push_back(port_cost_row);
     }
     
-    auto demand = demand_t(2*n+2, 0);
-    auto draught = draught_t(2*n+2, 0);
+    auto demand = tsp_graph::demand_t(2*n+2, 0);
+    auto draught = tsp_graph::draught_t(2*n+2, 0);
     
     demand[0] = 0; demand[2*n+1] = 0;
     draught[0] = ports[0].draught; draught[2*n+1] = ports[0].draught;
@@ -61,7 +61,7 @@ Graph Parser::generate_graph() const {
         draught[n+i] = ports[requests[i-1].destination].draught;
     }
         
-    auto cost = cost_t(2*n+2, cost_row_t(2*n+2, -1));
+    auto cost = tsp_graph::cost_t(2*n+2, tsp_graph::cost_row_t(2*n+2, -1));
     cost[0][0] = 0; cost[2*n+1][2*n+1] = 0; cost[0][2*n+1] = 0; cost[2*n+1][0] = 0;
     
     for(auto i = 1; i <= n; i++) {
@@ -77,25 +77,25 @@ Graph Parser::generate_graph() const {
         }
     }
     
-    return Graph(demand, draught, cost, capacity);
+    return tsp_graph(demand, draught, cost, capacity);
 }
 
-ProgramParams Parser::read_program_params() const {
+program_params  parser::read_program_params() const {
     using namespace boost::property_tree;
     
     auto pt = ptree();
     read_json(params_file_name, pt);
     
-    auto instance_size_limits = k_opt_limits();
+    auto instance_size_limits = k_opt_params::k_opt_limits();
     BOOST_FOREACH(const ptree::value_type& limit_pair, pt.get_child("k_opt.instance_size_limit")) {
-        instance_size_limits.push_back(k_opt_limit(limit_pair.second.get<unsigned int>("k"), limit_pair.second.get<unsigned int>("n")));
+        instance_size_limits.push_back(k_opt_params::k_opt_limit(limit_pair.second.get<unsigned int>("k"), limit_pair.second.get<unsigned int>("n")));
     }
     
-    return ProgramParams(
-        KOptParams(
+    return program_params(
+        k_opt_params(
             instance_size_limits
         ),
-        SubgradientParams(
+        subgradient_params(
             pt.get<bool>("subgradient.relax_mtz"),
             pt.get<bool>("subgradient.relax_prec"),
             pt.get<double>("subgradient.initial_lambda"),
@@ -105,27 +105,31 @@ ProgramParams Parser::read_program_params() const {
             pt.get<unsigned int>("subgradient.max_iter"),
             pt.get<std::string>("subgradient.results_dir")
         ),
-        BranchAndCutParams(
+        branch_and_cut_params(
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
-            pt.get<bool>("branch_and_cut.three_path_elim"),
+            pt.get<bool>("branch_and_cut.subpath_elim"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
             pt.get<std::string>("branch_and_cut.results_dir"),
-            valid_inequality_with_memory_info(
+            branch_and_cut_params::valid_inequality_with_memory_info(
                 pt.get<unsigned int>("branch_and_cut.subtour_elim_valid_ineq.cut_every_n_nodes"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.enabled"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.memory")
             ),
-            valid_inequality_info(
-                pt.get<unsigned int>("branch_and_cut.precedence_valid_ineq.cut_every_n_nodes"),
-                pt.get<bool>("branch_and_cut.precedence_valid_ineq.enabled")
+            branch_and_cut_params::valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.generalised_order_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.generalised_order_valid_ineq.enabled")
             ),
-            valid_inequality_info(
+            branch_and_cut_params::valid_inequality_info(
                 pt.get<unsigned int>("branch_and_cut.capacity_valid_ineq.cut_every_n_nodes"),
                 pt.get<bool>("branch_and_cut.capacity_valid_ineq.enabled")
             ),
-            valid_inequality_info(
+            branch_and_cut_params::valid_inequality_info(
                 pt.get<unsigned int>("branch_and_cut.simplified_fork_valid_ineq.cut_every_n_nodes"),
                 pt.get<bool>("branch_and_cut.simplified_fork_valid_ineq.enabled")
+            ),
+            branch_and_cut_params::valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.fork_valid_ineq.cut_every_n_nodes"),
+                pt.get<bool>("branch_and_cut.fork_valid_ineq.enabled")
             )
         )
     );

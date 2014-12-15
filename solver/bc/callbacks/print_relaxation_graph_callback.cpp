@@ -1,14 +1,14 @@
 #include <network/graph_writer.h>
-#include <solver/bc/callbacks/print_relaxation_graph.h>
+#include <solver/bc/callbacks/print_relaxation_graph_callback.h>
 
 #include <iostream>
 #include <string>
 
-IloCplex::CallbackI* PrintRelaxationGraphCallback::duplicateCallback() const {
-    return (new(getEnv()) PrintRelaxationGraphCallback(*this));
+IloCplex::CallbackI* print_relaxation_graph_callback::duplicateCallback() const {
+    return (new(getEnv()) print_relaxation_graph_callback(*this));
 }
 
-void PrintRelaxationGraphCallback::main() {
+void print_relaxation_graph_callback::main() {
     auto node_number = getNnodes();
     
     // if(node_number == 0) {
@@ -37,7 +37,7 @@ void PrintRelaxationGraphCallback::main() {
              }
         }
     
-        auto gw = GraphWriter(g, std::move(solution_x), std::move(solution_y));
+        auto gw = graph_writer(g, std::move(solution_x), std::move(solution_y));
         gw.write("graphs/" + instance_name + "." + std::to_string(node_number));
     // }
 }

@@ -1,11 +1,11 @@
 template<class RC, class IC>
-HeuristicWithOrderedRequests<RC, IC>::HeuristicWithOrderedRequests(const Graph& g, const RC& rc, const IC& ic) : Heuristic{g}, insertion_comparator(ic) {
+heuristic_with_ordered_requests<RC, IC>::heuristic_with_ordered_requests(const tsp_graph& g, const RC& rc, const IC& ic) : heuristic{g}, insertion_comparator(ic) {
     std::sort(remaining_requests.begin(), remaining_requests.end(), rc);
     std::reverse(remaining_requests.begin(), remaining_requests.end()); // Reverse to be able to pop_back() the best
 }
 
 template<class RC, class IC>
-Path HeuristicWithOrderedRequests<RC, IC>::solve() {
+path heuristic_with_ordered_requests<RC, IC>::solve() {
     using namespace std::chrono;
     
     auto t_start = high_resolution_clock::now();
@@ -27,15 +27,15 @@ Path HeuristicWithOrderedRequests<RC, IC>::solve() {
 }
 
 template<class RC, class IC>
-bool HeuristicWithOrderedRequests<RC, IC>::insert(int req) {
+bool heuristic_with_ordered_requests<RC, IC>::insert(int req) {
     auto best_cost = std::numeric_limits<int>::max();
     auto best_load = std::numeric_limits<int>::max();
     auto managed_to_insert = false;
-    Path new_path;
+    path new_path;
     
-    for(auto x = 1u; x < this->p.path.size(); x++) {
-        for(auto y = x; y < this->p.path.size(); y++) {
-            auto result = HeuristicHelper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, best_cost, best_load);
+    for(auto x = 1u; x < this->p.path_v.size(); x++) {
+        for(auto y = x; y < this->p.path_v.size(); y++) {
+            auto result = heuristic_helper::insert<IC>(this->g, this->insertion_comparator, req, x, y, this->p, best_cost, best_load);
             if(result.first) {
                 managed_to_insert = true;
                 new_path = result.second;

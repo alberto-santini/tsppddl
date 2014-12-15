@@ -12,7 +12,7 @@
     "branch_and_cut": {
         "cut_every_n_nodes":            1,
         "two_cycles_elim":              true,
-        "three_path_elim":              true,
+        "subpath_elim":                 true,
         "print_relaxation_graph":       false,
         "results_dir":                  "results/branch_and_cut/",
         
@@ -21,7 +21,7 @@
             "enabled":                  true,
             "memory":                   true
         },
-        "precedence_valid_ineq": {
+        "generalised_order_valid_ineq": {
             "cut_every_n_nodes":        1,
             "enabled":                  true
         },
@@ -32,6 +32,10 @@
         "simplified_fork_valid_ineq": {
             "cut_every_n_nodes":        1,
             "enabled":                  false  
+        },
+        "fork_valid_ineq": {
+            "cut_every_n_nodes":        50,
+            "enabled":                  true  
         }
     },
     "k_opt": {

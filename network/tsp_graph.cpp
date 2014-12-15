@@ -1,26 +1,26 @@
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 
 #include <algorithm>
 
-Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity) : demand{demand}, draught{draught}, cost{cost} {
+tsp_graph::tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity) : demand{demand}, draught{draught}, cost{cost} {
     auto n = (size_t)((demand.size() - 2) / 2);
     
     assert(demand.size() == (2 * n + 2));
     assert(draught.size() == (2 * n + 2));
     assert(cost.size() == (2 * n + 2));
     
-    g[graph_bundle] = GraphInfo(n, capacity);
+    g[graph_bundle] = graph_info(n, capacity);
 
-    auto start_depot = Node(0, demand[0], draught[0]);
-    auto end_depot = Node(2*n+1, demand[2*n+1], draught[2*n+1]);
+    auto start_depot = node(0, demand[0], draught[0]);
+    auto end_depot = node(2*n+1, demand[2*n+1], draught[2*n+1]);
     auto start_depot_v = add_vertex(g);
     g[start_depot_v] = start_depot;
     auto end_depot_v = add_vertex(g);
     g[end_depot_v] = end_depot;
     
     for(auto i = 1u; i <= n; i++) {
-        auto origin = Node(i, demand[i], draught[i]);
-        auto destination = Node(n + i, demand[n + i], draught[n + i]);
+        auto origin = node(i, demand[i], draught[i]);
+        auto destination = node(n + i, demand[n + i], draught[n + i]);
         auto origin_v = add_vertex(g); g[origin_v] = origin;
         auto destination_v = add_vertex(g); g[destination_v] = destination;
     }
@@ -69,23 +69,23 @@ Graph::Graph(const demand_t& demand, const draught_t& draught, const cost_t& cos
             }
             
             this->cost[i][j] = cost[i][j];
-            auto arc = Arc(arc_id++, cost[i][j]);
+            auto new_arc = arc(arc_id++, cost[i][j]);
             auto edge = add_edge(*vi, *vj, g).first;
-            g[edge] = arc;
+            g[edge] = new_arc;
         }
     }
     
     populate_list_of_infeasible_3_paths();
 }
 
-void Graph::populate_list_of_infeasible_3_paths() {
+void tsp_graph::populate_list_of_infeasible_3_paths() {
     auto n = g[graph_bundle].n;
     
     for(auto i = 1; i <= 2*n; i++) {
         for(auto j = 1; j <= 2*n; j++) {
             for(auto k = 1; k <= 2*n; k++) {
-                if(cost[i][j] >= 0 && cost[j][k] >= 0 && is_path_eliminable(i, j, k)) {
-                    infeasible_3_paths.push_back({i, j, k});
+                if(cost[i][j] >= 0 && cost[j][k] >= 0) {
+                    infeas_list[{i, j, k}] = is_path_eliminable(i, j, k);
                 }
             }
         }
@@ -96,7 +96,7 @@ void Graph::populate_list_of_infeasible_3_paths() {
 // It assumes that (i,j) and (j,k) both exist
 // It assumes that 1 <= i,j,k <= 2n
 // It returns true if any path containing that subpath should be eliminated
-bool Graph::is_path_eliminable(int i, int j, int k) const {
+bool tsp_graph::is_path_eliminable(int i, int j, int k) const {
     auto n = g[graph_bundle].n;
     auto Q = g[graph_bundle].capacity;
         
@@ -147,8 +147,8 @@ bool Graph::is_path_eliminable(int i, int j, int k) const {
     }
 }
 
-Graph Graph::make_reverse_graph() const {
-    auto gr = Graph(*this);
+tsp_graph tsp_graph::make_reverse_tsp_graph() const {
+    auto gr = tsp_graph(*this);
     auto arc_id = num_edges(gr.g);
     vi_t vi, vi_end, vj, vj_end;
     
@@ -157,9 +157,9 @@ Graph Graph::make_reverse_graph() const {
             if(edge(*vi, *vj, gr.g).second && !edge(*vj, *vi, gr.g).second) {
                 // Take the cost from the arc in the opposite direction
                 gr.cost[gr.g[*vj].id][gr.g[*vi].id] = gr.cost[gr.g[*vi].id][gr.g[*vj].id];
-                auto arc = Arc(arc_id++, gr.cost[gr.g[*vj].id][gr.g[*vi].id]);
+                auto new_arc = arc(arc_id++, gr.cost[gr.g[*vj].id][gr.g[*vi].id]);
                 auto edge = add_edge(*vj, *vi, gr.g).first;
-                gr.g[edge] = arc;
+                gr.g[edge] = new_arc;
             }
         }
     }

@@ -14,7 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 
-SubgradientSolver::SubgradientSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions}, best_sol{std::numeric_limits<double>::max()} {
+subgradient_solver::subgradient_solver(const tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions}, best_sol{std::numeric_limits<double>::max()} {
     // PORTABLE WAY:
     // boost::filesystem::path i_path(instance_path);
     // std::stringstream ss; ss << i_path.stem();
@@ -30,7 +30,7 @@ SubgradientSolver::SubgradientSolver(const Graph& g, const ProgramParams& params
     instance_name = boost::algorithm::join(file_parts, ".");
 }
 
-void SubgradientSolver::print_mult_dump_headers(std::ofstream& dump_file) const {
+void subgradient_solver::print_mult_dump_headers(std::ofstream& dump_file) const {
     auto n = g.g[graph_bundle].n;
     	
 	dump_file << "            ";
@@ -44,7 +44,7 @@ void SubgradientSolver::print_mult_dump_headers(std::ofstream& dump_file) const 
 	dump_file << std::endl << std::endl << std::endl;
 }
 
-void SubgradientSolver::print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const {
+void subgradient_solver::print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const {
     auto n = g.g[graph_bundle].n;
 	
 	dump_file << "L      ";
@@ -85,7 +85,7 @@ void SubgradientSolver::print_mult_dump(std::ofstream& dump_file, const std::vec
 	dump_file << std::endl << std::endl << std::endl;
 }
 
-void SubgradientSolver::print_headers(std::ofstream& results_file) const {
+void subgradient_solver::print_headers(std::ofstream& results_file) const {
     results_file << " ITER";
     results_file << "      TIME";
     results_file << "    UB";
@@ -125,7 +125,7 @@ void SubgradientSolver::print_headers(std::ofstream& results_file) const {
     results_file << std::endl;
 }
 
-void SubgradientSolver::print_result_row(std::ofstream& results_file, double result, double best_sol, int subgradient_iteration, double iteration_time, double cplex_obj, double obj_const_term, int violated_mtz, int loose_mtz, int tight_mtz, int violated_prec, int loose_prec, int tight_prec, double theta, double step_lambda, double step_mu, double avg_lambda_before, double avg_mu_before, double avg_l, double avg_m, bool improved, bool lg_mtz, bool lg_prec) const {
+void subgradient_solver::print_result_row(std::ofstream& results_file, double result, double best_sol, int subgradient_iteration, double iteration_time, double cplex_obj, double obj_const_term, int violated_mtz, int loose_mtz, int tight_mtz, int violated_prec, int loose_prec, int tight_prec, double theta, double step_lambda, double step_mu, double avg_lambda_before, double avg_mu_before, double avg_l, double avg_m, bool improved, bool lg_mtz, bool lg_prec) const {
     results_file.precision(6);
     if(result > best_sol) {
         results_file << "!" << std::setw(4) << subgradient_iteration;
@@ -182,21 +182,21 @@ void SubgradientSolver::print_result_row(std::ofstream& results_file, double res
     results_file << std::setw(10) << std::boolalpha << improved << std::endl;
 }
 
-void SubgradientSolver::print_final_results(std::ofstream& results_file, double ub, double lb) const {
+void subgradient_solver::print_final_results(std::ofstream& results_file, double ub, double lb) const {
     results_file << "UB: " << std::setprecision(12) << ub << std::endl;
     results_file << "LB: " << std::setprecision(12) << lb << std::endl;
     results_file << "|UB - LB|: " << std::setprecision(12) << std::abs(ub - lb) << std::endl;
     results_file << "Gap %: " << std::setprecision(12) << (100 * (ub - lb) / ub) << std::endl;
 };
 
-void SubgradientSolver::solve() {
+void subgradient_solver::solve() {
     using namespace std::chrono;
     
     auto n = g.g[graph_bundle].n;
     auto n_arcs = num_edges(g.g);
     auto Q = g.g[graph_bundle].capacity;
     
-    auto best_heur_path = std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+    auto best_heur_path = std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
     best_sol = best_heur_path->total_cost;
     
     // Initial multipliers: all 1.0

@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-std::vector<Path> HeuristicSolver::solve() const {
-    auto paths = std::vector<Path>();
+std::vector<path> heuristic_solver::solve() const {
+    auto paths = std::vector<path>();
         
     auto ic1 = [] (int c1, int l1, int c2, int l2) -> bool {
         return ((double)l1 / (double) c1) > ((double)l2 / (double)c2);
@@ -40,36 +40,36 @@ std::vector<Path> HeuristicSolver::solve() const {
         return (this->g.cost[r1][r1 + this->g.g[graph_bundle].n] > this->g.cost[r2][r2 + this->g.g[graph_bundle].n]);
     };
     
-    auto p = Path();
+    auto p = path();
     std::cout << "Heuristic solutions:         \t";
     
     
-    auto h1 = MaxRegretHeuristic<decltype(ic1), decltype(rg1)>(g, ic1, rg1);
+    auto h1 = max_regret_heuristic<decltype(ic1), decltype(rg1)>(g, ic1, rg1);
     p = h1.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
 
-    auto h2 = MaxRegretHeuristic<decltype(ic2), decltype(rg2)>(g, ic2, rg2);
+    auto h2 = max_regret_heuristic<decltype(ic2), decltype(rg2)>(g, ic2, rg2);
     p = h2.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
     
-    auto h3 = HeuristicWithOrderedRequests<decltype(rc1), decltype(ic3)>(g, rc1, ic3);
+    auto h3 = heuristic_with_ordered_requests<decltype(rc1), decltype(ic3)>(g, rc1, ic3);
     p = h3.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
     
-    auto h4 = HeuristicWithOrderedRequests<decltype(rc2), decltype(ic3)>(g, rc2, ic3);
+    auto h4 = heuristic_with_ordered_requests<decltype(rc2), decltype(ic3)>(g, rc2, ic3);
     p = h4.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
     
-    auto h5 = BestInsertionHeuristic<decltype(ic1)>(g, ic1);
+    auto h5 = best_insertion_heuristic<decltype(ic1)>(g, ic1);
     p = h5.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
     
-    auto h6 = BestInsertionHeuristic<decltype(ic2)>(g, ic2);
+    auto h6 = best_insertion_heuristic<decltype(ic2)>(g, ic2);
     p = h6.solve();
     std::cout << p.total_cost << "\t";
     if(p.total_cost > 0) { paths.push_back(p); }
@@ -84,7 +84,7 @@ std::vector<Path> HeuristicSolver::solve() const {
         }
     }
     
-    auto h7 = KOptHeuristic(g, params, appropriate_k_for_instance_size, paths);
+    auto h7 = k_opt_heuristic(g, params, appropriate_k_for_instance_size, paths);
     auto k_opt_paths = h7.solve();
         
     std::cout << "Heuristic solutions (k = " << appropriate_k_for_instance_size << "): \t";

@@ -1,7 +1,7 @@
 #ifndef BC_SOLVER_H
 #define BC_SOLVER_H
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 #include <network/path.h>
 #include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
@@ -11,11 +11,12 @@
 
 using values_matrix = std::vector<std::vector<int>>;
 
-class BcSolver {
-    const Graph& g;
-    const ProgramParams& params;
+
+class bc_solver {
+    tsp_graph& g;
+    const program_params& params;
     
-    std::vector<Path> initial_solutions;
+    std::vector<path> initial_solutions;
     
     std::string instance_name;
     
@@ -27,12 +28,12 @@ class BcSolver {
     int k_opt_rhs;
 
     void add_initial_solution_vals();
-    Path solve(bool k_opt) const;
+    path solve(bool k_opt);
     
 public:
-    BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path = "");
-    void solve_with_branch_and_cut() const;
-    Path solve_for_k_opt(const Path& solution, const std::vector<std::vector<int>>& lhs, int rhs);
+    bc_solver(tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path = "");
+    void solve_with_branch_and_cut();
+    path solve_for_k_opt(const path& solution, const std::vector<std::vector<int>>& lhs, int rhs);
 };
 
 #endif

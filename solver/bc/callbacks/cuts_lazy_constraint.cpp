@@ -1,17 +1,17 @@
 #include <global.h>
 #include <solver/bc/callbacks/cuts_lazy_constraint.h>
-#include <solver/bc/callbacks/feasibility_cuts_max_flow_solver.h>
-#include <solver/bc/callbacks/generalized_order_solver.h>
-#include <solver/bc/callbacks/subtour_elimination_cuts_solver.h>
+#include <solver/bc/callbacks/feasibility_cuts_separator.h>
+#include <solver/bc/callbacks/vi_separator_generalised_order.h>
+#include <solver/bc/callbacks/vi_separator_subtour_elimination.h>
 
-IloCplex::CallbackI* CutsLazyConstraint::duplicateCallback() const {
-    return (new(getEnv()) CutsLazyConstraint(*this));
+IloCplex::CallbackI* cuts_lazy_constraint::duplicateCallback() const {
+    return (new(getEnv()) cuts_lazy_constraint(*this));
 }
 
-void CutsLazyConstraint::main() {
+void cuts_lazy_constraint::main() {
     auto sol = compute_x_values();
         
-    auto feas_cuts = FeasibilityCutsMaxFlowSolver::separate_feasibility_cuts(g, gr, sol, x, eps);
+    auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol, x, eps);
         
     for(IloRange cut : feas_cuts) {
         add(cut, IloCplex::UseCutForce).end();
@@ -19,7 +19,7 @@ void CutsLazyConstraint::main() {
     }
 }
 
-ch::solution CutsLazyConstraint::compute_x_values() const {
+ch::solution cuts_lazy_constraint::compute_x_values() const {
     auto n = g.g[graph_bundle].n;
     auto xvals = std::vector<std::vector<double>>(2*n+2, std::vector<double>(2*n+2, 0));
     auto is_integer = true;

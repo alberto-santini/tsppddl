@@ -1,12 +1,12 @@
 #ifndef GRAPH_INFO_H
 #define GRAPH_INFO_H
 
-struct GraphInfo {
+struct graph_info {
     int n;
     int capacity;
     
-    GraphInfo() {}
-    GraphInfo(int n, int capacity) : n{n}, capacity{capacity} {}
+    graph_info() {}
+    graph_info(int n, int capacity) : n{n}, capacity{capacity} {}
 };
 
 #endif

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-Path::Path(const Graph& g, const std::vector<std::vector<int>>& x) {
+path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
     auto current_node = 0;
     auto current_load = 0;
     auto visited_nodes = std::vector<int>();
@@ -12,10 +12,10 @@ Path::Path(const Graph& g, const std::vector<std::vector<int>>& x) {
     total_cost = 0;
     total_load = 0;
     
-    path.reserve(2 * n + 2);
-    load.reserve(2 * n + 2);
-    path.push_back(0);
-    load.push_back(0);
+    path_v.reserve(2 * n + 2);
+    load_v.reserve(2 * n + 2);
+    path_v.push_back(0);
+    load_v.push_back(0);
     
     visited_nodes.reserve(2 * n + 2);
         
@@ -27,9 +27,9 @@ Path::Path(const Graph& g, const std::vector<std::vector<int>>& x) {
         }
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(std::abs(x[current_node][j] - 1) < 0.0001) {
-                path.push_back(j);
+                path_v.push_back(j);
                 current_load += g.demand[j];
-                load.push_back(current_load);
+                load_v.push_back(current_load);
                 if(g.demand[j] > 0) { total_load += g.demand[j]; }
                 total_cost += g.cost[current_node][j];
                 visited_nodes.push_back(current_node);
@@ -39,11 +39,11 @@ Path::Path(const Graph& g, const std::vector<std::vector<int>>& x) {
         }
     }
     
-    if(path.size() != (size_t)(2 * n + 2)) {
-        std::cerr << "Path length: " << path.size() << " - expected: " << (2*n+2) << std::endl;
+    if(path_v.size() != (size_t)(2 * n + 2)) {
+        std::cerr << "Path length: " << path_v.size() << " - expected: " << (2*n+2) << std::endl;
         std::cerr << "Path: ";
-        for(auto i = 0u; i < path.size(); i++) {
-            std::cerr << path[i] << " ";
+        for(auto i = 0u; i < path_v.size(); i++) {
+            std::cerr << path_v[i] << " ";
         }
         std::cerr << std::endl;
         std::cerr << "X: " << std::endl;
@@ -58,23 +58,23 @@ Path::Path(const Graph& g, const std::vector<std::vector<int>>& x) {
     }
 }
 
-void Path::verify_feasible(const Graph& g) const {
+void path::verify_feasible(const tsp_graph& g) const {
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
     auto current_load = 0;
     auto visited_nodes = 1;
     auto visited_sources = std::vector<int>();
     
-    if(path.size() != (size_t)(2 * n + 2)) {
-        std::cout << "Wrong path length: " << path.size() << " vs. " << 2 * n + 2 << std::endl;
+    if(path_v.size() != (size_t)(2 * n + 2)) {
+        std::cout << "Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
         std::cout << "Path: ";
-        for(auto i = 0u; i < path.size(); i++) { std::cout << path.at(i) << " "; }
+        for(auto i = 0u; i < path_v.size(); i++) { std::cout << path_v.at(i) << " "; }
         std::cout << std::endl;
         throw std::runtime_error("Path length is != 2 * n + 2");
     }
     
     for(auto i = 1; i <= 2 * n + 1; i++) {
-        auto current_node = path.at(i);
+        auto current_node = path_v.at(i);
         visited_nodes++;
         
         if(current_node == 2 * n + 1 && visited_nodes < 2 * n + 2) {

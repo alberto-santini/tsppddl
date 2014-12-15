@@ -1,7 +1,7 @@
 #ifndef SUBGRADIENT_SOLVER_H
 #define SUBGRADIENT_SOLVER_H
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 #include <network/path.h>
 #include <parser/program_params.h>
 
@@ -15,7 +15,7 @@
 namespace sg_compare {
     inline bool floating_equal(double x, double y) {
         double diff = std::abs(x - y); x = std::abs(x); y = std::abs(y); double largest = (y > x) ? y : x;
-        if(diff <= largest * 10 * std::numeric_limits<double>::epsilon()) { return true; } else { return false; }
+        return (diff <= largest * 10 * std::numeric_limits<double>::epsilon());
     }
     
     inline bool floating_optimal(double ub, double lb) {
@@ -23,10 +23,10 @@ namespace sg_compare {
     }
 }
 
-class SubgradientSolver {
-    const Graph& g;
-    const ProgramParams& params;
-    std::vector<Path> initial_solutions;
+class subgradient_solver {
+    const tsp_graph& g;
+    const program_params& params;
+    std::vector<path> initial_solutions;
     std::string instance_name;
     double best_sol;
     
@@ -36,7 +36,7 @@ class SubgradientSolver {
     void print_mult_dump_headers(std::ofstream& dump_file) const;
 	void print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const;
 public:
-    SubgradientSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path);
+    subgradient_solver(const tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path);
     void solve();
 };
 

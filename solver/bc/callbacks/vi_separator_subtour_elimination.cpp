@@ -1,5 +1,5 @@
 #include <global.h>
-#include <solver/bc/callbacks/subtour_elimination_cuts_solver.h>
+#include <solver/bc/callbacks/vi_separator_subtour_elimination.h>
 
 #include <chrono>
 #include <ctime>
@@ -7,8 +7,68 @@
 #include <iostream>
 #include <ratio>
 
-SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(const Graph& g, const ProgramParams& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, params{params}, sol{sol}, env{env}, x{x}, eps{eps}, n{g.g[graph_bundle].n} {
-    pi = ch::sets_info(n,
+bool vi_separator_subtour_elimination::sets_info::is_in_S(int i) const {
+    if(i == 0 || i == 2*n + 1) {
+        return false;
+    } else {
+        return in_S[i];
+    }
+}
+
+bool vi_separator_subtour_elimination::sets_info::is_in_fs(int i) const {
+    if(i == 0 || i == 2*n + 1) {
+        return false;
+    } else {
+        return in_fs[i];
+    }
+}
+
+bool vi_separator_subtour_elimination::sets_info::is_in_ss(int i) const {
+    if(i == 0 || i == 2*n + 1) {
+        return false;
+    } else {
+        return in_ss[i];
+    }
+}
+
+bool vi_separator_subtour_elimination::sets_info::is_in_ts(int i) const {
+    if(i == 0 || i == 2*n + 1) {
+        return false;
+    } else {
+        return in_ts[i];
+    }
+}
+
+bool vi_separator_subtour_elimination::sets_info::empty_S() const {
+    return (boost::find(in_S, true) == boost::end(in_S));
+}
+
+int vi_separator_subtour_elimination::sets_info::first_non_tabu() const {
+    return (boost::find(in_tabu, false) - boost::begin(in_tabu));
+}
+
+void vi_separator_subtour_elimination::sets_info::print_set(std::ostream& os, const bvec& set) const {
+    for(auto i = 1u; i < set.size(); i++) { if(set[i]) { os << i << " "; } }
+}
+
+void vi_separator_subtour_elimination::sets_info::print_S(std::ostream& os) const {
+    print_set(os, in_S);
+}
+
+void vi_separator_subtour_elimination::sets_info::print_fs(std::ostream& os) const {
+    print_set(os, in_fs);
+}
+
+void vi_separator_subtour_elimination::sets_info::print_ss(std::ostream& os) const {
+    print_set(os, in_ss);
+}
+
+void vi_separator_subtour_elimination::sets_info::print_ts(std::ostream& os) const {
+    print_set(os, in_ts);
+}
+
+vi_separator_subtour_elimination::vi_separator_subtour_elimination(const tsp_graph& g, const program_params& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, params{params}, sol{sol}, env{env}, x{x}, eps{eps}, n{g.g[graph_bundle].n} {
+    pi = sets_info(n,
             bvec(2*n+2, false),
             bvec(2*n+2, false),
             ivec(2*n+2, -1),
@@ -16,7 +76,7 @@ SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(const Graph& g, const
             bvec(2*n+2, false), 0,
             bvec(2*n+2, true), 0, 0);
             
-    sigma = ch::sets_info(n,
+    sigma = sets_info(n,
             bvec(2*n+2, false),
             bvec(2*n+2, false),
             ivec(2*n+2, -1),
@@ -32,7 +92,7 @@ SubtourEliminationCutsSolver::SubtourEliminationCutsSolver(const Graph& g, const
     tabu_duration = 10;
 }
 
-std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
+std::vector<IloRange> vi_separator_subtour_elimination::separate_valid_cuts() {
     using namespace std::chrono;
     
     auto cuts = std::vector<IloRange>();
@@ -129,7 +189,7 @@ std::vector<IloRange> SubtourEliminationCutsSolver::separate_valid_cuts() {
     return cuts;
 }
 
-void SubtourEliminationCutsSolver::update_info(ch::sets_info& set, const ch::sets_info& best, int bn, int iter) {
+void vi_separator_subtour_elimination::update_info(vi_separator_subtour_elimination::sets_info& set, const vi_separator_subtour_elimination::sets_info& best, int bn, int iter) {
     auto removed = set.in_S[bn];
     
     set = best;
@@ -147,7 +207,7 @@ void SubtourEliminationCutsSolver::update_info(ch::sets_info& set, const ch::set
     }
 }
 
-void SubtourEliminationCutsSolver::add_groetschel_sigma_cut_if_violated(std::vector<IloRange>& cuts, const ch::sets_info& sigma) {
+void vi_separator_subtour_elimination::add_groetschel_sigma_cut_if_violated(std::vector<IloRange>& cuts, const vi_separator_subtour_elimination::sets_info& sigma) {
     if(sigma.empty_S()) { return; }
     if(boost::count(sigma.in_S, true) <= 1) { return; }
     
@@ -173,7 +233,7 @@ void SubtourEliminationCutsSolver::add_groetschel_sigma_cut_if_violated(std::vec
     if(lhs > my_S.size() - 1 + eps) { actually_add_groetschel_sigma_cut(cuts, my_S, sigma); }
 }
 
-void SubtourEliminationCutsSolver::add_groetschel_pi_cut_if_violated(std::vector<IloRange>& cuts, const ch::sets_info& pi) {
+void vi_separator_subtour_elimination::add_groetschel_pi_cut_if_violated(std::vector<IloRange>& cuts, const vi_separator_subtour_elimination::sets_info& pi) {
     if(pi.empty_S()) { return; }
     if(boost::count(pi.in_S, true) <= 1) { return; }
     
@@ -199,7 +259,7 @@ void SubtourEliminationCutsSolver::add_groetschel_pi_cut_if_violated(std::vector
     if(lhs > my_S.size() - 1 + eps) { actually_add_groetschel_pi_cut(cuts, my_S, pi); }
 }
 
-void SubtourEliminationCutsSolver::actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const ch::sets_info& sigma) {
+void vi_separator_subtour_elimination::actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const vi_separator_subtour_elimination::sets_info& sigma) {
     IloExpr lhs(env);
     IloNum rhs = my_S.size() - 1;
     
@@ -241,7 +301,7 @@ void SubtourEliminationCutsSolver::actually_add_groetschel_sigma_cut(std::vector
     cuts.push_back(cut);
 }
 
-void SubtourEliminationCutsSolver::actually_add_groetschel_pi_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const ch::sets_info& pi) {
+void vi_separator_subtour_elimination::actually_add_groetschel_pi_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const vi_separator_subtour_elimination::sets_info& pi) {
     IloExpr lhs(env);
     IloNum rhs = my_S.size() - 1;
     
@@ -283,7 +343,7 @@ void SubtourEliminationCutsSolver::actually_add_groetschel_pi_cut(std::vector<Il
     cuts.push_back(cut);
 }
 
-double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(const std::vector<int>& my_S, const ch::sets_info& pi) {
+double vi_separator_subtour_elimination::calculate_groetschel_lhs_sigma(const std::vector<int>& my_S, const vi_separator_subtour_elimination::sets_info& pi) {
     double lhs = 0;
     
     for(auto k = 0u; k < my_S.size() - 1; k++) {
@@ -307,7 +367,7 @@ double SubtourEliminationCutsSolver::calculate_groetschel_lhs_sigma(const std::v
     return lhs;
 }
 
-double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(const std::vector<int>& my_S, const ch::sets_info& pi) {
+double vi_separator_subtour_elimination::calculate_groetschel_lhs_pi(const std::vector<int>& my_S, const vi_separator_subtour_elimination::sets_info& pi) {
     auto lhs = 0;
     
     for(auto k = 0u; k < my_S.size(); k++) {
@@ -333,7 +393,7 @@ double SubtourEliminationCutsSolver::calculate_groetschel_lhs_pi(const std::vect
     return lhs;
 }
 
-void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>& cuts, const ch::sets_info& pi) {
+void vi_separator_subtour_elimination::add_pi_cut_if_violated(std::vector<IloRange>& cuts, const vi_separator_subtour_elimination::sets_info& pi) {
     if(pi.lhs >= 2 - eps) { return; } // Cut not violated
     if(pi.empty_S()) { return; } // Empty S
     if(boost::count(pi.in_S, true) <= 1) { return; } // Trivial S gives a trivial inequality!
@@ -367,7 +427,7 @@ void SubtourEliminationCutsSolver::add_pi_cut_if_violated(std::vector<IloRange>&
     cuts.push_back(cut);
 }
 
-void SubtourEliminationCutsSolver::add_sigma_cut_if_violated(std::vector<IloRange>& cuts, const ch::sets_info& sigma) {
+void vi_separator_subtour_elimination::add_sigma_cut_if_violated(std::vector<IloRange>& cuts, const vi_separator_subtour_elimination::sets_info& sigma) {
     if(sigma.lhs >= 2 - eps) { return; } // Cut not violated
     if(sigma.empty_S()) { return; } // Empty S
     if(boost::count(sigma.in_S, true) <= 1) { return; } // Trivial S gives a trivial inequality!
@@ -401,7 +461,7 @@ void SubtourEliminationCutsSolver::add_sigma_cut_if_violated(std::vector<IloRang
     cuts.push_back(cut);
 }
 
-void SubtourEliminationCutsSolver::add_or_remove_from_pi_sets(ch::sets_info& pi, int i) {
+void vi_separator_subtour_elimination::add_or_remove_from_pi_sets(vi_separator_subtour_elimination::sets_info& pi, int i) {
     if(pi.in_S[i]) { // Remove
         if(i <= n) {
             if(pi.in_S[i+n]) {
@@ -442,7 +502,7 @@ void SubtourEliminationCutsSolver::add_or_remove_from_pi_sets(ch::sets_info& pi,
     pi.in_S[i] = !pi.in_S[i];
 }
 
-void SubtourEliminationCutsSolver::add_or_remove_from_sigma_sets(ch::sets_info& sigma, int i) {
+void vi_separator_subtour_elimination::add_or_remove_from_sigma_sets(vi_separator_subtour_elimination::sets_info& sigma, int i) {
     if(sigma.in_S[i]) { // Remove
         if(i <= n) {
             if(sigma.in_S[i+n]) {
@@ -483,7 +543,7 @@ void SubtourEliminationCutsSolver::add_or_remove_from_sigma_sets(ch::sets_info& 
     sigma.in_S[i] = !sigma.in_S[i];
 }
 
-void SubtourEliminationCutsSolver::recalculate_pi_sums(ch::sets_info& pi) {
+void vi_separator_subtour_elimination::recalculate_pi_sums(vi_separator_subtour_elimination::sets_info& pi) {
     pi.fs = 0; pi.ss = 0; pi.ts = 0; pi.lhs = 0;
         
     for(auto i = 0; i <= 2 * n + 1; i++) {
@@ -508,7 +568,7 @@ void SubtourEliminationCutsSolver::recalculate_pi_sums(ch::sets_info& pi) {
     pi.lhs = pi.fs - 2 * pi.ss - 2 * pi.ts;
 }
 
-void SubtourEliminationCutsSolver::recalculate_sigma_sums(ch::sets_info& sigma) {
+void vi_separator_subtour_elimination::recalculate_sigma_sums(vi_separator_subtour_elimination::sets_info& sigma) {
     sigma.fs = 0; sigma.ss = 0; sigma.ts = 0; sigma.lhs = 0;
         
     for(auto i = 0; i <= 2 * n + 1; i++) {

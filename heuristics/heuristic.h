@@ -1,20 +1,20 @@
 #ifndef HEURISTIC_H
 #define HEURISTIC_H
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 #include <network/path.h>
 
 #include <vector>
 
-class Heuristic {
+class heuristic {
 protected:
-    const Graph& g;
+    const tsp_graph& g;
     int n;
     std::vector<int> remaining_requests;
-    Path p;
+    path p;
     
 public:
-    Heuristic(const Graph& g);
+    heuristic(const tsp_graph& g);
     void print_requests() const;
 };
 

@@ -1,5 +1,9 @@
 // ROWS
 
+if(DEBUG) {
+    std::cerr << "[DBG] bc_setup_model.raw.cpp \t Creating rows" << std::endl;
+}
+
 for(auto i = 0; i <= 2*n; i++) {
     outdegree.add(IloRange(env, 1.0, 1.0));
     outdegree[i].setName(("outdegree_" + std::to_string(i)).c_str());
@@ -37,15 +41,26 @@ if(params.bc.two_cycles_elim) {
     }
 }
 
-if(params.bc.three_path_elim) {
+if(params.bc.subpath_elim) {
     row_n = 0;
-    for(const auto& p : g.infeasible_3_paths) {
-        subpath_elimination.add(IloRange(env, -IloInfinity, 1.0));
-        subpath_elimination[row_n++].setName(("sube_" + std::to_string(p[0]) + "_" + std::to_string(p[1]) + "_" + std::to_string(p[2])).c_str());
+    for(const auto& pi : g.infeas_list) {
+        if(pi.second) {
+            std::stringstream name;
+            name << "sub_";
+            for(auto i : pi.first) { name << i << "_"; }
+            name << "elim";
+            
+            subpath_elimination.add(IloRange(env, -IloInfinity, pi.first.size() - 2));
+            subpath_elimination[row_n++].setName(name.str().c_str());
+        }
     }
 }
 
 // COLUMNS
+
+if(DEBUG) {
+    std::cerr << "[DBG] bc_setup_model.raw.cpp \t Creating columns" << std::endl;
+}
 
 for(auto i = 0; i <= 2*n + 1; i++) {
     for(auto j = 0; j <= 2*n + 1; j++) {
@@ -101,13 +116,17 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            if(params.bc.three_path_elim) {
+            if(params.bc.subpath_elim) {
                 row_n = 0;
-                for(const auto& p : g.infeasible_3_paths) {
-                    if((i == p[0] && j == p[1]) || (i == p[1] && j == p[2])) {
-                        col += subpath_elimination[row_n](1);
+                for(const auto& pi : g.infeas_list) {
+                    if(pi.second) {
+                        for(auto path_pos = 0u; path_pos < pi.first.size() - 1; path_pos++) {
+                            if(i == pi.first[path_pos] && j == pi.first[path_pos + 1]) {
+                                col += subpath_elimination[row_n](1);
+                            }
+                        }
+                        row_n++;
                     }
-                    row_n++;
                 }
             }
             

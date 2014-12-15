@@ -2,7 +2,7 @@
 #include <network/graph_writer.h>
 #include <solver/bc/callbacks/cuts_callback.h>
 #include <solver/bc/callbacks/cuts_lazy_constraint.h>
-#include <solver/bc/callbacks/print_relaxation_graph.h>
+#include <solver/bc/callbacks/print_relaxation_graph_callback.h>
 #include <solver/bc/bc_solver.h>
 
 #include <ilcplex/ilocplex.h>
@@ -21,7 +21,7 @@
 #include <sstream>
 #include <stdexcept>
 
-BcSolver::BcSolver(const Graph& g, const ProgramParams& params, const std::vector<Path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions} {
+bc_solver::bc_solver(tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions} {
     add_initial_solution_vals();
     
     // PORTABLE WAY:
@@ -41,7 +41,7 @@ BcSolver::BcSolver(const Graph& g, const ProgramParams& params, const std::vecto
     instance_name = boost::algorithm::join(file_parts, ".");
 }
 
-void BcSolver::add_initial_solution_vals() {
+void bc_solver::add_initial_solution_vals() {
     auto n = g.g[graph_bundle].n;
     
     initial_x_val = std::vector<values_matrix>(initial_solutions.size());
@@ -55,8 +55,8 @@ void BcSolver::add_initial_solution_vals() {
 
         for(auto l = 0; l < 2 * n + 2; l++) {
             if(l < 2 * n + 2 - 1) {
-                initial_x_sol[initial_solutions.at(sol_n).path[l]][initial_solutions.at(sol_n).path[l+1]] = 1;
-                initial_y_sol[initial_solutions.at(sol_n).path[l]][initial_solutions.at(sol_n).path[l+1]] = initial_solutions.at(sol_n).load[l];
+                initial_x_sol[initial_solutions.at(sol_n).path_v[l]][initial_solutions.at(sol_n).path_v[l+1]] = 1;
+                initial_y_sol[initial_solutions.at(sol_n).path_v[l]][initial_solutions.at(sol_n).path_v[l+1]] = initial_solutions.at(sol_n).load_v[l];
             }
         }
     
@@ -65,7 +65,7 @@ void BcSolver::add_initial_solution_vals() {
     }
 }
 
-Path BcSolver::solve_for_k_opt(const Path& solution, const std::vector<std::vector<int>>& lhs, int rhs) {
+path bc_solver::solve_for_k_opt(const path& solution, const std::vector<std::vector<int>>& lhs, int rhs) {
     k_opt_lhs = lhs;
     k_opt_rhs = rhs;
     
@@ -77,12 +77,23 @@ Path BcSolver::solve_for_k_opt(const Path& solution, const std::vector<std::vect
     return solve(true);
 }
 
-void BcSolver::solve_with_branch_and_cut() const {
+void bc_solver::solve_with_branch_and_cut() {
     solve(false);
 }
 
-Path BcSolver::solve(bool k_opt) const {
+path bc_solver::solve(bool k_opt) {
     using namespace std::chrono;
+    
+    if(DEBUG) {
+        auto unfeasible_paths_n = std::count_if(g.infeas_list.begin(), g.infeas_list.end(),
+            [] (const auto& kv) -> bool {
+                return kv.second;
+            }
+        );
+        
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt << std::endl;
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
+    }
 
     auto total_bb_nodes_explored = (long)0;
     auto number_of_cuts_added_at_root = (long)0;
@@ -119,7 +130,15 @@ Path BcSolver::solve(bool k_opt) const {
 
     IloObjective obj = IloMinimize(env);
 
+    if(DEBUG) {
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Creating model (bc_setup_model)" << std::endl;
+    }
+
     #include <solver/bc/bc_setup_model.raw.cpp>
+    
+    if(DEBUG) {
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Adding constraints" << std::endl;
+    }
     
     model.add(obj);
     model.add(variables_x);
@@ -134,7 +153,7 @@ Path BcSolver::solve(bool k_opt) const {
     if(params.bc.two_cycles_elim) {
         model.add(two_cycles_elimination);
     }
-    if(params.bc.three_path_elim) {
+    if(params.bc.subpath_elim) {
         model.add(subpath_elimination);
     }
     if(k_opt) {
@@ -143,6 +162,10 @@ Path BcSolver::solve(bool k_opt) const {
     
     IloCplex cplex(model);
     
+    if(DEBUG) {
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Adding initial solutions (there are " << initial_solutions.size() << " of them)" << std::endl;
+    }
+     
     // Add initial solutions
     for(auto sol_n = 0u; sol_n < initial_solutions.size(); sol_n++) {
         IloNumVarArray initial_vars(env);
@@ -191,13 +214,13 @@ Path BcSolver::solve(bool k_opt) const {
     }
 
     // Add callbacks to separate cuts
-    auto gr_with_reverse = g.make_reverse_graph();
-    cplex.use(CutsLazyConstraintHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
-    cplex.use(CutsCallbackHandle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
+    auto gr_with_reverse = g.make_reverse_tsp_graph();
+    cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS)));
+    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
-        cplex.use(PrintRelaxationGraphCallbackHandle(env, variables_x, variables_y, instance_name, g));
+        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g));
     }
 
     // Export model to file
@@ -210,20 +233,25 @@ Path BcSolver::solve(bool k_opt) const {
     cplex.setParam(IloCplex::Threads, 4);
     cplex.setParam(IloCplex::NodeLim, 0);
     
-    if(k_opt) {
+    if(k_opt && !DEBUG) {
         cplex.setOut(env.getNullStream());
     }
         
     auto t_start = high_resolution_clock::now();
 
+    if(DEBUG) {
+        std::cerr << "[DBG] bc_solver.cpp::solve() \t Solving" << std::endl;
+    }
+
     // Solve root node
     if(!cplex.solve()) {
         if(k_opt) {
-            std::cerr << "BcSolver::solve()\tCPLEX doing k-opt " << instance_name << std::endl;
+            std::cerr << "bc_solver.cpp::solve() \t CPLEX doing k-opt " << instance_name << std::endl;
         }
-        std::cerr << "BcSolver::solve()\tCPLEX problem encountered at root node" << std::endl;
-        std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
-        std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered at root node" << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+        
         cplex.exportModel("model_err.lp");
         throw std::runtime_error("Some error occurred or the problem is infeasible");
     } else {
@@ -242,11 +270,12 @@ Path BcSolver::solve(bool k_opt) const {
         cplex.setParam(IloCplex::NodeLim, 2100000000);
         if(!cplex.solve()) {
             if(k_opt) {
-                std::cerr << "BcSolver::solve()\tCPLEX doing k-opt" << instance_name << std::endl;
+                std::cerr << "bc_solver.cpp::solve() \t CPLEX doing k-opt" << instance_name << std::endl;
             }            
-            std::cerr << "BcSolver::solve()\tCPLEX problem encountered after the root node" << std::endl;
-            std::cerr << "BcSolver::solve()\tCPLEX status: " << cplex.getStatus() << std::endl;
-            std::cerr << "BcSolver::solve()\tCPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+            std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered after the root node" << std::endl;
+            std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
+            std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+            
             cplex.exportModel("model_err.lp");
             throw std::runtime_error("Some error occurred or the problem is infeasible");
         }
@@ -257,8 +286,8 @@ Path BcSolver::solve(bool k_opt) const {
 
     if(!k_opt) {
         IloAlgorithm::Status status = cplex.getStatus();
-        std::cerr << "BcSolver::solve()\tCPLEX status: " << status << std::endl;
-        std::cerr << "BcSolver::solve()\tObjective value: " << cplex.getObjValue() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << status << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t Objective value: " << cplex.getObjValue() << std::endl;
     }
 
     total_bb_nodes_explored = cplex.getNnodes();
@@ -275,7 +304,9 @@ Path BcSolver::solve(bool k_opt) const {
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
 
-    if(!k_opt) { std::cerr << "BcSolver::solve()\tSolution:" << std::endl; }
+    if(!k_opt) {
+        std::cerr << "bc_solver.cpp::solve() \t Solution:" << std::endl;
+    }
 
     // Get solution
     auto col_index = 0;
@@ -295,12 +326,12 @@ Path BcSolver::solve(bool k_opt) const {
          }
     }
     
-    auto opt_solution_path = Path(g, solution_x);
+    auto opt_solution_path = path(g, solution_x);
     opt_solution_path.verify_feasible(g);
 
     // Print solution
     if(!k_opt) {
-        auto best_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const Path& p1, const Path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+        auto best_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
         
         std::ofstream results_file;
         results_file.open(params.bc.results_dir + "results.txt", std::ios::out | std::ios::app);

@@ -1,8 +1,17 @@
-#include <solver/bc/callbacks/simplified_fork_solver.h>
+#include <global.h>
+#include <solver/bc/callbacks/vi_separator_simplified_fork.h>
 
-std::vector<IloRange> SimplifiedForkSolver::separate_valid_cuts() const {
+#include <chrono>
+#include <ctime>
+#include <ratio>
+
+std::vector<IloRange> vi_separator_simplified_fork::separate_valid_cuts() const {
+    using namespace std::chrono;
+    
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
+    
+    auto start_time = high_resolution_clock::now();
     
     for(auto i = 1; i <= 2*n; i++) {
         for(auto j = 1; j <= 2*n; j++) {
@@ -68,17 +77,21 @@ std::vector<IloRange> SimplifiedForkSolver::separate_valid_cuts() const {
         }
     }
     
+    auto end_time = high_resolution_clock::now();
+    auto time_span = duration_cast<duration<double>>(end_time - start_time);
+    global::g_total_time_spent_separating_cuts += time_span.count();
+    
     return cuts;
 }
 
-CutDefiningSets SimplifiedForkSolver::scan_for_infork(int i, int j) const {
+vi_separator_simplified_fork::CutDefiningSets vi_separator_simplified_fork::scan_for_infork(int i, int j) const {
     auto infork_S = std::vector<int>();
     auto infork_T = std::vector<int>();
     auto n = g.g[graph_bundle].n;
     
     for(auto k = 1; k <= 2 * n; k++) {
         if(k != i && k != j) {
-            if(std::find(g.infeasible_3_paths.begin(), g.infeasible_3_paths.end(), std::vector<int>{i,j,k}) != g.infeasible_3_paths.end()) {
+            if(g.infeas_list.at({i,j,k})) {
                 infork_T.push_back(k);
             }
         }
@@ -88,7 +101,7 @@ CutDefiningSets SimplifiedForkSolver::scan_for_infork(int i, int j) const {
         if(h != j) {
             bool candidate = true;
             for(auto k : infork_T) {
-                if(k == h || std::find(g.infeasible_3_paths.begin(), g.infeasible_3_paths.end(), std::vector<int>{h,j,k}) != g.infeasible_3_paths.end()) {
+                if(k == h || g.infeas_list.at({h,j,k})) {
                     candidate = false;
                     break;
                 }
@@ -102,14 +115,14 @@ CutDefiningSets SimplifiedForkSolver::scan_for_infork(int i, int j) const {
     return CutDefiningSets(std::move(infork_S), std::move(infork_T));
 }
 
-CutDefiningSets SimplifiedForkSolver::scan_for_outfork(int i, int j) const {
+vi_separator_simplified_fork::CutDefiningSets vi_separator_simplified_fork::scan_for_outfork(int i, int j) const {
     auto outfork_S = std::vector<int>();
     auto outfork_T = std::vector<int>();
     auto n = g.g[graph_bundle].n;
     
     for(auto h = 1; h <= 2 * n; h++) {
         if(h != i && h != j) {
-            if(std::find(g.infeasible_3_paths.begin(), g.infeasible_3_paths.end(), std::vector<int>{h,i,j}) != g.infeasible_3_paths.end()) {
+            if(g.infeas_list.at({h,i,j})) {
                 outfork_S.push_back(h);
             }
         }
@@ -119,7 +132,7 @@ CutDefiningSets SimplifiedForkSolver::scan_for_outfork(int i, int j) const {
         if(k != i) {
             bool candidate = true;
             for(auto h : outfork_S) {
-                if(h == k || std::find(g.infeasible_3_paths.begin(), g.infeasible_3_paths.end(), std::vector<int>{h,i,k}) == g.infeasible_3_paths.end()) {
+                if(h == k || g.infeas_list.at({h,i,k})) {
                     candidate = false;
                     break;
                 }

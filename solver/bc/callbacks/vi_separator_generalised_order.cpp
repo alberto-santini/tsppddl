@@ -1,6 +1,6 @@
-#include <solver/bc/callbacks/generalized_order_solver.h>
+#include <solver/bc/callbacks/vi_separator_generalised_order.h>
 
-std::vector<IloRange> GeneralizedOrderSolver::separate_valid_cuts() const {
+std::vector<IloRange> vi_separator_generalised_order::separate_valid_cuts() const {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
     

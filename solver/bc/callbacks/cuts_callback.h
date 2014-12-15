@@ -7,7 +7,7 @@
 #include <cstring>
 /************************************************/
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 #include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
 
@@ -16,25 +16,25 @@
 
 #include <utility>
 
-class CutsCallback : public IloCplex::UserCutCallbackI {
+class cuts_callback : public IloCplex::UserCutCallbackI {
     IloEnv env;
     IloNumVarArray x;
-    const Graph& g;
-    const Graph& gr;
+    tsp_graph& g;
+    const tsp_graph& gr;
     double eps;
-    const ProgramParams& params;
+    const program_params& params;
     
     ch::solution compute_x_values() const;
     
 public:
-    CutsCallback(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, const ProgramParams& params) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, params{params} {}
+    cuts_callback(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, double eps, const program_params& params) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, params{params} {}
     
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback CutsCallbackHandle(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps, const ProgramParams& params) {
-    return (IloCplex::Callback(new(env) CutsCallback(env, x, g, gr, eps, params)));
+inline IloCplex::Callback cuts_callback_handle(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, double eps, const program_params& params) {
+    return (IloCplex::Callback(new(env) cuts_callback(env, x, g, gr, eps, params)));
 }
 
 #endif

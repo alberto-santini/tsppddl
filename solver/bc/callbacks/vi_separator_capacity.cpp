@@ -1,8 +1,8 @@
-#include <solver/bc/callbacks/capacity_solver.h>
+#include <solver/bc/callbacks/vi_separator_capacity.h>
 
 #include <algorithm>
 
-CapacitySolver::CapacitySolver(const Graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {
+vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {
     auto n = g.g[graph_bundle].n;
     
     S = std::vector<int>();
@@ -12,7 +12,7 @@ CapacitySolver::CapacitySolver(const Graph& g, const ch::solution& sol, const Il
     T.reserve(2*n);
 }
 
-std::vector<IloRange> CapacitySolver::separate_valid_cuts() {
+std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
     
@@ -37,12 +37,12 @@ std::vector<IloRange> CapacitySolver::separate_valid_cuts() {
                     )
                 ) {
                     // Add bds
-                    S.push_back((*bds).node);
-                    T.erase(std::remove(T.begin(), T.end(), (*bds).node), T.end());
+                    S.push_back((*bds).node_n);
+                    T.erase(std::remove(T.begin(), T.end(), (*bds).node_n), T.end());
                 } else {
                     // Add bps
-                    S.push_back((*bps).node);
-                    T.erase(std::remove(T.begin(), T.end(), (*bps).node), T.end());
+                    S.push_back((*bps).node_n);
+                    T.erase(std::remove(T.begin(), T.end(), (*bps).node_n), T.end());
                 }
         
                 auto bpt = best_pickup_node_for_T();
@@ -57,10 +57,10 @@ std::vector<IloRange> CapacitySolver::separate_valid_cuts() {
                         )
                     ) {
                         // Add bpt
-                        T.push_back((*bpt).node);
+                        T.push_back((*bpt).node_n);
                     } else if(bdt) {
                         // Add bdt
-                        T.push_back((*bdt).node);
+                        T.push_back((*bdt).node_n);
                     }
                 }
         
@@ -77,7 +77,7 @@ std::vector<IloRange> CapacitySolver::separate_valid_cuts() {
     return cuts;
 }
 
-IloRange CapacitySolver::add_cut(double rhs_val) const {
+IloRange vi_separator_capacity::add_cut(double rhs_val) const {
     auto n = g.g[graph_bundle].n;
     IloExpr lhs(env);
     IloNum rhs(rhs_val);
@@ -108,7 +108,7 @@ IloRange CapacitySolver::add_cut(double rhs_val) const {
     return cut;
 }
 
-double CapacitySolver::calculate_lhs() const {
+double vi_separator_capacity::calculate_lhs() const {
     auto lhs = 0.0;
         
     for(const auto& s1 : S) {
@@ -129,7 +129,7 @@ double CapacitySolver::calculate_lhs() const {
     return lhs;
 }
 
-double CapacitySolver::calculate_rhs() const {
+double vi_separator_capacity::calculate_rhs() const {
     auto n = g.g[graph_bundle].n;
     auto rhs = 0.0;
     auto demand_s = 0.0;
@@ -164,7 +164,7 @@ double CapacitySolver::calculate_rhs() const {
     return rhs;
 }
 
-boost::optional<ch::best_node> CapacitySolver::best_pickup_node_for_T() const {
+boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_pickup_node_for_T() const {
     auto n = g.g[graph_bundle].n;
     auto best_n = -1;
     auto best_f = 0.0;
@@ -191,13 +191,13 @@ boost::optional<ch::best_node> CapacitySolver::best_pickup_node_for_T() const {
     }
     
     if(best_n != -1) {
-        return ch::best_node(best_n, best_f);
+        return best_node(best_n, best_f);
     } else {
         return boost::none;
     }
 }
 
-boost::optional<ch::best_node> CapacitySolver::best_delivery_node_for_T() const {
+boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_delivery_node_for_T() const {
     auto n = g.g[graph_bundle].n;
     auto best_n = -1;
     auto best_f = 0.0;
@@ -224,13 +224,13 @@ boost::optional<ch::best_node> CapacitySolver::best_delivery_node_for_T() const 
     }
     
     if(best_n != -1) {
-        return ch::best_node(best_n, best_f);
+        return best_node(best_n, best_f);
     } else {
         return boost::none;
     }
 }
 
-boost::optional<ch::best_node> CapacitySolver::best_pickup_node_for_S() const {
+boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_pickup_node_for_S() const {
     auto n = g.g[graph_bundle].n;
     auto best_n = -1;
     auto best_f = 0.0;
@@ -253,13 +253,13 @@ boost::optional<ch::best_node> CapacitySolver::best_pickup_node_for_S() const {
     }
     
     if(best_n != -1) {
-        return ch::best_node(best_n, best_f);
+        return best_node(best_n, best_f);
     } else {
         return boost::none;
     }
 }
 
-boost::optional<ch::best_node> CapacitySolver::best_delivery_node_for_S() const {
+boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_delivery_node_for_S() const {
     auto n = g.g[graph_bundle].n;
     auto best_n = -1;
     auto best_f = 0.0;
@@ -282,7 +282,7 @@ boost::optional<ch::best_node> CapacitySolver::best_delivery_node_for_S() const 
     }
     
     if(best_n != -1) {
-        return ch::best_node(best_n, best_f);
+        return best_node(best_n, best_f);
     } else {
         return boost::none;
     }

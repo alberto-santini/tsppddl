@@ -11,12 +11,12 @@
 #include <ratio>
 
 template<class IC>
-class BestInsertionHeuristic : public Heuristic {
+class best_insertion_heuristic : public heuristic {
     IC insertion_comparator;
     
 public:
-    BestInsertionHeuristic(const Graph& g, const IC& ic);
-    Path solve();
+    best_insertion_heuristic(const tsp_graph& g, const IC& ic);
+    path solve();
 };
 
 #include <heuristics/best_insertion_heuristic.tpp>

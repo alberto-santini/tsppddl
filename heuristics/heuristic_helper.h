@@ -5,9 +5,9 @@
 
 #include <utility>
 
-namespace HeuristicHelper {
+namespace heuristic_helper {
     template<class IC>
-    std::pair<bool, Path> insert(const Graph& g, const IC& insertion_comparator, int i, int x, int y, const Path& p, double bc, double bl);
+    std::pair<bool, path> insert(const tsp_graph& g, const IC& insertion_comparator, int i, int x, int y, const path& p, double bc, double bl);
 }
 
 #include <heuristics/heuristic_helper.tpp>

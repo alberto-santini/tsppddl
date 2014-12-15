@@ -7,7 +7,7 @@
 #include <cstring>
 /************************************************/
 
-#include <network/graph.h>
+#include <network/tsp_graph.h>
 #include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
 
@@ -16,24 +16,24 @@
 
 #include <utility>
 
-class CutsLazyConstraint : public IloCplex::LazyConstraintCallbackI {
+class cuts_lazy_constraint : public IloCplex::LazyConstraintCallbackI {
     IloEnv env;
     IloNumVarArray x;
-    const Graph& g;
-    const Graph& gr;
+    const tsp_graph& g;
+    const tsp_graph& gr;
     double eps;
     
     ch::solution compute_x_values() const;
 
 public:
-    CutsLazyConstraint(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps) : IloCplex::LazyConstraintCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps} {}
+    cuts_lazy_constraint(const IloEnv& env, const IloNumVarArray& x, const tsp_graph& g, const tsp_graph& gr, double eps) : IloCplex::LazyConstraintCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps} {}
 
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback CutsLazyConstraintHandle(const IloEnv& env, const IloNumVarArray& x, const Graph& g, const Graph& gr, double eps) {
-    return (IloCplex::Callback(new(env) CutsLazyConstraint(env, x, g, gr, eps)));
+inline IloCplex::Callback cuts_lazy_constraint_handle(const IloEnv& env, const IloNumVarArray& x, const tsp_graph& g, const tsp_graph& gr, double eps) {
+    return (IloCplex::Callback(new(env) cuts_lazy_constraint(env, x, g, gr, eps)));
 }
 
 #endif

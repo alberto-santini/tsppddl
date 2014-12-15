@@ -3,7 +3,7 @@
 
 #include <string>
 
-struct SubgradientParams {
+struct subgradient_params {
     bool            relax_mtz;
     bool            relax_prec;
     double          initial_lambda;
@@ -13,7 +13,8 @@ struct SubgradientParams {
     unsigned int    max_iter;
     std::string     results_dir;
     
-    SubgradientParams(  bool relax_mtz,
+    subgradient_params() {}
+    subgradient_params(  bool relax_mtz,
                         bool relax_prec,
                         double initial_lambda,
                         double initial_mu,
