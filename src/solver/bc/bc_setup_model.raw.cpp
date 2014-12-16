@@ -1,9 +1,5 @@
 // ROWS
 
-if(DEBUG) {
-    std::cerr << "[DBG] bc_setup_model.raw.cpp \t Creating rows" << std::endl;
-}
-
 for(auto i = 0; i <= 2*n; i++) {
     outdegree.add(IloRange(env, 1.0, 1.0));
     outdegree[i].setName(("outdegree_" + std::to_string(i)).c_str());
@@ -57,10 +53,6 @@ if(params.bc.subpath_elim) {
 }
 
 // COLUMNS
-
-if(DEBUG) {
-    std::cerr << "[DBG] bc_setup_model.raw.cpp \t Creating columns" << std::endl;
-}
 
 for(auto i = 0; i <= 2*n + 1; i++) {
     for(auto j = 0; j <= 2*n + 1; j++) {

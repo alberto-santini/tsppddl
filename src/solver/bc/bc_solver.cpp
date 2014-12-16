@@ -82,17 +82,14 @@ void bc_solver::solve_with_branch_and_cut() {
 
 path bc_solver::solve(bool k_opt) {
     using namespace std::chrono;
-    
-    if(DEBUG) {
-        auto unfeasible_paths_n = std::count_if(g.infeas_list.begin(), g.infeas_list.end(),
-            [] (const auto& kv) -> bool {
-                return kv.second;
-            }
-        );
-        
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt << std::endl;
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
-    }
+
+    auto unfeasible_paths_n = std::count_if(g.infeas_list.begin(), g.infeas_list.end(),
+        [] (const auto& kv) -> bool {
+            return kv.second;
+        }
+    );
+    std::cerr << "bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt << std::endl;
+    std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
 
     auto total_bb_nodes_explored = (long)0;
     auto number_of_cuts_added_at_root = (long)0;
@@ -126,15 +123,7 @@ path bc_solver::solve(bool k_opt) {
 
     IloObjective obj = IloMinimize(env);
 
-    if(DEBUG) {
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Creating model (bc_setup_model)" << std::endl;
-    }
-
     #include <solver/bc/bc_setup_model.raw.cpp>
-    
-    if(DEBUG) {
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Adding constraints" << std::endl;
-    }
     
     model.add(obj);
     model.add(variables_x);
@@ -157,10 +146,6 @@ path bc_solver::solve(bool k_opt) {
     }
     
     IloCplex cplex(model);
-    
-    if(DEBUG) {
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Adding initial solutions (there are " << initial_solutions.size() << " of them)" << std::endl;
-    }
      
     // Add initial solutions
     for(auto sol_n = 0u; sol_n < initial_solutions.size(); sol_n++) {
@@ -225,8 +210,8 @@ path bc_solver::solve(bool k_opt) {
     }
     
     // Set CPLEX parameters
-    cplex.setParam(IloCplex::TiLim, 3600);
-    cplex.setParam(IloCplex::Threads, 4);
+    cplex.setParam(IloCplex::TiLim, params.cplex_timeout);
+    cplex.setParam(IloCplex::Threads, params.cplex_threads);
     cplex.setParam(IloCplex::NodeLim, 0);
     
     if(k_opt && !DEBUG) {
@@ -234,10 +219,6 @@ path bc_solver::solve(bool k_opt) {
     }
         
     auto t_start = high_resolution_clock::now();
-
-    if(DEBUG) {
-        std::cerr << "[DBG] bc_solver.cpp::solve() \t Solving" << std::endl;
-    }
 
     // Solve root node
     if(!cplex.solve()) {
@@ -360,6 +341,9 @@ path bc_solver::solve(bool k_opt) {
         results_file << data.total_number_of_simplified_fork_vi_added << "\t";
         results_file << data.total_number_of_fork_vi_added << "\t";
         results_file << number_of_cuts_added_at_root << "\t";
+        
+        // UNFEASIBLE PATHS
+        results_file << unfeasible_paths_n << "\t";
         
         // BB NODES
         results_file << total_bb_nodes_explored << std::endl;

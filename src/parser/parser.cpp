@@ -131,6 +131,8 @@ program_params  parser::read_program_params() const {
                 pt.get<unsigned int>("branch_and_cut.fork_valid_ineq.cut_every_n_nodes"),
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.enabled")
             )
-        )
+        ),
+        pt.get<unsigned int>("cplex_threads"),
+        pt.get<unsigned int>("cplex_timeout")
     );
 }

@@ -10,7 +10,6 @@
         "results_dir":                  "../results/subgradient/"
     },
     "branch_and_cut": {
-        "cut_every_n_nodes":            1,
         "two_cycles_elim":              true,
         "subpath_elim":                 true,
         "print_relaxation_graph":       false,
@@ -46,5 +45,7 @@
             {"k": 5, "n": 20},
             {"k": 6, "n": 15}
         ]
-    }
+    },
+    "cplex_threads":    1,
+    "cplex_timeout":    3600
 }
