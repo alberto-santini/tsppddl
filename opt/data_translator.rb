@@ -62,8 +62,8 @@ def generate_instances(input_data)
   min_demand    = 1
   avg_demand    = ((min_demand + max_demand).to_f / 2).to_i
   instance_name = File.basename(input_data[:original_file_name], ".dat").split("_").first
-  depot         = (1..input_data[:num_ports]).to_a.sample
-  normal_ports  = (1..input_data[:num_ports]).to_a - [depot]
+  depot         = (0..(input_data[:num_ports]-1)).to_a.sample
+  normal_ports  = (0..(input_data[:num_ports]-1)).to_a - [depot]
 
   [10, 15, 20, 25, 30, 35, 40].each do |n|
     requests = Array.new

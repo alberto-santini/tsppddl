@@ -39,12 +39,12 @@
     {
       "id": 7,
       "draught": 100,
-      "depot": true
+      "depot": false
     },
     {
       "id": 8,
       "draught": 100,
-      "depot": false
+      "depot": true
     },
     {
       "id": 9,
@@ -75,104 +75,104 @@
   "num_requests": 20,
   "requests": [
     {
-      "origin": 14,
+      "origin": 13,
+      "destination": 3,
+      "demand": 50
+    },
+    {
+      "origin": 13,
       "destination": 12,
-      "demand": 97
+      "demand": 70
     },
     {
-      "origin": 5,
-      "destination": 14,
-      "demand": 30
-    },
-    {
-      "origin": 11,
-      "destination": 5,
-      "demand": 3
+      "origin": 7,
+      "destination": 1,
+      "demand": 9
     },
     {
       "origin": 2,
+      "destination": 10,
+      "demand": 66
+    },
+    {
+      "origin": 6,
+      "destination": 11,
+      "demand": 58
+    },
+    {
+      "origin": 0,
+      "destination": 11,
+      "demand": 45
+    },
+    {
+      "origin": 11,
       "destination": 9,
       "demand": 54
     },
     {
-      "origin": 13,
-      "destination": 5,
-      "demand": 60
+      "origin": 9,
+      "destination": 11,
+      "demand": 69
     },
     {
-      "origin": 14,
-      "destination": 6,
-      "demand": 33
-    },
-    {
-      "origin": 5,
-      "destination": 8,
-      "demand": 95
-    },
-    {
-      "origin": 11,
-      "destination": 9,
-      "demand": 49
-    },
-    {
-      "origin": 13,
-      "destination": 3,
-      "demand": 85
-    },
-    {
-      "origin": 2,
-      "destination": 3,
-      "demand": 15
-    },
-    {
-      "origin": 5,
-      "destination": 14,
-      "demand": 40
-    },
-    {
-      "origin": 13,
-      "destination": 9,
-      "demand": 12
-    },
-    {
-      "origin": 12,
-      "destination": 10,
-      "demand": 59
-    },
-    {
-      "origin": 11,
-      "destination": 13,
+      "origin": 0,
+      "destination": 2,
       "demand": 56
     },
     {
+      "origin": 11,
+      "destination": 5,
+      "demand": 85
+    },
+    {
+      "origin": 10,
+      "destination": 12,
+      "demand": 49
+    },
+    {
       "origin": 6,
-      "destination": 14,
-      "demand": 40
+      "destination": 9,
+      "demand": 50
+    },
+    {
+      "origin": 9,
+      "destination": 10,
+      "demand": 53
+    },
+    {
+      "origin": 0,
+      "destination": 2,
+      "demand": 3
+    },
+    {
+      "origin": 13,
+      "destination": 11,
+      "demand": 87
     },
     {
       "origin": 11,
-      "destination": 12,
-      "demand": 73
+      "destination": 9,
+      "demand": 46
+    },
+    {
+      "origin": 10,
+      "destination": 11,
+      "demand": 9
+    },
+    {
+      "origin": 6,
+      "destination": 13,
+      "demand": 92
+    },
+    {
+      "origin": 0,
+      "destination": 1,
+      "demand": 1
     },
     {
       "origin": 12,
-      "destination": 8,
-      "demand": 29
-    },
-    {
-      "origin": 1,
-      "destination": 4,
-      "demand": 34
-    },
-    {
-      "origin": 14,
-      "destination": 3,
-      "demand": 24
-    },
-    {
-      "origin": 3,
-      "destination": 11,
-      "demand": 24
+      "destination": 13,
+      "demand": 99
     }
   ],
   "capacity": 100,
