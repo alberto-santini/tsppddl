@@ -154,6 +154,7 @@ def read_process_and_print(original_file_name)
     data = {
       :num_ports => instance[:num_ports],
       :ports => instance[:ports],
+      :num_requests => instance[:n],
       :requests => instance[:requests],
       :capacity => instance[:q],
       :distances => instance[:distances]
