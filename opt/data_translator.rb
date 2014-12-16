@@ -1,119 +1,166 @@
 #!/Users/alberto/.rvm/rubies/ruby-2.1.5/bin/ruby
 
 require 'json'
+require 'fileutils'
 
-original_file_name = ARGV[0]
-num_ports = 0
-distances = Array.new
-posx = Array.new
-posy = Array.new
-demand = Array.new
-draught = Array.new
-data = Hash.new
+def read_raw_data(original_file_name)
+  num_ports               = 0
+  distances               = Array.new
+  posx                    = Array.new
+  posy                    = Array.new
+  demand                  = Array.new
+  draught                 = Array.new
+  parsing_distances       = false
+  parsing_distances_line  = 0
 
-parsing_distances = false
-parsing_distances_line = 0
-
-File.open(original_file_name, "r").each do |line|
-  next if line[0] == "!"
+  File.open(original_file_name, "r").each do |line|
+    next if line[0] == "!"
   
-  unless parsing_distances
-    if line =~ /^N\:\s*\d+/
-      num_ports = line[/\d+/].to_i
-    end
-    if line =~ /^Distance\:/
-      parsing_distances = true
-    end
-    if line =~ /^PosX\:/
-      label, parenthesis, *posx = line.split
-      posx.map!(&:to_i)
-    end
-    if line =~ /^PosY\:/
-      label, parenthesis, *posy = line.split
-      posy.map!(&:to_i)
-    end
-    if line =~ /^Demand\:/
-      label, parenthesis, *demand = line.split
-      demand.map!(&:to_i)
-    end
-    if line =~ /^Draft\:/
-      label, parenthesis, *draught = line.split
-      draught.map!(&:to_i)
-    end
-  else
-    if parsing_distances_line >= num_ports
-      parsing_distances = false
+    unless parsing_distances
+      if line =~ /^N\:\s*\d+/
+        num_ports = line[/\d+/].to_i
+      end
+      if line =~ /^Distance\:/
+        parsing_distances = true
+      end
+      if line =~ /^PosX\:/
+        label, parenthesis, *posx = line.split
+        posx.map!(&:to_i)
+      end
+      if line =~ /^PosY\:/
+        label, parenthesis, *posy = line.split
+        posy.map!(&:to_i)
+      end
+      if line =~ /^Demand\:/
+        label, parenthesis, *demand = line.split
+        demand.map!(&:to_i)
+      end
+      if line =~ /^Draft\:/
+        label, parenthesis, *draught = line.split
+        draught.map!(&:to_i)
+      end
     else
-      distances[parsing_distances_line] = line.split.map(&:to_i).map{|d| d == 1 ? 0 : d }
+      if parsing_distances_line >= num_ports
+        parsing_distances = false
+      else
+        distances[parsing_distances_line] = line.split.map(&:to_i).map{|d| d == 1 ? 0 : d }
+      end
+      parsing_distances_line += 1
     end
-    parsing_distances_line += 1
   end
-end
-
-ports = Array.new
-requests = Array.new
-origins = Array.new
-destinations = Array.new
-demand = Array.new
-draught = Array.new
-
-max_demand = 99
-min_demand = 1
-avg_demand = ((min_demand + max_demand) / 2).to_i
-
-n = ARGV[1].to_i
-h = ARGV[2].to_i
-k = ARGV[3].to_f
-
-instance_name = File.basename(ARGV[0], ".dat").split("_").first
-
-depot = (1..num_ports).to_a.sample
-normal_ports = ports - [depot]
-
-0.upto(n-1) do |request|
-  origins[request] = normal_ports.sample
-  destinations[request] = (normal_ports - [origins[i]]).sample
-  demand[request] = min_demand + Random.rand(max_demand - min_demand + 1)
-  requests[request] = {
-    :origin => origins[request],
-    :destination => destinations[request],
-    :demand => demand[request]
+  
+  return {
+    :original_file_name => original_file_name,
+    :num_ports          => num_ports,
+    :distances          => distances
   }
 end
 
-q = [h * avg_demand, demand.max].max
+def generate_instances(input_data)
+  instances     = Array.new
+  max_demand    = 99
+  min_demand    = 1
+  avg_demand    = ((min_demand + max_demand).to_f / 2).to_i
+  instance_name = File.basename(input_data[:original_file_name], ".dat").split("_").first
+  depot         = (1..input_data[:num_ports]).to_a.sample
+  normal_ports  = (1..input_data[:num_ports]).to_a - [depot]
 
-0.upto(num_ports-1) do |port|
-  rnd = Random.rand
-  
-  if rnd <= k
-    draught[port] = q
-  else
-    max_port_demand = 0
+  [10, 15, 20, 25, 30, 35, 40].each do |n|
+    requests = Array.new
+        
     0.upto(n-1) do |request|
-      if (port == origins[request] || port == destinations[request]) && demand[request] > max_port_demand
-        max_port_demand = demand[request]
+      origin            = normal_ports.sample
+      destination       = (normal_ports - [origin]).sample
+      demand            = min_demand + Random.rand(max_demand - min_demand + 1)
+      requests[request] = {
+        :origin       => origin,
+        :destination  => destination,
+        :demand       => demand
+      }
+    end
+
+    [2, 3, 4, 5, n, 2*n].each do |h|
+      q                 = [h * avg_demand, requests.map{|r| r[:demand]}.max].max
+      possible_k_values = (h == 2*n ? [1.0] : [0.0, 0.25, 0.5, 0.75, 1.0])
+      
+      possible_k_values.each do |k|
+        ports   = Array.new
+        draught = Array.new
+        
+        0.upto(input_data[:num_ports]-1) do |port|
+          rnd = Random.rand
+  
+          if rnd <= k
+            draught[port] = q
+          else
+            max_port_demand = 0
+            0.upto(n-1) do |request|
+              if (port == requests[request][:origin] || port == requests[request][:destination]) && requests[request][:demand] > max_port_demand
+                max_port_demand = requests[request][:demand]
+              end
+            end
+    
+            draught[port] = max_port_demand + Random.rand(q - max_port_demand)
+          end
+  
+          ports[port] = {
+            :id       => port,
+            :draught  => draught[port],
+            :depot    => (port == depot)
+          }
+        end
+
+        instances.push({
+          :num_ports      => input_data[:num_ports],
+          :n              => n,
+          :h              => h,
+          :k              => k,
+          :q              => q,
+          :ports          => ports,
+          :requests       => requests,
+          :capacity       => q,
+          :distances      => input_data[:distances],
+          :instance_name  => instance_name
+        })
       end
     end
-    
-    draught[port] = max_port_demand + Random.rand(q - max_port_demand)
   end
   
-  ports[i] = {
-    :id => port,
-    :draught => draught[port],
-    :depot => (port == depot)
-  }
+  return instances
 end
 
-data = {
-  :num_ports => num_ports,
-  :ports => ports,
-  :requests => requests,
-  :capacity => q,
-  :distances => distances
-}
+def read_process_and_print(original_file_name)
+  input_data  = read_raw_data(original_file_name)
+  instances   = generate_instances(input_data)
+  
+  instances.each do |instance|
+    new_file_name = "../data/new/"
+    if instance[:h] == 2 * instance[:n]
+      new_file_name += "tsp_with_precedence/"
+    else
+      if instance[:k] == 1.0
+        new_file_name += "tsppd/"
+      else
+        new_file_name += "tsppddl/"
+      end
+    end
+    new_file_name += "#{instance[:instance_name]}_#{instance[:n]}_#{instance[:h]}_#{instance[:k]}.json"
+    
+    dirname = File.dirname(new_file_name)
+    unless File.directory?(dirname)
+      FileUtils.mkdir_p(dirname)
+    end
+    
+    data = {
+      :num_ports => instance[:num_ports],
+      :ports => instance[:ports],
+      :requests => instance[:requests],
+      :capacity => instance[:q],
+      :distances => instance[:distances]
+    }
+    
+    File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data)}
+  end
+end
 
-new_file_name = "../data/new/#{instance_name}_#{n}_#{h}_#{k}.json"
-
-File.open(new_file_name, "w") {|file| file.write JSON.pretty_generate(data)}
+read_process_and_print(ARGV[0])
