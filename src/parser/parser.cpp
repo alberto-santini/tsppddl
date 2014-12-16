@@ -8,10 +8,11 @@ tsp_graph parser::generate_tsp_graph() const {
     using namespace boost::property_tree;
     
     struct port {
-        int pid;
-        int draught;
+        int     pid;
+        int     draught;
+        bool    depot;
         port() {}
-        port(int pid, int draught) : pid{pid}, draught{draught} {}
+        port(int pid, int draught, bool depot) : pid{pid}, draught{draught}, depot{depot} {}
     };
     
     struct request {
@@ -31,9 +32,19 @@ tsp_graph parser::generate_tsp_graph() const {
     auto ports = std::vector<port>();
     auto requests = std::vector<request>();
     auto port_cost = tsp_graph::cost_t();
+    auto depot_id = -1;
     
     BOOST_FOREACH(const ptree::value_type& port_child, pt.get_child("ports")) {
-        ports.push_back(port(port_child.second.get<int>("id"), port_child.second.get<int>("draught")));
+        auto port_id = port_child.second.get<int>("id");
+        auto is_depot = port_child.second.get<bool>("depot");
+        if(is_depot) {
+            if(depot_id == -1) {
+                depot_id = port_id;
+            } else {
+                throw std::runtime_error("There is an instance with two depots!");
+            }
+        }
+        ports.push_back(port(port_id, port_child.second.get<int>("draught"), is_depot));
     }
         
     BOOST_FOREACH(const ptree::value_type& request_child, pt.get_child("requests")) {
@@ -48,11 +59,15 @@ tsp_graph parser::generate_tsp_graph() const {
         port_cost.push_back(port_cost_row);
     }
     
+    if(depot_id == -1) {
+        throw std::runtime_error("There is an instance without depot!");
+    }
+     
     auto demand = tsp_graph::demand_t(2*n+2, 0);
     auto draught = tsp_graph::draught_t(2*n+2, 0);
     
     demand[0] = 0; demand[2*n+1] = 0;
-    draught[0] = ports[0].draught; draught[2*n+1] = ports[0].draught;
+    draught[0] = ports[depot_id].draught; draught[2*n+1] = ports[depot_id].draught;
 
     for(auto i = 1; i <= n; i++) {
         demand[i] = requests[i-1].demand;
@@ -62,13 +77,10 @@ tsp_graph parser::generate_tsp_graph() const {
     }
         
     auto cost = tsp_graph::cost_t(2*n+2, tsp_graph::cost_row_t(2*n+2, -1));
-    cost[0][0] = 0; cost[2*n+1][2*n+1] = 0; cost[0][2*n+1] = 0; cost[2*n+1][0] = 0;
     
     for(auto i = 1; i <= n; i++) {
-        cost[0][i] = port_cost[0][requests[i-1].origin];
-        cost[i][2*n+1] = port_cost[requests[i-1].origin][0];
-        cost[0][n+i] = port_cost[0][requests[i-1].destination];
-        cost[n+i][2*n+1] = port_cost[requests[i-1].destination][0];
+        cost[0][i] = port_cost[depot_id][requests[i-1].origin];
+        cost[n+i][2*n+1] = port_cost[requests[i-1].destination][depot_id];
         for(auto j = 1; j <= n; j++) {
             cost[i][j] = port_cost[requests[i-1].origin][requests[j-1].origin];
             cost[i][n+j] = port_cost[requests[i-1].origin][requests[j-1].destination];

@@ -2,14 +2,15 @@ template<class IC>
 std::pair<bool, path> heuristic_helper::insert(const tsp_graph& g, const IC& insertion_comparator, int i, int x, int y, const path& p, double bc, double bl) {
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
-    auto new_cost = p.total_cost, new_load = (p.total_load + g.demand[i]);
+    auto new_cost = p.total_cost;
+    auto new_load = (p.total_load + g.demand[i]);
     
     if(x == y) {
         new_cost += -std::max(g.cost[p.path_v[x-1]][p.path_v[x]], 0) + g.cost[p.path_v[x-1]][i] + g.cost[i][n+i] + g.cost[n+i][p.path_v[x]];
     } else {
         new_cost += -std::max(g.cost[p.path_v[x-1]][p.path_v[x]], 0) - std::max(g.cost[p.path_v[y-1]][p.path_v[y]], 0) + g.cost[p.path_v[x-1]][i] + g.cost[i][p.path_v[x]] + g.cost[p.path_v[y-1]][n+i] + g.cost[n+i][p.path_v[y]];
     }
-    
+        
     if(insertion_comparator(bc, bl, new_cost, new_load)) {
         return std::make_pair(false, path());
     }

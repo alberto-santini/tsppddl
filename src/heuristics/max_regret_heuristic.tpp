@@ -6,7 +6,7 @@ path max_regret_heuristic<IC, RG>::solve() {
         auto regrets = std::vector<double>(rs, 0);
         auto new_possible_paths = std::vector<path>(rs, path());
         auto ps = this->p.path_v.size();
-            
+        
         for(auto req_id = 0u; req_id < rs; req_id++) {
             // BestCost, SecondBestCost, BestLoad, SecondBestLoad
             auto bc = std::numeric_limits<int>::max(), sbc = std::numeric_limits<int>::max(), bl = 0, sbl = 0;
