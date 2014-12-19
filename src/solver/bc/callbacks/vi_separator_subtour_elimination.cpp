@@ -65,24 +65,18 @@ vi_separator_subtour_elimination::vi_separator_subtour_elimination(const tsp_gra
     tabu_duration = 10;
 }
 
+std::size_t hash_value(const vi_separator_subtour_elimination::sets_info& s) {
+    return boost::hash_range(s.in_S.begin(), s.in_S.end());
+}
+
+bool operator==(const vi_separator_subtour_elimination::sets_info& l, const vi_separator_subtour_elimination::sets_info& r) {
+    return (l.in_S == r.in_S);
+}
+
 std::vector<IloRange> vi_separator_subtour_elimination::separate_valid_cuts() {
     auto cuts = std::vector<IloRange>();
-    
-    // As a very rough way to avoid separating the same cuts many times, we keep track of
-    // 1. The first element of S and
-    // 2. Of the sum of all the elements of S
-    // We hash S -> (first, sum) and only add S's with unique hashes.
-    struct memory {
-        int first;
-        int sum;
-        
-        memory () : first(0), sum(0) {}
-        memory(int f, int s) : first(f), sum(s) {}
-        
-        bool operator==(const memory& other) { return (other.first == first && other.sum == sum); }
-    };
-    auto cuts_memory_pi = std::vector<memory>();
-    auto cuts_memory_sigma = std::vector<memory>();
+    auto cuts_memory_pi = mem();
+    auto cuts_memory_sigma = mem();
         
     for(auto iter = 1; iter <= tot_number_of_iterations; iter++) {
         auto best_pi = pi, best_sigma = sigma;
@@ -107,47 +101,32 @@ std::vector<IloRange> vi_separator_subtour_elimination::separate_valid_cuts() {
         }
         
         auto added_mem_pi = false, added_mem_sigma = false;
-        auto m_pi = memory(), m_sigma = memory();
         
         if(params.bc.subtour_elim.memory) {
-            auto f = boost::find(best_pi.in_S, true);
-            if(f != boost::end(best_pi.in_S)) {
-                m_pi = memory(
-                    f - boost::begin(best_pi.in_S),
-                    boost::accumulate(best_pi.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
-                );
-                added_mem_pi = (std::find(cuts_memory_pi.begin(), cuts_memory_pi.end(), m_pi) != cuts_memory_pi.end());
-            }
-            f = boost::find(best_sigma.in_S, true);
-            if(f != boost::end(best_sigma.in_S)) {
-                m_sigma = memory(
-                    f - boost::begin(best_sigma.in_S),
-                    boost::accumulate(best_sigma.in_S, 0, [] (int a, bool b) { return a + (b?1:0); })
-                );
-                added_mem_sigma = (std::find(cuts_memory_sigma.begin(), cuts_memory_sigma.end(), m_sigma) != cuts_memory_sigma.end());
-            }
+            added_mem_pi = (cuts_memory_pi.find(best_pi) != cuts_memory_pi.end());
+            added_mem_sigma = (cuts_memory_sigma.find(best_sigma) != cuts_memory_sigma.end());
         }
         
         if(bn_pi == -1) { throw std::runtime_error("Best pi node can't be -1"); }
         
         update_info(pi, best_pi, bn_pi, iter);
         
-        // Bonus: we can recycle set pi to add the groetschel pi cut
+        // Bonus: we can reuse set pi to add the groetschel pi cut
         if(!params.bc.subtour_elim.memory || !added_mem_pi) {
             add_pi_cut_if_violated(cuts, pi);
             add_groetschel_pi_cut_if_violated(cuts, pi);
-            cuts_memory_pi.push_back(m_pi);
+            cuts_memory_pi.insert(pi);
         }
         
         if(bn_sigma == -1) { throw std::runtime_error("Best sigma node can't be -1"); }
         
         update_info(sigma, best_sigma, bn_sigma, iter);
         
-        // Bonus: we can recycle set sigma to add the groetschel sigma cut
+        // Bonus: we can reuse set sigma to add the groetschel sigma cut
         if(!params.bc.subtour_elim.memory || !added_mem_sigma) {
             add_sigma_cut_if_violated(cuts, sigma);
             add_groetschel_sigma_cut_if_violated(cuts, sigma);
-            cuts_memory_sigma.push_back(m_sigma);
+            cuts_memory_sigma.insert(sigma);
         }
     }
     

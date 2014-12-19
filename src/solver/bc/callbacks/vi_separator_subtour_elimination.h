@@ -5,9 +5,11 @@
 #include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
 
+#include <boost/functional/hash.hpp>
 #include <ilcplex/ilocplex.h>
 #include <ilcplex/ilocplexi.h>
 
+#include <unordered_set>
 #include <vector>
 
 class vi_separator_subtour_elimination {
@@ -45,8 +47,12 @@ class vi_separator_subtour_elimination {
         int first_non_tabu() const;
     };
     
+    friend std::size_t hash_value(const sets_info& s);
+    friend bool operator==(const sets_info& l, const sets_info& r);
+    
     sets_info   pi;
     sets_info   sigma;
+    using mem = std::unordered_set<sets_info, boost::hash<sets_info>>;
     
     int         tot_number_of_iterations;
     int         tabu_duration;
