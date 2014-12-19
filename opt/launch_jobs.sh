@@ -6,29 +6,74 @@ stderr_dir="../output/stderr/"
 exec_file="../src/tsppddl"
 params_file="../program_params.json"
 
-if [ -z $1 ]
-then
-    echo "I need the instances type as a parameter"
-    exit
-fi
+excluded_instances=("burma14_10_20_1.0" "burma14_10_10_1.0" "burma14_10_2_1.0" "burma14_10_3_1.0")
 
-for file in $(printf "%s%s%s" $data_dir $1 "/*")
-do
-    filename=$(basename "$file")
-    extension="${filename##*.}"
-    instance="${filename%.*}"
-    
-    if [ "$extension" != "json" ]
+contains_element () {
+    for element in "${@:2}"
+    do
+      	[[ "$element" == "$1" ]] && return 0
+    done
+
+    return 1
+}
+
+check_the_user_didnt_forget_excluded_instances() {
+    if [[ ${#excluded_instances[@]} -eq 0 ]]
     then
-        echo "Instance file is not json!"
-        exit
+        echo "No excluded instances, proceeding..."
+    else
+        read -p "Warning: I have a list of excluded instances: proceed? y/n " -n 1 -r
+        echo
+
+        if [[ "$REPLY" =~ ^[Yy]$ ]]
+        then
+            echo "Ok, proceeding..."
+        else
+            echo "Ok, aborting..."
+            exit
+        fi
     fi
-    
+}
+
+create_output_dirs() {
     mkdir -p "$stdout_dir"
     mkdir -p "$stderr_dir"
-    
-    stdout_file=$(printf "%s%s%s" $stdout_dir $instance ".stdout")
-    stderr_file=$(printf "%s%s%s" $stderr_dir $instance ".stderr")
-    
-    echo "oarsub -n \"$instance\" -O \"$stdout_file\" -E \"$stderr_file\" -p \"network_address!='drbl10-201-201-21'\" -l /nodes=1/core=1,walltime=4 \"$exec_file $file $params_file branch_and_cut\""
-done
+}
+
+check_command_line_options() {
+    if [[ -z $1 ]]
+    then
+        echo "I need the instances type as a parameter"
+        exit
+    fi
+}
+
+schedule_jobs() {
+    for file in $(printf "%s%s%s" $data_dir $1 "/*")
+    do
+        filename=$(basename "$file")
+        extension="${filename##*.}"
+        instance="${filename%.*}"
+
+        if [[ "$extension" != "json" ]]
+        then
+            echo "Instance file is not json!"
+            exit
+        fi
+
+        if contains_element "$filename" ${excluded_instances[@]}
+        then
+           	echo "Skipping $filename"
+        else
+            stdout_file=$(printf "%s%s%s" $stdout_dir $instance ".stdout")
+            stderr_file=$(printf "%s%s%s" $stderr_dir $instance ".stderr")
+
+            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file branch_and_cut"
+        fi
+    done
+}
+
+check_the_user_didnt_forget_excluded_instances
+check_command_line_options $*
+create_output_dirs
+schedule_jobs $*
