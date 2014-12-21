@@ -3,17 +3,17 @@
   "ports": [
     {
       "id": 0,
-      "draught": 200,
+      "draught": 180,
       "depot": false
     },
     {
       "id": 1,
-      "draught": 161,
+      "draught": 200,
       "depot": false
     },
     {
       "id": 2,
-      "draught": 124,
+      "draught": 138,
       "depot": false
     },
     {
@@ -33,18 +33,18 @@
     },
     {
       "id": 6,
-      "draught": 135,
+      "draught": 200,
       "depot": false
     },
     {
       "id": 7,
-      "draught": 176,
-      "depot": false
+      "draught": 200,
+      "depot": true
     },
     {
       "id": 8,
-      "draught": 200,
-      "depot": true
+      "draught": 162,
+      "depot": false
     },
     {
       "id": 9,
@@ -63,7 +63,7 @@
     },
     {
       "id": 12,
-      "draught": 200,
+      "draught": 169,
       "depot": false
     },
     {
@@ -76,53 +76,53 @@
   "requests": [
     {
       "origin": 2,
-      "destination": 4,
-      "demand": 98
-    },
-    {
-      "origin": 5,
-      "destination": 13,
-      "demand": 42
-    },
-    {
-      "origin": 2,
       "destination": 12,
-      "demand": 96
-    },
-    {
-      "origin": 13,
-      "destination": 6,
-      "demand": 15
-    },
-    {
-      "origin": 0,
-      "destination": 3,
-      "demand": 70
-    },
-    {
-      "origin": 7,
-      "destination": 5,
-      "demand": 17
-    },
-    {
-      "origin": 10,
-      "destination": 3,
-      "demand": 44
-    },
-    {
-      "origin": 1,
-      "destination": 7,
-      "demand": 28
-    },
-    {
-      "origin": 6,
-      "destination": 13,
       "demand": 82
     },
     {
       "origin": 4,
-      "destination": 3,
-      "demand": 50
+      "destination": 2,
+      "demand": 93
+    },
+    {
+      "origin": 12,
+      "destination": 13,
+      "demand": 44
+    },
+    {
+      "origin": 12,
+      "destination": 5,
+      "demand": 72
+    },
+    {
+      "origin": 2,
+      "destination": 0,
+      "demand": 54
+    },
+    {
+      "origin": 3,
+      "destination": 6,
+      "demand": 79
+    },
+    {
+      "origin": 2,
+      "destination": 8,
+      "demand": 72
+    },
+    {
+      "origin": 12,
+      "destination": 10,
+      "demand": 97
+    },
+    {
+      "origin": 10,
+      "destination": 0,
+      "demand": 11
+    },
+    {
+      "origin": 5,
+      "destination": 10,
+      "demand": 26
     }
   ],
   "capacity": 200,

@@ -65,7 +65,7 @@ def generate_instances(input_data)
   depot         = (0..(input_data[:num_ports]-1)).to_a.sample
   normal_ports  = (0..(input_data[:num_ports]-1)).to_a - [depot]
 
-  [10, 15, 20, 25, 30, 35, 40].each do |n|
+  [8, 10, 12, 14, 16, 20, 24].each do |n|
     requests = Array.new
         
     0.upto(n-1) do |request|
