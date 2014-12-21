@@ -6,7 +6,7 @@ stderr_dir="../output/stderr/"
 exec_file="../src/tsppddl"
 params_file="../program_params.json"
 
-excluded_instances=("burma14_10_20_1.0" "burma14_10_10_1.0" "burma14_10_2_1.0" "burma14_10_3_1.0")
+excluded_instances=("")
 
 contains_element () {
     for element in "${@:2}"
@@ -49,7 +49,7 @@ check_command_line_options() {
 }
 
 schedule_jobs() {
-    for file in $(printf "%s%s%s" $data_dir $1 "/*")
+    for file in $(printf "%s%s%s" "$data_dir" "$1" "/*")
     do
         filename=$(basename "$file")
         extension="${filename##*.}"
@@ -61,12 +61,12 @@ schedule_jobs() {
             exit
         fi
 
-        if contains_element "$filename" ${excluded_instances[@]}
+        if contains_element "$filename" "${excluded_instances[@]}"
         then
            	echo "Skipping $filename"
         else
-            stdout_file=$(printf "%s%s%s" $stdout_dir $instance ".stdout")
-            stderr_file=$(printf "%s%s%s" $stderr_dir $instance ".stderr")
+            stdout_file=$(printf "%s%s%s" "$stdout_dir" "$instance" ".stdout")
+            stderr_file=$(printf "%s%s%s" "$stderr_dir" "$instance" ".stderr")
 
             oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file branch_and_cut"
         fi
@@ -74,6 +74,6 @@ schedule_jobs() {
 }
 
 check_the_user_didnt_forget_excluded_instances
-check_command_line_options $*
+check_command_line_options "$*"
 create_output_dirs
-schedule_jobs $*
+schedule_jobs "$*"
