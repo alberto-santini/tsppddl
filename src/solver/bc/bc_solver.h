@@ -19,6 +19,7 @@ class bc_solver {
     program_data&                   data;
     std::vector<path>               initial_solutions;
     std::string                     instance_name;
+    std::string                     results_subdir;
     
     // x and y of initial_solutions
     std::vector<values_matrix>      initial_x_val;

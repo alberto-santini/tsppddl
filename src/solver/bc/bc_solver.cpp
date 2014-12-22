@@ -33,11 +33,18 @@ bc_solver::bc_solver(tsp_graph& g, const program_params& params, program_data& d
     boost::split(path_parts, instance_path, boost::is_any_of("/"));
     auto file_parts = std::vector<std::string>();
     boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
+    
     if(file_parts.size() > 1) {
         file_parts.pop_back();
     }
     
     instance_name = boost::algorithm::join(file_parts, ".");
+        
+    if(path_parts.size() > 1) {
+        results_subdir = path_parts.at(path_parts.size() - 2);
+    } else {
+        results_subdir = "k-opt";
+    }
 }
 
 void bc_solver::add_initial_solution_vals() {
@@ -308,7 +315,7 @@ path bc_solver::solve(bool k_opt) {
         auto best_heur_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
         
         std::ofstream results_file;
-        results_file.open(params.bc.results_dir + "results.txt", std::ios::out | std::ios::app);
+        results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
         
         results_file << instance_name << "\t";
         
