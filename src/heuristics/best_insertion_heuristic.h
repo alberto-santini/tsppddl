@@ -4,6 +4,8 @@
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 
+#include <boost/optional.hpp>
+
 #include <limits>
 
 template<class IC>
@@ -12,7 +14,7 @@ class best_insertion_heuristic : public heuristic {
     
 public:
     best_insertion_heuristic(const tsp_graph& g, const IC& ic);
-    path solve();
+    boost::optional<path> solve();
 };
 
 #include <heuristics/best_insertion_heuristic.tpp>

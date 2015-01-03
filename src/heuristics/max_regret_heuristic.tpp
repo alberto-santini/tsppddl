@@ -1,5 +1,5 @@
 template<class IC, class RG>
-path max_regret_heuristic<IC, RG>::solve() {
+boost::optional<path> max_regret_heuristic<IC, RG>::solve() {
     auto rs = this->remaining_requests.size();
     
     while(rs > 0) {
@@ -57,7 +57,7 @@ path max_regret_heuristic<IC, RG>::solve() {
             this->p = new_possible_paths[best_regret_id];
             this->remaining_requests.erase(this->remaining_requests.begin() + best_regret_id);
         } else {
-            throw std::runtime_error("Can't insert any request! (max regret)");
+            return boost::none;
         }
         
         rs = this->remaining_requests.size();

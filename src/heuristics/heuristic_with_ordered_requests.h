@@ -4,6 +4,8 @@
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 
+#include <boost/optional.hpp>
+
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -15,7 +17,7 @@ class heuristic_with_ordered_requests : public heuristic {
 
 public:
     heuristic_with_ordered_requests(const tsp_graph& g, const RC& rc, const IC& ic);
-    path solve();
+    boost::optional<path> solve();
 };
 
 #include <heuristics/heuristic_with_ordered_requests.tpp>

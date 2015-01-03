@@ -5,13 +5,13 @@ heuristic_with_ordered_requests<RC, IC>::heuristic_with_ordered_requests(const t
 }
 
 template<class RC, class IC>
-path heuristic_with_ordered_requests<RC, IC>::solve() {
+boost::optional<path> heuristic_with_ordered_requests<RC, IC>::solve() {
     while(this->remaining_requests.size() > 0) {
         auto req = remaining_requests.back();
         if(insert(req)) {
             this->remaining_requests.pop_back();
         } else {
-            throw std::runtime_error("Can't insert the request anywhere!");
+            return boost::none;
         }
     }
     

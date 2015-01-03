@@ -4,6 +4,8 @@
 #include <heuristics/heuristic.h>
 #include <heuristics/heuristic_helper.h>
 
+#include <boost/optional.hpp>
+
 #include <limits>
 #include <stdexcept>
 
@@ -14,7 +16,7 @@ class max_regret_heuristic : public heuristic {
     
 public:
     max_regret_heuristic(const tsp_graph& g, const IC& ic, const RG& rg) : heuristic{g}, insertion_comparator(ic), regret_calculator(rg) {}
-    path solve();
+    boost::optional<path> solve();
 };
 
 #include <heuristics/max_regret_heuristic.tpp>

@@ -2,7 +2,7 @@ template<class IC>
 best_insertion_heuristic<IC>::best_insertion_heuristic(const tsp_graph& g, const IC& ic) : heuristic{g}, insertion_comparator(ic) {}
 
 template<class IC>
-path best_insertion_heuristic<IC>::solve() {
+boost::optional<path> best_insertion_heuristic<IC>::solve() {
     while(this->remaining_requests.size() > 0) {
         auto best_cost = std::numeric_limits<int>::max();
         auto best_load = 0;
@@ -29,7 +29,7 @@ path best_insertion_heuristic<IC>::solve() {
             this->p = new_path;
             this->remaining_requests.erase(std::remove(this->remaining_requests.begin(), this->remaining_requests.end(), best_request), this->remaining_requests.end());
         } else {
-            throw std::runtime_error("Can't insert any request! (best insertion)");
+            return boost::none;
         }
     }
 

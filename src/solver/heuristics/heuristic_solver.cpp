@@ -44,64 +44,81 @@ std::vector<path> heuristic_solver::solve() const {
         return (this->g.cost[r1][r1 + this->g.g[graph_bundle].n] > this->g.cost[r2][r2 + this->g.g[graph_bundle].n]);
     };
     
-    auto p = path();
     std::cout << "Heuristic solutions:         \t";
     
     //  CONSTRUCTIVE HEURISTICS
     
     auto h1 = max_regret_heuristic<decltype(ic1), decltype(rg1)>(g, ic1, rg1);
     auto t_start = high_resolution_clock::now();
-    p = h1.solve();
+    auto p1 = h1.solve();
     auto t_end = high_resolution_clock::now();
     auto time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p1) {
+        std::cout << (*p1).total_cost << "\t";
+        paths.push_back(*p1);
+    }
 
     auto h2 = max_regret_heuristic<decltype(ic2), decltype(rg2)>(g, ic2, rg2);
     t_start = high_resolution_clock::now();
-    p = h2.solve();
+    auto p2 = h2.solve();
     t_end = high_resolution_clock::now();
     time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p2) {
+        std::cout << (*p2).total_cost << "\t";
+        paths.push_back(*p2);
+    }
     
     auto h3 = heuristic_with_ordered_requests<decltype(rc1), decltype(ic3)>(g, rc1, ic3);
     t_start = high_resolution_clock::now();
-    p = h3.solve();
+    auto p3 = h3.solve();
     t_end = high_resolution_clock::now();
     time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p3) {
+        std::cout << (*p3).total_cost << "\t";
+        paths.push_back(*p3);
+    }
     
     auto h4 = heuristic_with_ordered_requests<decltype(rc2), decltype(ic3)>(g, rc2, ic3);
     t_start = high_resolution_clock::now();
-    p = h4.solve();
+    auto p4 = h4.solve();
     t_end = high_resolution_clock::now();
     time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p4) {
+        std::cout << (*p4).total_cost << "\t";
+        paths.push_back(*p4);
+    }
     
     auto h5 = best_insertion_heuristic<decltype(ic1)>(g, ic1);
     t_start = high_resolution_clock::now();
-    p = h5.solve();
+    auto p5 = h5.solve();
     t_end = high_resolution_clock::now();
     time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p5) {
+        std::cout << (*p5).total_cost << "\t";
+        paths.push_back(*p5);
+    }
     
     auto h6 = best_insertion_heuristic<decltype(ic2)>(g, ic2);
     t_start = high_resolution_clock::now();
-    p = h6.solve();
+    auto p6 = h6.solve();
     t_end = high_resolution_clock::now();
     time_span = duration_cast<duration<double>>(t_end - t_start);
     data.time_spent_by_constructive_heuristics += time_span.count();
-    std::cout << p.total_cost << "\t";
-    if(p.total_cost > 0) { paths.push_back(p); }
+    
+    if(p6) {
+        std::cout << (*p6).total_cost << "\t";
+        paths.push_back(*p6);
+    }
     
     std::cout << std::endl;
     
