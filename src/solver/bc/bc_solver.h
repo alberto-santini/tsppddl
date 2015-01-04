@@ -10,6 +10,10 @@
 #include <string>
 #include <vector>
 
+#include <errno.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 using values_matrix = std::vector<std::vector<int>>;
 
 
@@ -29,6 +33,7 @@ class bc_solver {
     std::vector<std::vector<int>>   k_opt_lhs;
     int                             k_opt_rhs;
 
+    void create_results_dir(mode_t mode, const std::string& dir);
     void add_initial_solution_vals();
     path solve(bool k_opt);
     

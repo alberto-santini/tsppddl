@@ -25,7 +25,8 @@ bc_solver::bc_solver(tsp_graph& g, const program_params& params, program_data& d
     
     // PORTABLE WAY:
     // boost::filesystem::path i_path(instance_path);
-    // std::stringstream ss; ss << i_path.stem();
+    // std::stringstream ss;
+    // ss << i_path.stem();
     // instance_name = ss.str();
     
     // NOT-PORTABLE WAY:
@@ -42,6 +43,7 @@ bc_solver::bc_solver(tsp_graph& g, const program_params& params, program_data& d
         
     if(path_parts.size() > 1) {
         results_subdir = path_parts.at(path_parts.size() - 2);
+        create_results_dir(0750, params.bc.results_dir + results_subdir);
     } else {
         results_subdir = "k-opt";
     }
@@ -361,4 +363,35 @@ path bc_solver::solve(bool k_opt) {
     env.end();
         
     return opt_solution_path;
+}
+
+// NON-PORTABLE
+void bc_solver::create_results_dir(mode_t mode, const std::string& dir) {
+    struct stat st;
+    auto iter = dir.begin();
+
+    while(iter != dir.end()) {
+        auto new_iter = std::find(iter, dir.end(), '/');
+        auto new_dir = "./" + std::string(dir.begin(), new_iter);
+
+        if(stat(new_dir.c_str(), &st) != 0) {            
+            if(mkdir(new_dir.c_str(), mode) != 0 && errno != EEXIST) {
+                std::cerr << "Cannot create folder " << new_dir << ": " << strerror(errno) << std::endl;
+                throw std::runtime_error("Cannot create results folder");
+            }
+        } else {
+            if(!S_ISDIR(st.st_mode)) {
+                errno = ENOTDIR;
+                std::cerr << "Path " << new_dir << " is not a directory" << std::endl;
+                throw std::runtime_error("Cannot create results folder");
+            } else {
+                std::cerr << "Path " << new_dir << " already exists" << std::endl;
+            }
+        }
+
+        iter = new_iter;
+        if(new_iter != dir.end()) {
+            ++iter;
+        }
+    }
 }
