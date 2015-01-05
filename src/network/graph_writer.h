@@ -13,6 +13,8 @@ class graph_writer {
     const std::vector<std::vector<double>> x;
     const std::vector<std::vector<double>> y;
     
+    static constexpr double eps = 0.0001;
+    
 public:
     struct vertex_label_writer {
         const tsp_graph& g;

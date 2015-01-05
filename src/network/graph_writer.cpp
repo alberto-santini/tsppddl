@@ -8,7 +8,7 @@ void graph_writer::write(const std::string& where) const {
     std::ofstream gv_file;
     gv_file.open(where + ".dot", std::ios::out);
     
-    write_graphviz(gv_file, g.g, vertex_label_writer(g), edge_label_writer(g, x, y, 0.00001), graph_property_writer(), vertex_index_map(g));
+    write_graphviz(gv_file, g.g, vertex_label_writer(g), edge_label_writer(g, x, y, eps), graph_property_writer(), vertex_index_map(g));
 }
 
 template<class Vertex>

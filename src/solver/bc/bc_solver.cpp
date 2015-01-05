@@ -205,12 +205,12 @@ path bc_solver::solve(bool k_opt) {
 
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_tsp_graph();
-    cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), data));
-    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, cplex.getParam(IloCplex::EpRHS), params, data));
+    cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, eps, data));
+    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, eps, params, data));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
-        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g));
+        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g, eps));
     }
 
     // Export model to file
@@ -297,7 +297,7 @@ path bc_solver::solve(bool k_opt) {
     for(auto i = 0; i <= 2 * n + 1; i++) {
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(g.cost[i][j] >= 0) {
-                if(x[col_index] > 0.0001) {
+                if(x[col_index] > eps) {
                     solution_x[i][j] = 1;
                     if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }

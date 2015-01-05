@@ -26,7 +26,7 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
             throw std::runtime_error("K-opt heuristic produced a path with a cycle!");
         }
         for(auto j = 0; j <= 2 * n + 1; j++) {
-            if(std::abs(x[current_node][j] - 1) < 0.0001) {
+            if(std::abs(x[current_node][j] - 1) < eps) {
                 path_v.push_back(j);
                 current_load += g.demand[j];
                 load_v.push_back(current_load);
