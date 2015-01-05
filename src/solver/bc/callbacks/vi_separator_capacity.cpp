@@ -16,6 +16,10 @@ std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
     
+    // RHS in capacity cuts is usually much larger than in other cuts, so we use a bigger EPS
+    // TODO: use something that looks like relative error, not absolute error
+    auto capacity_eps = 100 * eps;
+    
     for(auto i = 1; i <= n; i++) {
         for(auto j = n+1; j <= 2*n; j++) {
             S = {i};
@@ -67,9 +71,9 @@ std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
                 auto lhs = calculate_lhs();
                 auto rhs = calculate_rhs();
                         
-                if(lhs >= rhs + eps) {
+                if(lhs >= rhs + capacity_eps) {
                     if(DEBUG) {
-                        std::cerr << "Violated capacity cut: " << lhs << " >= " << rhs << " + " << eps << std::endl;
+                        std::cerr << "Violated capacity cut: " << lhs << " >= " << capacity_rhs << " + " << eps << std::endl;
                     }
                     cuts.push_back(add_cut(rhs));
                 }
