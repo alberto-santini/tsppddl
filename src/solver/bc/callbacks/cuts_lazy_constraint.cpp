@@ -14,7 +14,7 @@ void cuts_lazy_constraint::main() {
     
     auto sol = compute_x_values();
     auto start_time = high_resolution_clock::now();    
-    auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol, x, eps);
+    auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol, x);
     auto end_time = high_resolution_clock::now();
     auto time_span = duration_cast<duration<double>>(end_time - start_time);
     data.time_spent_separating_fork_vi += time_span.count();
@@ -35,8 +35,8 @@ ch::solution cuts_lazy_constraint::compute_x_values() const {
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(g.cost[i][j] >= 0) {
                 auto n = getValue(x[col_index++]);
-                if(n > eps) {
-                    if(n < 1 - eps) {
+                if(n > 0 + ch::eps(1)) {
+                    if(n < 1 - ch::eps(1)) {
                         is_integer = false;
                     }
                     xvals[i][j] = n;

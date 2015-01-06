@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {
+vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x) : g{g}, sol{sol}, env{env}, x{x} {
     auto n = g.g[graph_bundle].n;
     
     S = std::vector<int>();
@@ -15,10 +15,6 @@ vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solut
 std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
-    
-    // RHS in capacity cuts is usually much larger than in other cuts, so we use a bigger EPS
-    // TODO: use something that looks like relative error, not absolute error
-    auto capacity_eps = 100 * eps;
     
     for(auto i = 1; i <= n; i++) {
         for(auto j = n+1; j <= 2*n; j++) {
@@ -71,9 +67,9 @@ std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
                 auto lhs = calculate_lhs();
                 auto rhs = calculate_rhs();
                         
-                if(lhs >= rhs + capacity_eps) {
+                if(lhs >= rhs + ch::eps(rhs)) {
                     if(DEBUG) {
-                        std::cerr << "Violated capacity cut: " << lhs << " >= " << rhs << " + " << capacity_eps << std::endl;
+                        std::cerr << "Violated capacity cut: " << lhs << " >= " << rhs << " + " << ch::eps(rhs) << std::endl;
                     }
                     cuts.push_back(add_cut(rhs));
                 }
@@ -191,7 +187,7 @@ boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_pi
             flow += sol.x[t][i] + sol.x[i][t];
         }
         
-        if(flow > best_f + eps) {
+        if(flow > best_f + ch::eps(best_f)) {
             best_f = flow;
             best_n = i;
         }
@@ -224,7 +220,7 @@ boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_de
             flow += sol.x[t][i] + sol.x[i][t];
         }
         
-        if(flow > best_f + eps) {
+        if(flow > best_f + ch::eps(best_f)) {
             best_f = flow;
             best_n = i;
         }
@@ -253,7 +249,7 @@ boost::optional<vi_separator_capacity::best_node> vi_separator_capacity::best_pi
             flow += sol.x[s][i] + sol.x[i][s];
         }
                 
-        if(flow > best_f + eps) {
+        if(flow > best_f + ch::eps(best_f)) {
             best_f = flow;
             best_n = i;
         }

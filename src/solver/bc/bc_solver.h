@@ -33,7 +33,7 @@ class bc_solver {
     std::vector<std::vector<int>>   k_opt_lhs;
     int                             k_opt_rhs;
 
-    static constexpr double eps = 0.0000001;
+    static constexpr double eps = 0.00001;
 
     void create_results_dir(mode_t mode, const std::string& dir);
     void add_initial_solution_vals();

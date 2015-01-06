@@ -52,7 +52,7 @@ std::vector<IloRange> vi_separator_generalised_order::separate_valid_cuts() cons
             }
         }
         
-        if(j1 != -1 && k1 != -1 && best_val_1 > 2 + eps) {
+        if(j1 != -1 && k1 != -1 && best_val_1 > 2 + ch::eps(2)) {
             IloExpr lhs(env);
             IloNum rhs = 2;
             
@@ -95,7 +95,7 @@ std::vector<IloRange> vi_separator_generalised_order::separate_valid_cuts() cons
             cuts.push_back(cut);
         }
         
-        if(j2 != -1 && k2 != -1 && best_val_2 > 2 + eps) {
+        if(j2 != -1 && k2 != -1 && best_val_2 > 2 + ch::eps(2)) {
             IloExpr lhs(env);
             IloNum rhs = 2;
             

@@ -18,7 +18,6 @@ class vi_separator_subtour_elimination {
     const ch::solution&     sol;
     IloEnv                  env;
     IloNumVarArray          x;
-    double                  eps;
     
     using bvec = boost::container::vector<bool>;
     using ivec = std::vector<int>;
@@ -79,7 +78,7 @@ class vi_separator_subtour_elimination {
     void actually_add_groetschel_sigma_cut(std::vector<IloRange>& cuts, const std::vector<int>& my_S, const sets_info& sigma);
     
 public:
-    vi_separator_subtour_elimination(const tsp_graph& g, const program_params& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps);
+    vi_separator_subtour_elimination(const tsp_graph& g, const program_params& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x);
     std::vector<IloRange> separate_valid_cuts();
 };
 

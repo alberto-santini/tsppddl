@@ -50,7 +50,7 @@ boost::optional<IloRange> vi_separator_fork::generate_cut(const std::vector<int>
     auto lhs = calculate_lhs(path, S, T);
     auto rhs = path.size();
     
-    if(lhs.value > rhs + eps) {
+    if(lhs.value > rhs + ch::eps(rhs)) {
         IloExpr cplex_lhs(env);
         IloNum cplex_rhs = rhs;
         

@@ -16,7 +16,6 @@ class vi_separator_fork {
     const ch::solution& sol;
     IloEnv              env;
     IloNumVarArray      x;
-    double              eps;
     
     struct lhs_info {
         double                              value;
@@ -33,7 +32,7 @@ class vi_separator_fork {
     bool is_infeasible(const std::vector<int>& path);
     
 public:
-    vi_separator_fork(tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {}
+    vi_separator_fork(tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x) : g{g}, sol{sol}, env{env}, x{x} {}
     std::vector<IloRange> separate_valid_cuts();
 };
 

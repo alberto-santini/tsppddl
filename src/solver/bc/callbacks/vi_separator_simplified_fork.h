@@ -14,7 +14,6 @@ class vi_separator_simplified_fork {
     const ch::solution& sol;
     IloEnv              env;
     IloNumVarArray      x;
-    double              eps;
     
     struct CutDefiningSets {
         std::vector<int> S;
@@ -27,7 +26,7 @@ class vi_separator_simplified_fork {
     CutDefiningSets scan_for_outfork(int i, int j) const;
     
 public:
-    vi_separator_simplified_fork(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x, double eps) : g{g}, sol{sol}, env{env}, x{x}, eps{eps} {}
+    vi_separator_simplified_fork(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x) : g{g}, sol{sol}, env{env}, x{x} {}
     std::vector<IloRange> separate_valid_cuts() const;
 };
 

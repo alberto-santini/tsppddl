@@ -22,21 +22,20 @@ class cuts_callback : public IloCplex::UserCutCallbackI {
     IloNumVarArray          x;
     tsp_graph&              g;
     const tsp_graph&        gr;
-    double                  eps;
     const program_params&   params;
     program_data&           data;
     
     ch::solution compute_x_values() const;
     
 public:
-    cuts_callback(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, double eps, const program_params& params, program_data& data) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, eps{eps}, params{params}, data{data} {}
+    cuts_callback(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, const program_params& params, program_data& data) : IloCplex::UserCutCallbackI{env}, env{env}, x{x}, g{g}, gr{gr}, params{params}, data{data} {}
     
     IloCplex::CallbackI* duplicateCallback() const;
     void main();
 };
 
-inline IloCplex::Callback cuts_callback_handle(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, double eps, const program_params& params, program_data& data) {
-    return (IloCplex::Callback(new(env) cuts_callback(env, x, g, gr, eps, params, data)));
+inline IloCplex::Callback cuts_callback_handle(const IloEnv& env, const IloNumVarArray& x, tsp_graph& g, const tsp_graph& gr, const program_params& params, program_data& data) {
+    return (IloCplex::Callback(new(env) cuts_callback(env, x, g, gr, params, data)));
 }
 
 #endif

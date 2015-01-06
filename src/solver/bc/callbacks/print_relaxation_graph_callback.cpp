@@ -25,10 +25,10 @@ void print_relaxation_graph_callback::main() {
                     auto xv = getValue(x[col_index]);
                     auto yv = getValue(y[col_index]);
                     
-                    if(xv > eps) {
+                    if(xv > 0 + ch::eps(1)) {
                         solution_x[i][j] = xv;
                     }
-                    if(yv > eps) {
+                    if(yv > 0 + ch::eps(1)) {
                         solution_y[i][j] = yv;
                     }
                     

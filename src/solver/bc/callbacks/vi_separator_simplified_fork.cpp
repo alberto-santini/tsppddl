@@ -6,7 +6,7 @@ std::vector<IloRange> vi_separator_simplified_fork::separate_valid_cuts() const 
     
     for(auto i = 1; i <= 2*n; i++) {
         for(auto j = 1; j <= 2*n; j++) {
-            if(sol.x[i][j] > eps) {
+            if(sol.x[i][j] > 0 + ch::eps(1)) {
                 auto inf_sets = scan_for_infork(i,j);
                 auto outf_sets = scan_for_outfork(i,j);
                 
@@ -26,8 +26,8 @@ std::vector<IloRange> vi_separator_simplified_fork::separate_valid_cuts() const 
                     lhs_val_outf += sol.x[j][k];
                 }
                 
-                auto inf_violated = (lhs_val_inf > 1 + eps);
-                auto outf_violated = (lhs_val_outf > 1 + eps);
+                auto inf_violated = (lhs_val_inf > 1 + ch::eps(1));
+                auto outf_violated = (lhs_val_outf > 1 + ch::eps(1));
                                 
                 IloExpr lhs_inf(env);
                 IloExpr lhs_outf(env);

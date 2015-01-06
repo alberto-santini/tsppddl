@@ -205,12 +205,12 @@ path bc_solver::solve(bool k_opt) {
 
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_tsp_graph();
-    cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, eps, data));
-    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, eps, params, data));
+    cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, data));
+    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, params, data));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
-        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g, eps));
+        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g));
     }
 
     // Export model to file

@@ -3,7 +3,7 @@
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/property_map/property_map.hpp>
 
-std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(const tsp_graph& g, const tsp_graph& gr, const ch::solution& sol, const IloNumVarArray& x, double eps) {
+std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(const tsp_graph& g, const tsp_graph& gr, const ch::solution& sol, const IloNumVarArray& x) {
     auto n = g.g[graph_bundle].n;
     tsp_graph::vi_t vi, vi_end;
     tsp_graph::ei_t ei, ei_end;
@@ -70,7 +70,7 @@ std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(cons
             ); 
         }
     
-        if(flow_prec < 1 - eps) {
+        if(flow_prec < 1 - ch::eps(1)) {
             auto source_nodes = std::vector<int>(), sink_nodes = std::vector<int>();
             
             for(auto j = 0u; j < colour_prec.size(); j++) {
@@ -108,7 +108,7 @@ std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(cons
             cuts.push_back(cut);
         }
         
-        if(!skip_cycle && flow_cycles < 1 - eps) {
+        if(!skip_cycle && flow_cycles < 1 - ch::eps(1)) {
             auto source_nodes = std::vector<int>(), sink_nodes = std::vector<int>();
                         
             for(auto j = 0u; j < colour_cycles.size(); j++) {

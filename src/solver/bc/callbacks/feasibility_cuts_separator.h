@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace feasibility_cuts_separator {
-    std::vector<IloRange> separate_feasibility_cuts(const tsp_graph& g, const tsp_graph& gr, const ch::solution& sol, const IloNumVarArray& x, double eps);
+    std::vector<IloRange> separate_feasibility_cuts(const tsp_graph& g, const tsp_graph& gr, const ch::solution& sol, const IloNumVarArray& x);
 }
 
 #endif
