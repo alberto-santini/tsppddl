@@ -205,8 +205,9 @@ path bc_solver::solve(bool k_opt) {
 
     // Add callbacks to separate cuts
     auto gr_with_reverse = g.make_reverse_tsp_graph();
+    auto last_solution = IloNumArray(env);
     cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, data));
-    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, params, data));
+    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, params, data, last_solution));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
@@ -282,8 +283,7 @@ path bc_solver::solve(bool k_opt) {
     
     IloNumArray x(env);
     IloNumArray y(env);
-    IloNumArray t(env);
-
+    
     cplex.getValues(x, variables_x);
     cplex.getValues(y, variables_y);
 
