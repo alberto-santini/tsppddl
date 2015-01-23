@@ -20,6 +20,7 @@ Makefile
 *.dot*
 *.png
 *.txt
+.idea
 
 # Log files
 subgradient_results/*
