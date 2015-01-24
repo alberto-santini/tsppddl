@@ -127,9 +127,9 @@ std::vector<path> heuristic_solver::solve() const {
     auto appropriate_k_for_instance_size = 0u;
 
     for(const auto& limit_pair : params.ko.instance_size_limits) {
-        if((unsigned int) g.g[graph_bundle].n <= limit_pair.n && limit_pair.k > appropriate_k_for_instance_size) {
-            appropriate_k_for_instance_size = limit_pair.k;
-        }
+         if((unsigned int) g.g[graph_bundle].n <= limit_pair.n && limit_pair.k > appropriate_k_for_instance_size) {
+             appropriate_k_for_instance_size = limit_pair.k;
+         }
     }
 
     auto h7 = k_opt_heuristic(g, params, data, appropriate_k_for_instance_size, paths);
@@ -137,11 +137,11 @@ std::vector<path> heuristic_solver::solve() const {
 
     std::cout << "Heuristic solutions (k = " << appropriate_k_for_instance_size << "): \t";
     for(const auto& path : k_opt_paths) {
-        std::cout << path.total_cost << "\t";
+         std::cout << path.total_cost << "\t";
     }
     std::cout << std::endl;
-    
+
     paths.insert(paths.end(), k_opt_paths.begin(), k_opt_paths.end());
     
-    return k_opt_paths;
+    return paths;
 }

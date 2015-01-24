@@ -3,6 +3,7 @@
 
 #include <network/tsp_graph.h>
 
+#include <iostream>
 #include <vector>
 
 struct path {
@@ -17,6 +18,8 @@ struct path {
     path(const tsp_graph& g, const std::vector<std::vector<int>>& x);
         
     void verify_feasible(const tsp_graph& g) const;
+    std::vector<std::vector<int>> get_x_values(int n) const;
+    void print(std::ostream& where) const;
 };
 
 #endif

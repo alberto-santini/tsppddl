@@ -16,7 +16,6 @@
 
 using values_matrix = std::vector<std::vector<int>>;
 
-
 class bc_solver {
     tsp_graph&                      g;
     const program_params&           params;

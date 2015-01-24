@@ -1,6 +1,6 @@
 #include <network/path.h>
 
-#include <iostream>
+#include <algorithm>
 #include <stdexcept>
 
 path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
@@ -58,6 +58,16 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
     }
 }
 
+std::vector<std::vector<int>> path::get_x_values(int n) const {
+    auto x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+    
+    for(auto i = 0u; i < path_v.size() - 1; i++) {
+        x[path_v[i]][path_v[i+1]] = 1;
+    }
+    
+    return x;
+}
+
 void path::verify_feasible(const tsp_graph& g) const {
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
@@ -66,10 +76,10 @@ void path::verify_feasible(const tsp_graph& g) const {
     auto visited_sources = std::vector<int>();
     
     if(path_v.size() != (size_t)(2 * n + 2)) {
-        std::cout << "Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
-        std::cout << "Path: ";
-        for(auto i = 0u; i < path_v.size(); i++) { std::cout << path_v.at(i) << " "; }
-        std::cout << std::endl;
+        // std::cout << "Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
+        // std::cout << "Path: ";
+        // for(auto i = 0u; i < path_v.size(); i++) { std::cout << path_v.at(i) << " "; }
+        // std::cout << std::endl;
         throw std::runtime_error("Path length is != 2 * n + 2");
     }
     
@@ -78,7 +88,7 @@ void path::verify_feasible(const tsp_graph& g) const {
         visited_nodes++;
         
         if(current_node == 2 * n + 1 && visited_nodes < 2 * n + 2) {
-            std::cout << "Reached 2n+1 after just " << visited_nodes << " nodes" << std::endl;
+            // std::cout << "Reached 2n+1 after just " << visited_nodes << " nodes" << std::endl;
             throw std::runtime_error("Reached 2n+1 after too few nodes!");
         }
         
@@ -94,21 +104,25 @@ void path::verify_feasible(const tsp_graph& g) const {
                 }
             }
             if(!source_visited) {
-                std::cout << "Visited " << current_node << " before " << current_node - n << std::endl;
+                // std::cout << "Visited " << current_node << " before " << current_node - n << std::endl;
                 throw std::runtime_error("Visited a destination before its source!");
             }
         }
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            std::cout << "Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            // std::cout << "Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
             throw std::runtime_error("Wrong load!");
         }
         
         current_load += g.demand.at(current_node);
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            std::cout << "Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            // std::cout << "Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
             throw std::runtime_error("Wrong load!");
         }
     }
+}
+
+void path::print(std::ostream& where) const {
+    std::copy(path_v.begin(), path_v.end(), std::ostream_iterator<int>(where, " "));
 }

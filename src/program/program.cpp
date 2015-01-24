@@ -2,6 +2,7 @@
 #include <program/program.h>
 #include <solver/heuristics/heuristic_solver.h>
 #include <solver/bc/bc_solver.h>
+#include <solver/metaheuristics/tabu/tabu_solver.h>
 #include <solver/subgradient/subgradient_solver.h>
 
 #include <fstream>
@@ -30,6 +31,12 @@ program::program(const std::vector<std::string>& args) {
         
         auto ssolv = subgradient_solver(g, params, heuristic_solutions, args[0]);
         ssolv.solve();
+    } else if(args[2] == "tabu") {
+        auto hsolv = heuristic_solver(g, params, data);
+        auto heuristic_solutions = hsolv.solve();
+        
+        auto tsolv = tabu_solver(g, params, data, heuristic_solutions, args[0]);
+        tsolv.solve();
     } else {
         print_usage();
     }

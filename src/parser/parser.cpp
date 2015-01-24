@@ -144,6 +144,13 @@ program_params  parser::read_program_params() const {
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.enabled")
             )
         ),
+        tabu_search_params(
+            pt.get<unsigned int>("tabu_search.tabu_list_size"),
+            pt.get<unsigned int>("tabu_search.max_iter"),
+            pt.get<unsigned int>("tabu_search.max_iter_without_improving"),
+            pt.get<unsigned int>("tabu_search.max_parallel_searches"),
+            pt.get<std::string>("tabu_search.results_dir")
+        ),
         pt.get<unsigned int>("cplex_threads"),
         pt.get<unsigned int>("cplex_timeout")
     );
