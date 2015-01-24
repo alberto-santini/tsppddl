@@ -17,6 +17,7 @@ find_path(CPLEX_INCLUDE_DIR
         ENV C_PLUS_INCLUDE_PATH
         ENV INCLUDE_PATH
 )
+message(STATUS "CPLEX Include: ${CPLEX_INCLUDE_DIR}")
 
 find_path(CPLEX_CONCERT_INCLUDE_DIR
   ilconcert/iloenv.h
@@ -26,12 +27,11 @@ find_path(CPLEX_CONCERT_INCLUDE_DIR
         ENV C_PLUS_INCLUDE_PATH
         ENV INCLUDE_PATH
 )
+message(STATUS "Concert Inlude: ${CPLEX_CONCERT_INCLUDE_DIR}")
 
 find_library(CPLEX_LIBRARY
   NAMES cplex${CPLEX_WIN_VERSION} cplex
-  HINTS ${CPLEX_ROOT_DIR}/cplex/lib/${CPLEX_WIN_PLATFORM} #windows
-        ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_debian4.0_4.1/static_pic #unix
-        ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_sles10_4.1/static_pic #unix
+  HINTS ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_linux/static_pic #linux
         ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_osx/static_pic #osx
         ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_darwin/static_pic #osx
   PATHS ENV LIBRARY_PATH #unix
@@ -41,9 +41,7 @@ message(STATUS "CPLEX Library: ${CPLEX_LIBRARY}")
 
 find_library(CPLEX_ILOCPLEX_LIBRARY
   ilocplex
-  HINTS ${CPLEX_ROOT_DIR}/cplex/lib/${CPLEX_WIN_PLATFORM} #windows
-        ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_debian4.0_4.1/static_pic #unix
-        ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_sles10_4.1/static_pic #unix
+  HINTS ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_linux/static_pic #linux
         ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_osx/static_pic #osx
         ${CPLEX_ROOT_DIR}/cplex/lib/x86-64_darwin/static_pic #osx
   PATHS ENV LIBRARY_PATH
@@ -53,14 +51,13 @@ message(STATUS "ILOCPLEX Library: ${CPLEX_ILOCPLEX_LIBRARY}")
 
 find_library(CPLEX_CONCERT_LIBRARY
   concert
-  HINTS ${CPLEX_ROOT_DIR}/concert/lib/${CPLEX_WIN_PLATFORM} #windows
-        ${CPLEX_ROOT_DIR}/concert/lib/x86-64_linux/static_pic #linux
+  HINTS ${CPLEX_ROOT_DIR}/concert/lib/x86-64_linux/static_pic #linux
         ${CPLEX_ROOT_DIR}/concert/lib/x86-64_osx/static_pic #osx
         ${CPLEX_ROOT_DIR}/concert/lib/x86-64_darwin/static_pic #osx
   PATHS ENV LIBRARY_PATH
         ENV LD_LIBRARY_PATH
 )
-message(STATUS "CONCERT Library: ${CPLEX_CONCERT_LIBRARY}")
+message(STATUS "Concert Library: ${CPLEX_CONCERT_LIBRARY}")
 
 find_path(CPLEX_BIN_DIR
   cplex
