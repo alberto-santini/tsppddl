@@ -15,7 +15,6 @@
 
 # Support files
 .history
-Makefile
 *.lp
 *.dot*
 *.png
@@ -29,3 +28,10 @@ results/*
 
 # Exsecutable
 src/tsppddl
+
+# Cmake-related
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
