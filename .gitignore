@@ -18,7 +18,8 @@
 *.lp
 *.dot*
 *.png
-*.txt
+results.txt
+graphs_cmd.txt
 .idea
 
 # Log files
