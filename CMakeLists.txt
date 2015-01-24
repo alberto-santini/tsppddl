@@ -6,7 +6,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set(CPLEX_ROOT_DIR "/opt/ibm" CACHE FILEPATH "IBM Cplex install dir")
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    set(CPLEX_ROOT_DIR "/opt/ibm/ILOG/CPLEX_Studio126/" CACHE FILEPATH "IBM Cplex install dir")
+    set(CPLEX_ROOT_DIR "/opt/ibm/ILOG/CPLEX_Studio126" CACHE FILEPATH "IBM Cplex install dir")
 endif()
 
 # BOOST ROOT DIR HINT (Linux only)

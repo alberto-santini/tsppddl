@@ -110,8 +110,7 @@ message(STATUS "ILOCPLEX Library: ${CPLEX_ILOCPLEX_LIBRARY}")
 FIND_LIBRARY(CPLEX_CONCERT_LIBRARY
   concert
   HINTS ${CPLEX_ROOT_DIR}/concert/lib/${CPLEX_WIN_PLATFORM} #windows
-        ${CPLEX_ROOT_DIR}/concert/lib/x86-64_debian4.0_4.1/static_pic #unix
-        ${CPLEX_ROOT_DIR}/concert/lib/x86-64_sles10_4.1/static_pic #unix
+        ${CPLEX_ROOT_DIR}/concert/lib/x86-64_linux/static_pic #linux
         ${CPLEX_ROOT_DIR}/concert/lib/x86-64_osx/static_pic #osx
         ${CPLEX_ROOT_DIR}/concert/lib/x86-64_darwin/static_pic #osx
   PATHS ENV LIBRARY_PATH
@@ -127,8 +126,7 @@ if(WIN32)
 else()
 	FIND_PATH(CPLEX_BIN_DIR
 	  cplex
-          HINTS ${CPLEX_ROOT_DIR}/cplex/bin/x86-64_sles10_4.1 #unix
-                ${CPLEX_ROOT_DIR}/cplex/bin/x86-64_debian4.0_4.1 #unix
+          HINTS ${CPLEX_ROOT_DIR}/cplex/bin/x86-64_linux #linux
                 ${CPLEX_ROOT_DIR}/cplex/bin/x86-64_osx #osx
         	${CPLEX_ROOT_DIR}/cplex/bin/x86-64_darwin #osx
 	  ENV LIBRARY_PATH
