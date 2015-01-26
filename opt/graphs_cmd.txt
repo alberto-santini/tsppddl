@@ -1,0 +1,1 @@
+for f in *.dot ; do sed '/invis/d' $f > $f.2 ; dot -n -Tpng -o $f.png $f.2 ; done

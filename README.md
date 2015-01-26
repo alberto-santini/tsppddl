@@ -11,7 +11,9 @@ It's a problem that stems from maritime applications, where the draught of a shi
 This software includes:
 
 * An exact branch-and-cut algorithm
-* Constructive heuristics, to compute an UB
-* An implementation of the subgradient method with lagrangean relaxation, to compute a LB
+* Constructive heuristics
+* K-opt recombination heuristics
+* Tabu search meta-heuristics (neighbourhood defined by 3-opt moves)
+* An implementation of the subgradient method with lagrangean relaxation
 
-It also contains many test instances derived from the TSPLIB and a script to generate new ones.
+It also contains many test instances derived from the TSPLIB and a script to generate new ones. More info is contained in the other `README.md` files present in the subfolders.

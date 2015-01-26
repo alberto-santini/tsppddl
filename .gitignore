@@ -19,13 +19,7 @@
 *.dot*
 *.png
 results.txt
-graphs_cmd.txt
 .idea
-
-# Log files
-subgradient_results/*
-graphs/*
-results/*
 
 # Exsecutable
 src/tsppddl
