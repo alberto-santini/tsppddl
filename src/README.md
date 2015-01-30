@@ -8,4 +8,4 @@ Here goes the source code.
 * `parser` contains the code that parses both the instances and the program params.
 * `program` contains the code responsible to invoke the appropriate subsystem to be launched and the data that gets carried across various parts of the programme, in order to collect statistics (running times, etc.).
 * `solver` contains the various solvers: branch-and-cut (`bc`), heuristics (`heuristics`), metaheuristics (`metaheuristics`), subgradient method (`subgradient`).
-* `main.cpp` sets the random seed and launches the programme.
+* `main.cpp` launches the programme.
