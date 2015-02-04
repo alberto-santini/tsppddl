@@ -18,7 +18,7 @@
         
         "subtour_elim_valid_ineq": {
             "cut_every_n_nodes":        1,
-            "enabled":                  true,
+            "enabled":                  false,
             "memory":                   true
         },
         "generalised_order_valid_ineq": {
@@ -27,7 +27,7 @@
         },
         "capacity_valid_ineq": {
             "cut_every_n_nodes":        50,
-            "enabled":                  true
+            "enabled":                  false
         },
         "simplified_fork_valid_ineq": {
             "cut_every_n_nodes":        1,
@@ -35,13 +35,12 @@
         },
         "fork_valid_ineq": {
             "cut_every_n_nodes":        50,
-            "enabled":                  true  
+            "enabled":                  false  
         }
     },
     
     "k_opt": {
         "instance_size_limit": [
-            {"k": 2, "n": 50},
             {"k": 3, "n": 40},
             {"k": 4, "n": 30},
             {"k": 5, "n": 20},
@@ -50,9 +49,9 @@
     },
     
     "tabu_search": {
-        "tabu_list_size":               7,
-        "max_iter":                     10000,
-        "max_iter_without_improving":   50,
+        "tabu_list_size":               15,
+        "max_iter":                     50000,
+        "max_iter_without_improving":   500,
         "max_parallel_searches":        4,
         "results_dir":                  "../results/tabu_search/"
     },
