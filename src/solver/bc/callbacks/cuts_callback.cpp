@@ -32,7 +32,7 @@ void cuts_callback::main() {
         auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol_from_cplex.sol, x);
         auto end_time = high_resolution_clock::now();
         auto time_span = duration_cast<duration<double>>(end_time - start_time);
-        data.time_spent_separating_fork_vi += time_span.count();
+        data.time_spent_separating_feasibility_cuts += time_span.count();
 
         if(DEBUG && feas_cuts.size() > 0) {
             std::cerr << "Adding " << feas_cuts.size() << " feasibility cuts" << std::endl;
