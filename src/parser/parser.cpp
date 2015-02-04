@@ -128,6 +128,10 @@ program_params  parser::read_program_params() const {
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.memory")
             ),
             branch_and_cut_params::valid_inequality_info(
+                pt.get<unsigned int>("branch_and_cut.feasibility_cuts.cut_every_n_nodes"),
+                true // Always enabled
+            ),    
+            branch_and_cut_params::valid_inequality_info(
                 pt.get<unsigned int>("branch_and_cut.generalised_order_valid_ineq.cut_every_n_nodes"),
                 pt.get<bool>("branch_and_cut.generalised_order_valid_ineq.enabled")
             ),

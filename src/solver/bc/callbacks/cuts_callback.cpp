@@ -27,7 +27,7 @@ void cuts_callback::main() {
     
     getValues(last_solution, x);
     
-    if(sol_from_cplex.sol.is_integer) {
+    if(sol_from_cplex.sol.is_integer || node_number % params.bc.feasibility_cuts.cut_every_n_nodes == 0) {
         auto start_time = high_resolution_clock::now();
         auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol_from_cplex.sol, x);
         auto end_time = high_resolution_clock::now();
