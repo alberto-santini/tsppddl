@@ -1,12 +1,23 @@
 #!/bin/bash
 
+# Example usage:
+# ./launch_jobs.sh tsppd
+# params_file=../params/go_only.json ./launch_jobs.sh tsppddl
+
 data_dir="../data/new/"
 stdout_dir="../output/stdout/"
 stderr_dir="../output/stderr/"
-exec_file="../src/tsppddl"
-params_file="../program_params.json"
+exec_file="../build/tsppddl"
 
-excluded_instances=("")
+if [[ -z "$params_file" ]]
+then
+    echo "Using default params file"
+    params_file="../params/default.json"
+else
+    echo "Using params file $params_file"
+fi
+
+excluded_instances=()
 
 contains_element () {
     for element in "${@:2}"
@@ -41,7 +52,7 @@ create_output_dirs() {
 }
 
 check_command_line_options() {
-    if [[ -z $1 ]]
+    if [[ -z "$1" ]]
     then
         echo "I need the instances type as a parameter"
         exit
