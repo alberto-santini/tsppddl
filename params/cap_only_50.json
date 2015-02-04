@@ -17,7 +17,7 @@
         "results_dir":                  "../results/branch_and_cut/",
         
         "feasibility_cuts": {
-            "cut_every_n_nodes":        1,
+            "cut_every_n_nodes":        1
         },
         
         "subtour_elim_valid_ineq": {
