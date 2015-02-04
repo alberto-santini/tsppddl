@@ -34,8 +34,8 @@ include_directories("src")
 include_directories(SYSTEM ${CPLEX_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDEDIR})
 
-# BUILD THE EXECUTABLE INSIDE ./src
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
+# BUILD THE EXECUTABLE INSIDE ./build
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
 set(SOURCE_FILES
     src/heuristics/best_insertion_heuristic.h
