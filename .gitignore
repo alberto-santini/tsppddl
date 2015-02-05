@@ -20,6 +20,7 @@
 *.png
 results.txt
 .idea
+tabu_search_progress
 
 # Exsecutable
 src/tsppddl
