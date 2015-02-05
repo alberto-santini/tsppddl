@@ -91,14 +91,14 @@ path tabu_solver::tabu_search(path init_sol) {
     auto best_solution = init_sol;
     auto tabu_list = std::vector<tabu_move>();
     auto consecutive_not_improved = 0u;
-    auto iterations = 0u;
+    auto iteration = 0u;
     auto progress_report = std::map<unsigned int, int>();
     
     if(params.ts.track_progress) {
         progress_report.emplace(0u, init_sol.total_cost);
     }
     
-    while(iterations < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
+    while(iteration < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
         auto kopt3solv = kopt3_solver(g);
         auto tabu_and_non_tabu = kopt3solv.solve(current_solution, tabu_list);
 
@@ -116,6 +116,10 @@ path tabu_solver::tabu_search(path init_sol) {
                 update_tabu_list(tabu_list, overall_best_solution);
                 current_solution = overall_best_solution.p;
                 best_solution = overall_best_solution.p;
+                
+                if(params.ts.track_progress) {
+                    progress_report.emplace(iteration, best_solution.total_cost);
+                }
             } else {
                 consecutive_not_improved++;
                 if(best_without_tabu_solution.empty()) {
@@ -128,7 +132,7 @@ path tabu_solver::tabu_search(path init_sol) {
             }
         }
 
-        iterations++;
+        iteration++;
     }
     
     if(params.ts.track_progress) {
