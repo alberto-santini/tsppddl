@@ -153,7 +153,9 @@ program_params  parser::read_program_params() const {
             pt.get<unsigned int>("tabu_search.max_iter"),
             pt.get<unsigned int>("tabu_search.max_iter_without_improving"),
             pt.get<unsigned int>("tabu_search.max_parallel_searches"),
-            pt.get<std::string>("tabu_search.results_dir")
+            pt.get<std::string>("tabu_search.results_dir"),
+            pt.get<bool>("tabu_search.track_progress"),
+            pt.get<std::string>("tabu_search.progress_results_dir")
         ),
         pt.get<unsigned int>("cplex_threads"),
         pt.get<unsigned int>("cplex_timeout")

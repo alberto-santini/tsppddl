@@ -92,6 +92,11 @@ path tabu_solver::tabu_search(path init_sol) {
     auto tabu_list = std::vector<tabu_move>();
     auto consecutive_not_improved = 0u;
     auto iterations = 0u;
+    auto progress_report = std::map<unsigned int, int>();
+    
+    if(params.ts.track_progress) {
+        progress_report.emplace(0u, init_sol.total_cost);
+    }
     
     while(iterations < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {
         if(DEBUG) {
@@ -132,6 +137,10 @@ path tabu_solver::tabu_search(path init_sol) {
             update_tabu_list(tabu_list, overall_best_solution);
             current_solution = overall_best_solution.p;
             best_solution = current_solution;
+            
+            if(params.ts.track_progress) {
+                progress_report.emplace(iterations, best_solution.total_cost);
+            }
         } else {
             if(DEBUG) {
                 std::cout << "\tOverall best solution does not improve the current best solution (" << overall_best_solution.p.total_cost << " > " << best_solution.total_cost << ")" << std::endl;
@@ -152,6 +161,24 @@ path tabu_solver::tabu_search(path init_sol) {
         }
 
         iterations++;
+    }
+    
+    if(params.ts.track_progress) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(1, 9999);
+        
+        std::stringstream file_name_ss;
+        file_name_ss << params.ts.progress_results_dir << instance_name << "_" << dis(gen) << ".dat";
+        
+        std::ofstream progress_file;
+        progress_file.open(file_name_ss.str(), std::ios::out | std::ios::app);
+        
+        for(const auto& prg : progress_report) {
+            progress_file << prg.first << "\t" << prg.second << std::endl;
+        }
+        
+        progress_file.close();
     }
     
     return best_solution;

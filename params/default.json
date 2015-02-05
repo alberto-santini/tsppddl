@@ -57,7 +57,9 @@
         "max_iter":                     50000,
         "max_iter_without_improving":   500,
         "max_parallel_searches":        4,
-        "results_dir":                  "../results/tabu_search/"
+        "results_dir":                  "../results/tabu_search/",
+        "track_progress":               true,
+        "progress_results_dir":         "../results/tabu_search_progress/"
     },
     
     "cplex_threads":                    1,
