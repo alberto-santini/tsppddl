@@ -33,6 +33,7 @@ public:
         tabu_move shortest_erased_edge;
 
         tabu_result(path p, tabu_move shortest_erased_edge) : p{p}, shortest_erased_edge{shortest_erased_edge} {}
+        inline bool empty() { return p.path_v.empty(); }
     };
 
     struct tabu_and_non_tabu_solutions {
