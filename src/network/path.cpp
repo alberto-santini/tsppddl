@@ -126,3 +126,7 @@ void path::verify_feasible(const tsp_graph& g) const {
 void path::print(std::ostream& where) const {
     std::copy(path_v.begin(), path_v.end(), std::ostream_iterator<int>(where, " "));
 }
+
+bool path::operator==(const path& other) const {
+    return path_v == other.path_v;
+}

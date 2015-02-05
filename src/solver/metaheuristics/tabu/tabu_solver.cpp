@@ -32,7 +32,17 @@ tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_dat
         }
     );
     
-    sliced_initial_solutions = std::vector<path>(initial_solutions.begin(), initial_solutions.begin() + max_parallel_searches);
+    auto last = std::unique(initial_solutions.begin(), initial_solutions.end());
+    auto my_desired_last = initial_solutions.begin() + max_parallel_searches;
+    last = (std::distance(last, my_desired_last) >= 0) ? last : my_desired_last;
+    
+    sliced_initial_solutions = std::vector<path>(initial_solutions.begin(), last);
+    
+    std::cout << "Metaheuristic starts:    \t";
+    for(const auto& s : sliced_initial_solutions) {
+        std::cout << s.total_cost << "\t";
+    }
+    std::cout << std::endl;
 }
 
 std::vector<path> tabu_solver::solve() {
@@ -92,12 +102,12 @@ path tabu_solver::tabu_search(path init_sol) {
     auto tabu_list = std::vector<tabu_move>();
     auto consecutive_not_improved = 0u;
     auto iteration = 0u;
-    auto progress_report = std::map<unsigned int, int>();
+    auto progress_report = std::vector<std::pair<unsigned int, int>>();
     
     if(params.ts.track_progress) {
-        progress_report.emplace(0u, init_sol.total_cost);
+        progress_report.push_back(std::make_pair(0u, init_sol.total_cost));
     }
-    
+        
     while(iteration < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
         auto kopt3solv = kopt3_solver(g);
         auto tabu_and_non_tabu = kopt3solv.solve(current_solution, tabu_list);
@@ -116,9 +126,9 @@ path tabu_solver::tabu_search(path init_sol) {
                 update_tabu_list(tabu_list, overall_best_solution);
                 current_solution = overall_best_solution.p;
                 best_solution = overall_best_solution.p;
-                
+                                
                 if(params.ts.track_progress) {
-                    progress_report.emplace(iteration, best_solution.total_cost);
+                    progress_report.push_back(std::make_pair(iteration, best_solution.total_cost));
                 }
             } else {
                 consecutive_not_improved++;

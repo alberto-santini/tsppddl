@@ -20,6 +20,8 @@ struct path {
     void verify_feasible(const tsp_graph& g) const;
     std::vector<std::vector<int>> get_x_values(int n) const;
     void print(std::ostream& where) const;
+    
+    bool operator==(const path& other) const;
 };
 
 #endif
