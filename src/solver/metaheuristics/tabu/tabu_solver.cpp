@@ -98,66 +98,34 @@ path tabu_solver::tabu_search(path init_sol) {
         progress_report.emplace(0u, init_sol.total_cost);
     }
     
-    while(iterations < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {
-        if(DEBUG) {
-            std::cout << "Iteration " << iterations << " - Iterations without improvement: " << consecutive_not_improved << std::endl;
-        }
-        
+    while(iterations < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
         auto kopt3solv = kopt3_solver(g);
         auto tabu_and_non_tabu = kopt3solv.solve(current_solution, tabu_list);
 
         auto overall_best_solution = tabu_and_non_tabu.overall_best;
         auto best_without_tabu_solution = tabu_and_non_tabu.best_without_tabu;
 
-        if(DEBUG) {
-            std::cout << "Current:  ";
-            current_solution.print(std::cout);
-            std::cout << " (" << current_solution.total_cost << ")" << std::endl;
-            std::cout << "Tabu list: ";
-            for(const auto& move : tabu_list) {
-                std::cout << "(" << move.vertices.first << "," << move.vertices.second << ") ";
-            }
-            std::cout << std::endl;
-
-            std::cout << "Solutions after applying the move" << std::endl;
-            std::cout << "\tOverall:  ";
-            overall_best_solution.p.print(std::cout);
-            std::cout << " (" << overall_best_solution.p.total_cost << ")" << std::endl;
-            std::cout << "\tNon tabu: ";
-            best_without_tabu_solution.p.print(std::cout);
-            std::cout << " (" << best_without_tabu_solution.p.total_cost << ")" << std::endl;
-        }
-
-        if(overall_best_solution.p.total_cost < best_solution.total_cost - eps) {
-            if(DEBUG) {
-                std::cout << "\tOverall best solution improves the current best solution (" << overall_best_solution.p.total_cost << " < " << best_solution.total_cost << ")" << std::endl;
-            }
-
-            consecutive_not_improved = 0u;
-            update_tabu_list(tabu_list, overall_best_solution);
-            current_solution = overall_best_solution.p;
-            best_solution = current_solution;
+        if(overall_best_solution.empty()) {
+            assert(best_without_tabu_solution.empty() && "Could not produce a general move but I have an halal move?!");
             
-            if(params.ts.track_progress) {
-                progress_report.emplace(iterations, best_solution.total_cost);
-            }
+            std::cerr << "Tabu error: 3-opt solver could not produce any valid move!" << std::endl;
+            return path();
         } else {
-            if(DEBUG) {
-                std::cout << "\tOverall best solution does not improve the current best solution (" << overall_best_solution.p.total_cost << " > " << best_solution.total_cost << ")" << std::endl;
-                std::cout << "\tTherefore non-tabu best solution also can't improve the current best solution (" << best_without_tabu_solution.p.total_cost << " > " << best_solution.total_cost << ")" << std::endl;
+            if(overall_best_solution.p.total_cost < best_solution.total_cost - eps) {
+                consecutive_not_improved = 0u;
+                update_tabu_list(tabu_list, overall_best_solution);
+                current_solution = overall_best_solution.p;
+                best_solution = overall_best_solution.p;
+            } else {
+                consecutive_not_improved++;
+                if(best_without_tabu_solution.empty()) {
+                    update_tabu_list(tabu_list, overall_best_solution);
+                    current_solution = overall_best_solution.p;
+                } else {
+                    update_tabu_list(tabu_list, best_without_tabu_solution);
+                    current_solution = best_without_tabu_solution.p;
+                }
             }
-
-            consecutive_not_improved++;
-            update_tabu_list(tabu_list, best_without_tabu_solution);
-            current_solution = best_without_tabu_solution.p;
-        }
-
-        if(DEBUG) {
-            std::cout << "New tabu list: ";
-            for(const auto& move : tabu_list) {
-                std::cout << "(" << move.vertices.first << "," << move.vertices.second << ") ";
-            }
-            std::cout << std::endl;
         }
 
         iterations++;
