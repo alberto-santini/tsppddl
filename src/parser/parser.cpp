@@ -120,6 +120,7 @@ program_params  parser::read_program_params() const {
         branch_and_cut_params(
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
             pt.get<bool>("branch_and_cut.subpath_elim"),
+            pt.get<unsigned int>("branch_and_cut.max_infeas_subpaths"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
             pt.get<std::string>("branch_and_cut.results_dir"),
             branch_and_cut_params::valid_inequality_with_memory_info(

@@ -7,6 +7,7 @@
 struct branch_and_cut_params {
     bool            two_cycles_elim;
     bool            subpath_elim;
+    unsigned int    max_infeas_subpaths;
     bool            print_relaxation_graph;
     std::string     results_dir;
     
@@ -29,8 +30,9 @@ struct branch_and_cut_params {
     valid_inequality_info feasibility_cuts, generalised_order, capacity, simplified_fork, fork;
     
     branch_and_cut_params() {}
-    branch_and_cut_params( bool two_cycles_elim,
+    branch_and_cut_params(  bool two_cycles_elim,
                             bool subpath_elim,
+                            unsigned int max_infeas_subpaths,
                             bool print_relaxation_graph,
                             std::string results_dir,
                             valid_inequality_with_memory_info subtour_elim,
@@ -41,6 +43,7 @@ struct branch_and_cut_params {
                             valid_inequality_info fork) :
                             two_cycles_elim{two_cycles_elim},
                             subpath_elim{subpath_elim},
+                            max_infeas_subpaths{max_infeas_subpaths},
                             print_relaxation_graph{print_relaxation_graph},
                             results_dir{std::move(results_dir)},
                             subtour_elim{std::move(subtour_elim)},

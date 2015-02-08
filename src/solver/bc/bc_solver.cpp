@@ -131,8 +131,17 @@ path bc_solver::solve(bool k_opt) {
     IloRange      k_opt_constraint(env, k_opt_rhs, IloInfinity, "k_opt_constraint");
 
     IloObjective obj = IloMinimize(env);
+    
+    auto t_model_start = high_resolution_clock::now();
 
     #include <solver/bc/bc_setup_model.raw.cpp>
+    
+    auto t_model_end = high_resolution_clock::now();
+    auto model_time_span = duration_cast<duration<double>>(t_model_end - t_model_start);
+    
+    if(DEBUG) {
+        std::cerr << "bc_solver.cpp::solve() \t Model built in " << model_time_span.count() << " seconds" << std::endl;
+    }
     
     model.add(obj);
     model.add(variables_x);
