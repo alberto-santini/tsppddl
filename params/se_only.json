@@ -13,6 +13,7 @@
     "branch_and_cut": {
         "two_cycles_elim":              true,
         "subpath_elim":                 true,
+        "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "results_dir":                  "../results/branch_and_cut/",
         
@@ -39,7 +40,8 @@
         },
         "fork_valid_ineq": {
             "cut_every_n_nodes":        50,
-            "enabled":                  false  
+            "enabled":                  false,
+            "max_infeas_paths":         10000
         }
     },
     
@@ -57,7 +59,9 @@
         "max_iter":                     50000,
         "max_iter_without_improving":   500,
         "max_parallel_searches":        4,
-        "results_dir":                  "../results/tabu_search/"
+        "results_dir":                  "../results/tabu_search/",
+        "track_progress":               true,
+        "progress_results_dir":         "../results/tabu_search_progress/"
     },
     
     "cplex_threads":                    1,
