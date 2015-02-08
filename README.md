@@ -1,6 +1,11 @@
 TSPPDDL
 ============
 
+Notice
+------
+
+This repository has been moved to the [Operational Research Group at the University of Bologna](https://github.com/OR-Bologna/tsppddl).
+
 Intro
 -----
 
