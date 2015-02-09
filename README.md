@@ -17,3 +17,8 @@ This software includes:
 * An implementation of the subgradient method with lagrangean relaxation
 
 It also contains many test instances derived from the TSPLIB and a script to generate new ones. More info is contained in the other `README.md` files present in the subfolders.
+
+License
+-------
+
+This software is distributed under the GNU General Public License v3, as detailed in `LICENSE.txt`.
