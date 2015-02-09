@@ -51,9 +51,10 @@ void program::load(const std::string& params_filename, const std::string& instan
 
 void program::print_usage() {
     std::cout << "Usage: " << std::endl;
-    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient]" << std::endl;
+    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu]" << std::endl;
     std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
     std::cout << "\t\t params: path to the json file with the program params" << std::endl;
     std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut" << std::endl;
     std::cout << "\t\t subgradient: to start solving the problem with lagrangian relaxation and the subgradient method" << std::endl;
+    std::cout << "\t\t tabu: to start solving the problem with the tabu search metaheuristic algorithm" << std::endl;
 }
