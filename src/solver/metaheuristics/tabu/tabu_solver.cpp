@@ -118,7 +118,7 @@ path tabu_solver::tabu_search(path init_sol) {
         if(overall_best_solution.empty()) {
             assert(best_without_tabu_solution.empty() && "Could not produce a general move but I have an halal move?!");
             
-            std::cerr << "Tabu error: 3-opt solver could not produce any valid move!" << std::endl;
+            std::cerr << "tabu_solver.cpp::tabu_search() \t Tabu error: 3-opt solver could not produce any valid move!" << std::endl;
             return path();
         } else {
             if(overall_best_solution.p.total_cost < best_solution.total_cost - eps) {

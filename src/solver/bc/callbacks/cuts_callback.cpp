@@ -35,7 +35,7 @@ void cuts_callback::main() {
         data.time_spent_separating_feasibility_cuts += time_span.count();
 
         if(DEBUG && feas_cuts.size() > 0) {
-            std::cerr << "Adding " << feas_cuts.size() << " feasibility cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << feas_cuts.size() << " feasibility cuts" << std::endl;
         }
 
         for(auto& cut : feas_cuts) {
@@ -53,7 +53,7 @@ void cuts_callback::main() {
         data.time_spent_separating_subtour_elimination_vi += time_span.count();
 
         if(DEBUG && valid_cuts_1.size() > 0) {
-            std::cerr << "Adding " << valid_cuts_1.size() << " subtour elimination cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_1.size() << " subtour elimination cuts" << std::endl;
         }
 
         for(auto& cut : valid_cuts_1) {
@@ -71,7 +71,7 @@ void cuts_callback::main() {
         data.time_spent_separating_generalised_order_vi += time_span.count();
 
         if(DEBUG && valid_cuts_2.size() > 0) {
-            std::cerr << "Adding " << valid_cuts_2.size() << " generalised order cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_2.size() << " generalised order cuts" << std::endl;
         }
 
         for(auto& cut : valid_cuts_2) {
@@ -89,7 +89,7 @@ void cuts_callback::main() {
         data.time_spent_separating_capacity_vi += time_span.count();
     
         if(DEBUG && valid_cuts_3.size() > 0) {
-            std::cerr << "Adding " << valid_cuts_3.size() << " capacity cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_3.size() << " capacity cuts" << std::endl;
         }
     
         for(auto& cut : valid_cuts_3) {
@@ -107,7 +107,7 @@ void cuts_callback::main() {
         data.time_spent_separating_simplified_fork_vi += time_span.count();
         
         if(DEBUG && valid_cuts_4.size() > 0) {
-            std::cerr << "Adding " << valid_cuts_4.size() << " simplified fork cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_4.size() << " simplified fork cuts" << std::endl;
         }
         
         for(auto& cut : valid_cuts_4) {
@@ -125,7 +125,7 @@ void cuts_callback::main() {
         data.time_spent_separating_fork_vi += time_span.count();
         
         if(DEBUG && valid_cuts_5.size() > 0) {
-            std::cerr << "Adding " << valid_cuts_5.size() << " fork cuts" << std::endl;
+            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_5.size() << " fork cuts" << std::endl;
         }
         
         for(auto& cut : valid_cuts_5) {

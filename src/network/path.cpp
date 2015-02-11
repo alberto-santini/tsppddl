@@ -22,8 +22,8 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
     while(current_node != 2 * n + 1) {
         auto cycle = std::find(visited_nodes.begin(), visited_nodes.end(), current_node);
         if(cycle != visited_nodes.end()) {
-            std::cerr << ">> Cycle: the path comes back to " << *cycle << std::endl;
-            throw std::runtime_error("K-opt heuristic produced a path with a cycle!");
+            std::cerr << "path.cpp::path() \t Cycle: the path comes back to " << *cycle << std::endl;
+            throw std::runtime_error("Trying to create a path with a cycle!");
         }
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(std::abs(x[current_node][j] - 1) < eps) {
@@ -40,20 +40,12 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
     }
     
     if(path_v.size() != (size_t)(2 * n + 2)) {
-        std::cerr << "Path length: " << path_v.size() << " - expected: " << (2*n+2) << std::endl;
-        std::cerr << "Path: ";
+        std::cerr << "path.cpp::path() \t Path length: " << path_v.size() << " - expected: " << (2*n+2) << std::endl;
+        std::cerr << "path.cpp::path() \t Path: ";
         for(auto i = 0u; i < path_v.size(); i++) {
             std::cerr << path_v[i] << " ";
         }
         std::cerr << std::endl;
-        std::cerr << "X: " << std::endl;
-        for(auto i = 0; i <= 2*n+1; i++) {
-            for(auto j = 0; j <= 2*n+1; j++) {
-                if(x[i][j] > 0.0) {
-                    std::cerr << "x[" << i << "][" << j << "] = " << x[i][j] << std::endl;
-                }
-            }
-        }
         throw std::runtime_error("K-opt heuristic produced a short path!");
     }
 }
@@ -68,7 +60,7 @@ std::vector<std::vector<int>> path::get_x_values(int n) const {
     return x;
 }
 
-void path::verify_feasible(const tsp_graph& g) const {
+bool path::verify_feasible(const tsp_graph& g) const {
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
     auto current_load = 0;
@@ -76,11 +68,11 @@ void path::verify_feasible(const tsp_graph& g) const {
     auto visited_sources = std::vector<int>();
     
     if(path_v.size() != (size_t)(2 * n + 2)) {
-        // std::cout << "Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
-        // std::cout << "Path: ";
-        // for(auto i = 0u; i < path_v.size(); i++) { std::cout << path_v.at(i) << " "; }
-        // std::cout << std::endl;
-        throw std::runtime_error("Path length is != 2 * n + 2");
+        std::cerr << "path.cpp::verify_feasible() \t Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
+        std::cerr << "path.cpp::verify_feasible() \t Path: ";
+        for(auto i = 0u; i < path_v.size(); i++) { std::cerr << path_v.at(i) << " "; }
+        std::cerr << std::endl;
+        return false;
     }
     
     for(auto i = 1; i <= 2 * n + 1; i++) {
@@ -88,8 +80,8 @@ void path::verify_feasible(const tsp_graph& g) const {
         visited_nodes++;
         
         if(current_node == 2 * n + 1 && visited_nodes < 2 * n + 2) {
-            // std::cout << "Reached 2n+1 after just " << visited_nodes << " nodes" << std::endl;
-            throw std::runtime_error("Reached 2n+1 after too few nodes!");
+            std::cerr << "path.cpp::verify_feasible() \t Reached 2n+1 after just " << visited_nodes << " nodes vs. " << 2 * n + 2 << std::endl;
+            return false;
         }
         
         if(current_node > 0 && current_node <= n) {
@@ -104,23 +96,25 @@ void path::verify_feasible(const tsp_graph& g) const {
                 }
             }
             if(!source_visited) {
-                // std::cout << "Visited " << current_node << " before " << current_node - n << std::endl;
-                throw std::runtime_error("Visited a destination before its source!");
+                std::cerr << "path.cpp::verify_feasible() \t Visited " << current_node << " before its origin " << current_node - n << std::endl;
+                return false;
             }
         }
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            // std::cout << "Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
-            throw std::runtime_error("Wrong load!");
+            std::cerr << "path.cpp::verify_feasible() \t Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            return false;
         }
         
         current_load += g.demand.at(current_node);
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            // std::cout << "Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
-            throw std::runtime_error("Wrong load!");
+            std::cerr << "path.cpp::verify_feasible() \t Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            return false;
         }
     }
+    
+    return true;
 }
 
 void path::print(std::ostream& where) const {

@@ -98,9 +98,7 @@ boost::optional<path> kopt3_solver::exec_3opt(const path& p, const std::vector<i
     
     auto new_path = path(g, p_x);
     
-    try {
-        new_path.verify_feasible(g);
-    } catch(std::runtime_error& e) {
+    if(!new_path.verify_feasible(g)) {
         return boost::none;
     }
     

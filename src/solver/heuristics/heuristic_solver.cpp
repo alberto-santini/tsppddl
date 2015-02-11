@@ -44,7 +44,9 @@ std::vector<path> heuristic_solver::solve() const {
         return (this->g.cost[r1][r1 + this->g.g[graph_bundle].n] > this->g.cost[r2][r2 + this->g.g[graph_bundle].n]);
     };
     
-    std::cout << "Heuristic solutions:         \t";
+    auto current_time = std::time(nullptr);
+    auto local_time = *std::localtime(&t);
+    std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions:         \t";
     
     //  CONSTRUCTIVE HEURISTICS
     
@@ -135,7 +137,10 @@ std::vector<path> heuristic_solver::solve() const {
     auto h7 = k_opt_heuristic(g, params, data, appropriate_k_for_instance_size, paths);
     auto k_opt_paths = h7.solve(); // Time is counted within k_opt_heuristic
 
-    std::cout << "Heuristic solutions (k = " << appropriate_k_for_instance_size << "): \t";
+    current_time = std::time(nullptr);
+    local_time = *std::localtime(&t);
+    std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions (k = " << appropriate_k_for_instance_size << "): \t";
+    
     for(const auto& path : k_opt_paths) {
          std::cout << path.total_cost << "\t";
     }

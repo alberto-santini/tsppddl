@@ -40,14 +40,18 @@ if(params.bc.two_cycles_elim) {
 if(params.bc.subpath_elim) {
     row_n = 0;
     for(const auto& pi : g.infeas_list) {
-        if((unsigned int)row_n < params.bc.max_infeas_subpaths && pi.second) {
-            std::stringstream name;
-            name << "sub_";
-            for(auto i : pi.first) { name << i << "_"; }
-            name << "elim";
+        if((unsigned int)row_n < params.bc.max_infeas_subpaths) {
+            if(pi.second) {
+                std::stringstream name;
+                name << "sub_";
+                for(auto i : pi.first) { name << i << "_"; }
+                name << "elim";
             
-            subpath_elimination.add(IloRange(env, -IloInfinity, pi.first.size() - 2));
-            subpath_elimination[row_n++].setName(name.str().c_str());
+                subpath_elimination.add(IloRange(env, -IloInfinity, pi.first.size() - 2));
+                subpath_elimination[row_n++].setName(name.str().c_str());
+            }
+        } else {
+            break;
         }
     }
 }
@@ -111,13 +115,17 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             if(params.bc.subpath_elim) {
                 row_n = 0;
                 for(const auto& pi : g.infeas_list) {
-                    if((unsigned int)row_n < params.bc.max_infeas_subpaths && pi.second) {
-                        for(auto path_pos = 0u; path_pos < pi.first.size() - 1; path_pos++) {
-                            if(i == pi.first[path_pos] && j == pi.first[path_pos + 1]) {
-                                col += subpath_elimination[row_n](1);
+                    if((unsigned int)row_n < params.bc.max_infeas_subpaths) {
+                        if(pi.second) {
+                            for(auto path_pos = 0u; path_pos < pi.first.size() - 1; path_pos++) {
+                                if(i == pi.first[path_pos] && j == pi.first[path_pos + 1]) {
+                                    col += subpath_elimination[row_n](1);
+                                }
                             }
+                            row_n++;
                         }
-                        row_n++;
+                    } else {
+                        break;
                     }
                 }
             }

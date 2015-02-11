@@ -450,7 +450,6 @@ void subgradient_solver::solve() {
         } else {
             std::cerr << "CPLEX Status: " << cplex.getStatus() << std::endl;
             std::cerr << "CPLEX Inner Status: " << cplex.getCplexStatus() << std::endl;
-            std::cerr << "Dumping model on model_err.lp" << std::endl;
             cplex.exportModel("model_err.lp");
             throw std::runtime_error("CPLEX failed!");
         }        

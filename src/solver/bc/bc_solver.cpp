@@ -56,7 +56,9 @@ void bc_solver::add_initial_solution_vals() {
     initial_y_val = std::vector<values_matrix>(initial_solutions.size());
     
     for(auto sol_n = 0u; sol_n < initial_solutions.size(); sol_n++) {
-        initial_solutions.at(sol_n).verify_feasible(g);
+        if(!initial_solutions.at(sol_n).verify_feasible(g)) {
+            std::cerr << "bc_solver.cpp::add_initial_solution_vals() \t I have an unfeasible initial solution!" << std::endl;
+        }
         
         auto initial_x_sol = values_matrix(2 * n + 2, std::vector<int>(2 * n + 2, 0));
         auto initial_y_sol = values_matrix(2 * n + 2, std::vector<int>(2 * n + 2, 0));
@@ -97,8 +99,15 @@ path bc_solver::solve(bool k_opt) {
             return kv.second;
         }
     );
-    std::cerr << "bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt << std::endl;
+    
+    auto current_time = std::time(nullptr);
+    auto local_time = *std::localtime(&t);
+
+    std::cerr << "bc_solver.cpp::solve() \t " << std::put_time(&local_time, "%H-%M-%S");
+    std::cerr << " Invoked with k_opt = " << std::boolalpha << k_opt;
+    std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
     std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
+    std::cerr << "bc_solver.cpp::solve() \t Adding up to " << params.bc.max_infeas_subpaths << " unfeasible sub-paths to the model" << std::endl;
 
     auto total_bb_nodes_explored = (long)0;
     auto number_of_cuts_added_at_root = (long)0;
@@ -139,9 +148,7 @@ path bc_solver::solve(bool k_opt) {
     auto t_model_end = high_resolution_clock::now();
     auto model_time_span = duration_cast<duration<double>>(t_model_end - t_model_start);
     
-    if(DEBUG) {
-        std::cerr << "bc_solver.cpp::solve() \t Model built in " << model_time_span.count() << " seconds" << std::endl;
-    }
+    std::cerr << "bc_solver.cpp::solve() \t Model built in " << model_time_span.count() << " seconds" << std::endl;
     
     model.add(obj);
     model.add(variables_x);
@@ -200,10 +207,10 @@ path bc_solver::solve(bool k_opt) {
         //     env.getImpl()->useDetailedDisplay(IloTrue);
         //     for(auto i = 0; i < constraints.getSize(); i++) {
         //         if(conflict[i] == IloCplex::ConflictMember) {
-        //             std::cout << "Proven conflict: " << constraints[i] << std::endl;
+        //             std::cerr << "bc_solver.cpp::solve() \t Proven conflict: " << constraints[i] << std::endl;
         //         }
         //         if(conflict[i] == IloCplex::ConflictPossibleMember) {
-        //             std::cout << "Possible conflict: " << constraints[i] << std::endl;
+        //             std::cerr << "bc_solver.cpp::solve() \t Possible conflict: " << constraints[i] << std::endl;
         //         }
         //     }
         // }
@@ -290,15 +297,8 @@ path bc_solver::solve(bool k_opt) {
     
     if(k_opt) { data.time_spent_by_k_opt_heuristics += total_cplex_time; }
     
-    IloNumArray x(env);
-    IloNumArray y(env);
-    
+    IloNumArray x(env);    
     cplex.getValues(x, variables_x);
-    cplex.getValues(y, variables_y);
-
-    if(!k_opt) {
-        std::cerr << "bc_solver.cpp::solve() \t Solution:" << std::endl;
-    }
 
     // Get solution
     auto col_index = 0;
@@ -306,72 +306,73 @@ path bc_solver::solve(bool k_opt) {
     for(auto i = 0; i <= 2 * n + 1; i++) {
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(g.cost[i][j] >= 0) {
-                if(x[col_index] > eps) {
+                if(x[col_index++] > eps) {
                     solution_x[i][j] = 1;
-                    if(!k_opt) { std::cerr << "\tx(" << i << ", " << j << ") = " << x[col_index] << std::endl; }
                 }
-                if(y[col_index] > 0) {
-                    if(!k_opt) { std::cerr << "\ty(" << i << ", " << j << ") = " << y[col_index] << std::endl; }
-                }
-                col_index++;
             }
-         }
+        }
     }
     
     auto opt_solution_path = path(g, solution_x);
-    opt_solution_path.verify_feasible(g);
-
-    // Print solution
-    if(!k_opt) {
-        auto best_heur_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
-        
-        std::ofstream results_file;
-        results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
-        
-        results_file << instance_name << "\t";
-        
-        // TIMES
-        results_file << total_cplex_time << "\t";
-        results_file << time_spent_at_root << "\t";
-        results_file << data.time_spent_by_constructive_heuristics << "\t";
-        results_file << data.time_spent_by_k_opt_heuristics << "\t";
-        results_file << data.time_spent_separating_feasibility_cuts << "\t";
-        results_file << data.time_spent_separating_subtour_elimination_vi << "\t";
-        results_file << data.time_spent_separating_generalised_order_vi << "\t";
-        results_file << data.time_spent_separating_capacity_vi << "\t";
-        results_file << data.time_spent_separating_simplified_fork_vi << "\t";
-        results_file << data.time_spent_separating_fork_vi << "\t";
-        
-        // SOLUTIONS
-        results_file << best_heur_solution.total_cost << "\t";
-        results_file << ub << "\t";
-        results_file << lb << "\t";
-        results_file << (ub - lb) / ub << "\t";
-        results_file << ub_at_root << "\t";
-        results_file << lb_at_root << "\t";
-        results_file << (ub_at_root - lb_at_root) / ub_at_root << "\t";
-        
-        // CUTS ADDED
-        results_file << data.total_number_of_feasibility_cuts_added << "\t";
-        results_file << data.total_number_of_subtour_elimination_vi_added << "\t";
-        results_file << data.total_number_of_generalised_order_vi_added << "\t";
-        results_file << data.total_number_of_capacity_vi_added << "\t";
-        results_file << data.total_number_of_simplified_fork_vi_added << "\t";
-        results_file << data.total_number_of_fork_vi_added << "\t";
-        results_file << number_of_cuts_added_at_root << "\t";
-        
-        // UNFEASIBLE PATHS
-        results_file << unfeasible_paths_n << "\t";
-        
-        // BB NODES
-        results_file << total_bb_nodes_explored << std::endl;
-        
-        results_file.close();
+    
+    if(!opt_solution_path.verify_feasible(g)) {
+        std::cerr << "bc_solver.cpp::solve() \t The optimal solution is infeasible!" << std::endl;
+    } else {
+        if(!k_opt) {
+            print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored);
+        }
     }
 
     env.end();
         
     return opt_solution_path;
+}
+
+void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {
+    auto best_heur_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+
+    std::ofstream results_file;
+    results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
+
+    results_file << instance_name << "\t";
+
+    // TIMES
+    results_file << total_cplex_time << "\t";
+    results_file << time_spent_at_root << "\t";
+    results_file << data.time_spent_by_constructive_heuristics << "\t";
+    results_file << data.time_spent_by_k_opt_heuristics << "\t";
+    results_file << data.time_spent_separating_feasibility_cuts << "\t";
+    results_file << data.time_spent_separating_subtour_elimination_vi << "\t";
+    results_file << data.time_spent_separating_generalised_order_vi << "\t";
+    results_file << data.time_spent_separating_capacity_vi << "\t";
+    results_file << data.time_spent_separating_simplified_fork_vi << "\t";
+    results_file << data.time_spent_separating_fork_vi << "\t";
+
+    // SOLUTIONS
+    results_file << best_heur_solution.total_cost << "\t";
+    results_file << ub << "\t";
+    results_file << lb << "\t";
+    results_file << (ub - lb) / ub << "\t";
+    results_file << ub_at_root << "\t";
+    results_file << lb_at_root << "\t";
+    results_file << (ub_at_root - lb_at_root) / ub_at_root << "\t";
+
+    // CUTS ADDED
+    results_file << data.total_number_of_feasibility_cuts_added << "\t";
+    results_file << data.total_number_of_subtour_elimination_vi_added << "\t";
+    results_file << data.total_number_of_generalised_order_vi_added << "\t";
+    results_file << data.total_number_of_capacity_vi_added << "\t";
+    results_file << data.total_number_of_simplified_fork_vi_added << "\t";
+    results_file << data.total_number_of_fork_vi_added << "\t";
+    results_file << number_of_cuts_added_at_root << "\t";
+
+    // UNFEASIBLE PATHS
+    results_file << unfeasible_paths_n << "\t";
+
+    // BB NODES
+    results_file << total_bb_nodes_explored << std::endl;
+
+    results_file.close();
 }
 
 // NON-PORTABLE
@@ -385,16 +386,14 @@ void bc_solver::create_results_dir(mode_t mode, const std::string& dir) {
 
         if(stat(new_dir.c_str(), &st) != 0) {            
             if(mkdir(new_dir.c_str(), mode) != 0 && errno != EEXIST) {
-                std::cerr << "Cannot create folder " << new_dir << ": " << strerror(errno) << std::endl;
+                std::cerr << "bc_solver.cpp::create_results_dir() \t Cannot create folder " << new_dir << ": " << strerror(errno) << std::endl;
                 throw std::runtime_error("Cannot create results folder");
             }
         } else {
             if(!S_ISDIR(st.st_mode)) {
                 errno = ENOTDIR;
-                std::cerr << "Path " << new_dir << " is not a directory" << std::endl;
+                std::cerr << "bc_solver.cpp::create_results_dir() \t Path " << new_dir << " is not a directory" << std::endl;
                 throw std::runtime_error("Cannot create results folder");
-            } else {
-                std::cerr << "Path " << new_dir << " already exists" << std::endl;
             }
         }
 

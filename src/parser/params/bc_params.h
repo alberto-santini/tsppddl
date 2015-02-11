@@ -53,10 +53,10 @@ struct branch_and_cut_params {
                             simplified_fork{std::move(simplified_fork)},
                             fork{std::move(fork)} {
         if(simplified_fork.enabled) {
-            std::cout << "WARNING: simplified_fork cuts are deprecated, as they don't do much. All these cuts are already enumerated by subpath_elim (if you have it on) or very likely separated by the feasibility cut generator (as they concern generalised_order). Even with subpath_elim off, in our instances it's almost never the case that separate_simplified_fork can find a violated cut." << std::endl;
+            std::cerr << "bc_params.h::branch_and_cut_params() \t WARNING: simplified_fork cuts are deprecated, as they don't do much. All these cuts are already enumerated by subpath_elim (if you have it on) or very likely separated by the feasibility cut generator (as they concern generalised_order). Even with subpath_elim off, in our instances it's almost never the case that separate_simplified_fork can find a violated cut." << std::endl;
         }
         if(feasibility_cuts.cut_every_n_nodes != 1u) {
-            std::cout << "WARNING: you are not separating feasibility cuts at every node. This will likely produce infeasible solutions! Only do this if you know what you are doing!" << std::endl;
+            std::cerr << "bc_params.h::branch_and_cut_params() \t WARNING: you are not separating feasibility cuts at every node. This will likely produce infeasible solutions! Only do this if you know what you are doing!" << std::endl;
         }
     }
 };
