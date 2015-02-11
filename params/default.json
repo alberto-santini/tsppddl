@@ -13,6 +13,7 @@
     "branch_and_cut": {
         "two_cycles_elim":              true,
         "subpath_elim":                 true,
+        "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "results_dir":                  "../results/branch_and_cut/",
         
@@ -39,7 +40,7 @@
         },
         "fork_valid_ineq": {
             "cut_every_n_nodes":        50,
-            "enabled":                  true  
+            "enabled":                  false
         }
     },
     
