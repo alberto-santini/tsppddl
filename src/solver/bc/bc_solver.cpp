@@ -101,9 +101,14 @@ path bc_solver::solve(bool k_opt) {
     );
     
     auto current_time = std::time(nullptr);
-    auto local_time = *std::localtime(&t);
+    auto local_time = *std::localtime(&current_time);
 
-    std::cerr << "bc_solver.cpp::solve() \t " << std::put_time(&local_time, "%H-%M-%S");
+    // std::put_time not implemented as of GCC 4.9.2
+    // std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions:         \t";
+    char unbealivable_i_have_to_do_this_gcc_wtf[100];
+    if(std::strftime(unbealivable_i_have_to_do_this_gcc_wtf, sizeof(unbealivable_i_have_to_do_this_gcc_wtf), "%H-%M-%S", &local_time)) {
+        std::cerr << "bc_solver.cpp::solve() \t " << unbealivable_i_have_to_do_this_gcc_wtf;
+    }
     std::cerr << " Invoked with k_opt = " << std::boolalpha << k_opt;
     std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
     std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
