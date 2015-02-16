@@ -361,7 +361,13 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     std::ofstream results_file;
     results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
 
-    results_file << instance_name << "\t";
+    auto name_parts = std::vector<std::string>();
+    boost::split(name_parts, instance_name, boost::is_any_of("_"));
+
+    results_file << name_parts[0] << "\t";
+    results_file << name_parts[1] << "\t";
+    results_file << name_parts[2] << "\t";
+    results_file << name_parts[3] << "\t";
 
     // TIMES
     results_file << total_cplex_time << "\t";
@@ -369,11 +375,26 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     results_file << data.time_spent_by_constructive_heuristics << "\t";
     results_file << data.time_spent_by_k_opt_heuristics << "\t";
     results_file << data.time_spent_separating_feasibility_cuts << "\t";
-    results_file << data.time_spent_separating_subtour_elimination_vi << "\t";
-    results_file << data.time_spent_separating_generalised_order_vi << "\t";
-    results_file << data.time_spent_separating_capacity_vi << "\t";
-    results_file << data.time_spent_separating_simplified_fork_vi << "\t";
-    results_file << data.time_spent_separating_fork_vi << "\t";
+    if(params.bc.subtour_elim.enabled) {
+        results_file << data.time_spent_separating_subtour_elimination_vi << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.generalised_order.enabled) {
+        results_file << data.time_spent_separating_generalised_order_vi << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.capacity.enabled) {
+        results_file << data.time_spent_separating_capacity_vi << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.fork.enabled) {
+        results_file << data.time_spent_separating_fork_vi << "\t";
+    } else {
+        results_file << "no\t";
+    }
 
     // SOLUTIONS
     results_file << best_heur_solution.total_cost << "\t";
@@ -386,18 +407,36 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
 
     // CUTS ADDED
     results_file << data.total_number_of_feasibility_cuts_added << "\t";
-    results_file << data.total_number_of_subtour_elimination_vi_added << "\t";
-    results_file << data.total_number_of_generalised_order_vi_added << "\t";
-    results_file << data.total_number_of_capacity_vi_added << "\t";
-    results_file << data.total_number_of_simplified_fork_vi_added << "\t";
-    results_file << data.total_number_of_fork_vi_added << "\t";
+    if(params.bc.subtour_elim.enabled) {
+        results_file << data.total_number_of_subtour_elimination_vi_added << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.generalised_order.enabled) {
+        results_file << data.total_number_of_generalised_order_vi_added << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.capacity.enabled) {
+        results_file << data.total_number_of_capacity_vi_added << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.fork.enabled) {
+        results_file << data.total_number_of_fork_vi_added << "\t";
+    } else {
+        results_file << "no\t";
+    }
     results_file << number_of_cuts_added_at_root << "\t";
 
     // UNFEASIBLE PATHS
     results_file << unfeasible_paths_n << "\t";
 
     // BB NODES
-    results_file << total_bb_nodes_explored << std::endl;
+    results_file << total_bb_nodes_explored << "\t";
+    
+    // ARCS IN GRAPH
+    results_file << num_edges(g.g) << std::endl;
 
     results_file.close();
 }
