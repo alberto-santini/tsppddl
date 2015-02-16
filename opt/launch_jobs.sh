@@ -18,7 +18,7 @@ else
 fi
 
 excluded_instances=(
-"_0.75_"
+"_0.75."
 "_5_"
 "_16_"
 "_24_"
