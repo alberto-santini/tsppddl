@@ -22,7 +22,7 @@ excluded_instances=()
 contains_element () {
     for element in "${@:2}"
     do
-      	[[ "$element" == "$1" ]] && return 0
+      	[[ "$element" == *"$1"* ]] && return 0
     done
 
     return 1
