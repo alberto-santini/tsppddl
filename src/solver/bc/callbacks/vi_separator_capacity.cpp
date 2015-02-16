@@ -93,7 +93,7 @@ IloRange vi_separator_capacity::add_cut(double rhs_val) const {
                     if(std::find(S.begin(), S.end(), jj) != S.end()) {
                         lhs += x[col_index];
                     } else if(std::find(T.begin(), T.end(), jj) != T.end()) {
-                        lhs += x[col_index];
+                        lhs -= x[col_index];
                     }
                 } else if(std::find(T.begin(), T.end(), ii) != T.end()) {
                     if(std::find(T.begin(), T.end(), jj) != T.end()) {
@@ -119,7 +119,7 @@ double vi_separator_capacity::calculate_lhs() const {
             lhs += sol.x[s1][s2];
         }
         for(const auto& t : T) {
-            lhs += sol.x[s1][t];
+            lhs -= sol.x[s1][t];
         }
     }
     
@@ -137,9 +137,8 @@ double vi_separator_capacity::calculate_rhs() const {
     auto rhs = 0.0;
     auto demand_s = 0.0;
     auto demand_u = 0.0;
-    auto denominator = 0.0;
-    
-    rhs += S.size() + T.size();
+    auto gamma_s_draught = 0.0;
+    auto gamma_t_draught = 0.0;
     
     for(const auto& s : S) {
         demand_s += g.demand.at(s);
@@ -153,7 +152,7 @@ double vi_separator_capacity::calculate_rhs() const {
         }
     }
     
-    denominator = std::min(
+    gamma_s_draught = std::min(
         g.g[graph_bundle].capacity,
         g.draught[*std::max_element(S.begin(), S.end(),
             [this] (int n1, int n2) -> bool {
@@ -162,7 +161,16 @@ double vi_separator_capacity::calculate_rhs() const {
         )]
     );
         
-    rhs -= std::ceil((demand_s + demand_u) / denominator);
+    gamma_t_draught = std::min(
+        g.g[graph_bundle].capacity,
+        g.draught[*std::max_element(T.begin(), T.end(),
+            [this] (int n1, int n2) -> bool {
+               return (g.draught[n1] < g.draught[n2]);
+            }
+        )]
+    );
+        
+    rhs = S.size() + T.size() - std::ceil(demand_s / gamma_s_draught) - std::ceil(demand_u / gamma_t_draught);
         
     return rhs;
 }
