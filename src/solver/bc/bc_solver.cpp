@@ -318,6 +318,10 @@ path bc_solver::solve(bool k_opt) {
         }
     }
     
+    if(DEBUG && !k_opt) {
+        print_x_variables(solution_x);
+    }
+    
     auto opt_solution_path = path(g, solution_x);
     
     if(!opt_solution_path.verify_feasible(g)) {
@@ -331,6 +335,24 @@ path bc_solver::solve(bool k_opt) {
     env.end();
         
     return opt_solution_path;
+}
+
+void bc_solver::print_x_variables(std::vector<std::vector<int>> x) {
+    auto n = g.g[graph_bundle].n;
+    
+    std::ofstream x_vars_file;
+    x_vars_file.open("x_vars.txt", std::ios::out);
+    
+    for(auto i = 0; i <= 2 * n + 1; i++) {
+        for(auto j = 0; j <= 2 * n + 1; j++) {
+            if(g.cost[i][j] >= 0) {
+                x_vars_file << "x_" << i << "_" << j << " = " << x[i][j] << "; ";
+            }
+        }
+    }
+    
+    x_vars_file << std::endl;
+    x_vars_file.close();
 }
 
 void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {

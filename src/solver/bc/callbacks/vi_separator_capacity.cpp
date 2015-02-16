@@ -108,6 +108,42 @@ IloRange vi_separator_capacity::add_cut(double rhs_val) const {
     IloRange cut;
     cut = (lhs <= rhs);
     
+    if(DEBUG) {
+        std::ofstream dump_file;
+        dump_file.open("cuts.txt", std::ios::out | std::ios::app);
+        
+        // 1) Fractional solution
+        dump_file << "CAP_CUT: ";
+        for(auto ii = 0; ii <= 2 * n + 1; ii++) {
+            for(auto jj = 0; jj <= 2 * n + 1; jj++) {
+                if(g.cost[ii][jj] >= 0) {
+                    dump_file << "x_" << ii << "_" << jj << " = " << sol.x[ii][jj] << "; ";
+                }
+            }
+        }
+        dump_file << std::endl;
+        
+        // 2) Sets S and T
+        dump_file << "CAP_CUT_S: ";
+        for(const auto& s : S) {
+            dump_file << s << " ";
+        }
+        dump_file << std::endl;
+        dump_file << "CAP_CUT_T: ";
+        for(const auto& t : T) {
+            dump_file << t << " ";
+        }
+        dump_file << std::endl;
+        
+        // 3) Cut:
+        dump_file << "CAP_CUT: " << cut << std::endl;
+        
+        // 4) Blank line
+        dump_file << std::endl;
+        
+        dump_file.close();
+    }
+    
     return cut;
 }
 
