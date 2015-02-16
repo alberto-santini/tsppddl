@@ -17,7 +17,12 @@ else
     echo "Using params file $params_file"
 fi
 
-excluded_instances=()
+excluded_instances=(
+"_0.75_"
+"_5_"
+"_16_"
+"_24_"
+)
 
 contains_element () {
     for element in "${@:2}"
