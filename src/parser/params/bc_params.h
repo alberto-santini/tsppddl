@@ -14,9 +14,16 @@ struct branch_and_cut_params {
     struct valid_inequality_info {
         unsigned int    cut_every_n_nodes;
         bool            enabled;
+        
+        static const unsigned int unreachable_number_of_bb_nodes = 1e07;
     
         valid_inequality_info() {}
-        valid_inequality_info(unsigned int cut_every_n_nodes, bool enabled) : cut_every_n_nodes{cut_every_n_nodes}, enabled{enabled} {}
+        valid_inequality_info(unsigned int cut_every_n_nodes, bool enabled) : cut_every_n_nodes{cut_every_n_nodes}, enabled{enabled} {
+            if(cut_every_n_nodes == 0u) {
+                std::cerr << "bc_params.h::valid_inequality_info() \t WARNING: value of 0 for cut_every_n_nodes means `only when there is an integer solution'" << std::endl;
+                this->cut_every_n_nodes = unreachable_number_of_bb_nodes;
+            }
+        }
     };
 
     struct valid_inequality_with_memory_info : public valid_inequality_info {

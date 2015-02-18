@@ -26,7 +26,7 @@ void cuts_callback::main() {
     }
     
     getValues(last_solution, x);
-    
+        
     if(sol_from_cplex.sol.is_integer || node_number % params.bc.feasibility_cuts.cut_every_n_nodes == 0) {
         auto start_time = high_resolution_clock::now();
         auto feas_cuts = feasibility_cuts_separator::separate_feasibility_cuts(g, gr, sol_from_cplex.sol, x);
@@ -44,7 +44,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.subtour_elim.enabled && node_number % params.bc.subtour_elim.cut_every_n_nodes == 0) {
+    if(params.bc.subtour_elim.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.subtour_elim.cut_every_n_nodes == 0)) {
         auto sub_solv = vi_separator_subtour_elimination(g, params, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_1 = sub_solv.separate_valid_cuts();
@@ -62,7 +62,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.generalised_order.enabled && node_number % params.bc.generalised_order.cut_every_n_nodes == 0) {
+    if(params.bc.generalised_order.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.generalised_order.cut_every_n_nodes == 0)) {
         auto go_solv = vi_separator_generalised_order(g, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_2 = go_solv.separate_valid_cuts();
@@ -80,7 +80,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.capacity.enabled && node_number % params.bc.capacity.cut_every_n_nodes == 0) {
+    if(params.bc.capacity.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.capacity.cut_every_n_nodes == 0)) {
         auto cap_solv = vi_separator_capacity(g, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_3 = cap_solv.separate_valid_cuts();
@@ -98,7 +98,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.simplified_fork.enabled && node_number % params.bc.simplified_fork.cut_every_n_nodes == 0) {
+    if(params.bc.simplified_fork.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.simplified_fork.cut_every_n_nodes == 0)) {
         auto sfork_solv = vi_separator_simplified_fork(g, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_4 = sfork_solv.separate_valid_cuts();
@@ -116,7 +116,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.fork.enabled && node_number % params.bc.fork.cut_every_n_nodes == 0) {
+    if(params.bc.fork.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.fork.cut_every_n_nodes == 0)) {
         auto fork_solv = vi_separator_fork(g, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_5 = fork_solv.separate_valid_cuts();
