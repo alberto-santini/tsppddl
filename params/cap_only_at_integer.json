@@ -1,0 +1,68 @@
+{
+    "subgradient": {
+        "relax_mtz":                    true,
+        "relax_prec":                   false,
+        "initial_lambda":               1.0,
+        "initial_mu":                   1.0,
+        "iter_reduce_theta":            5,
+        "theta_reduce_fact":            2,
+        "max_iter":                     1000,
+        "results_dir":                  "../results/subgradient/"
+    },
+    
+    "branch_and_cut": {
+        "two_cycles_elim":              true,
+        "subpath_elim":                 true,
+        "max_infeas_subpaths":          10000,
+        "print_relaxation_graph":       false,
+        "results_dir":                  "../results/branch_and_cut/",
+        
+        "feasibility_cuts": {
+            "cut_every_n_nodes":        1
+        },
+        
+        "subtour_elim_valid_ineq": {
+            "cut_every_n_nodes":        1,
+            "enabled":                  false,
+            "memory":                   true
+        },
+        "generalised_order_valid_ineq": {
+            "cut_every_n_nodes":        1,
+            "enabled":                  false
+        },
+        "capacity_valid_ineq": {
+            "cut_every_n_nodes":        0,
+            "enabled":                  true
+        },
+        "simplified_fork_valid_ineq": {
+            "cut_every_n_nodes":        1,
+            "enabled":                  false  
+        },
+        "fork_valid_ineq": {
+            "cut_every_n_nodes":        50,
+            "enabled":                  false
+        }
+    },
+    
+    "k_opt": {
+        "instance_size_limit": [
+            {"k": 3, "n": 40},
+            {"k": 4, "n": 30},
+            {"k": 5, "n": 20},
+            {"k": 6, "n": 15}
+        ]
+    },
+    
+    "tabu_search": {
+        "tabu_list_size":               15,
+        "max_iter":                     50000,
+        "max_iter_without_improving":   500,
+        "max_parallel_searches":        4,
+        "results_dir":                  "../results/tabu_search/",
+        "track_progress":               true,
+        "progress_results_dir":         "../results/tabu_search_progress/"
+    },
+    
+    "cplex_threads":                    1,
+    "cplex_timeout":                    3600
+}
