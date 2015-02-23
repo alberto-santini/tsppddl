@@ -109,8 +109,14 @@ path bc_solver::solve(bool k_opt) {
     if(std::strftime(unbealivable_i_have_to_do_this_gcc_wtf, sizeof(unbealivable_i_have_to_do_this_gcc_wtf), "%H-%M-%S", &local_time)) {
         std::cerr << "bc_solver.cpp::solve() \t " << unbealivable_i_have_to_do_this_gcc_wtf;
     }
+    
     std::cerr << " Invoked with k_opt = " << std::boolalpha << k_opt;
-    std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
+    if(!initial_solutions.empty()) {
+        std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
+    } else {
+        std::cerr << std::endl;
+    }
+    
     std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
     std::cerr << "bc_solver.cpp::solve() \t Adding up to " << params.bc.max_infeas_subpaths << " unfeasible sub-paths to the model" << std::endl;
 
@@ -252,7 +258,9 @@ path bc_solver::solve(bool k_opt) {
     auto t_start = high_resolution_clock::now();
 
     // Solve root node
-    if(!cplex.solve()) {
+    auto success_at_root_node = cplex.solve();
+
+    if(!success_at_root_node && cplex.getCplexStatus() != IloCplex::NodeLimInfeas) {
         std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered at root node" << std::endl;
         std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
         std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
@@ -272,7 +280,12 @@ path bc_solver::solve(bool k_opt) {
             data.total_number_of_simplified_fork_vi_added + 
             data.total_number_of_fork_vi_added;
         lb_at_root = cplex.getBestObjValue();
-        ub_at_root = cplex.getObjValue();
+        
+        if(cplex.isPrimalFeasible()) {
+            ub_at_root = cplex.getObjValue();
+        } else {
+            ub_at_root = std::numeric_limits<double>::max();
+        }
 
         // Solve the rest of the BB tree
         cplex.setParam(IloCplex::NodeLim, 2100000000);
@@ -297,7 +310,13 @@ path bc_solver::solve(bool k_opt) {
 
     total_bb_nodes_explored = cplex.getNnodes();
     lb = cplex.getBestObjValue();
-    ub = cplex.getObjValue();
+    
+    if(cplex.isPrimalFeasible()) {
+        ub = cplex.getObjValue();
+    } else {
+        ub = std::numeric_limits<double>::max();
+    }
+    
     total_cplex_time = time_span_total.count();
     
     if(k_opt) { data.time_spent_by_k_opt_heuristics += total_cplex_time; }
@@ -356,7 +375,19 @@ void bc_solver::print_x_variables(std::vector<std::vector<int>> x) {
 }
 
 void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {
-    auto best_heur_solution = *std::min_element(initial_solutions.begin(), initial_solutions.end(), [] (const path& p1, const path& p2) -> bool { return (p1.total_cost < p2.total_cost); });
+    auto best_heur_solution = 0.0;
+    
+    if(initial_solutions.empty()) {
+        best_heur_solution = std::numeric_limits<double>::max();
+    } else {
+        (*std::min_element(
+            initial_solutions.begin(),
+            initial_solutions.end(),
+            [] (const path& p1, const path& p2) -> bool {
+                return (p1.total_cost < p2.total_cost);
+            }
+        )).total_cost;
+    }
 
     std::ofstream results_file;
     results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
@@ -397,7 +428,7 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     }
 
     // SOLUTIONS
-    results_file << best_heur_solution.total_cost << "\t";
+    results_file << best_heur_solution << "\t";
     results_file << ub << "\t";
     results_file << lb << "\t";
     results_file << (ub - lb) / ub << "\t";

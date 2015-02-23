@@ -122,6 +122,7 @@ program_params  parser::read_program_params() const {
             pt.get<bool>("branch_and_cut.subpath_elim"),
             pt.get<unsigned int>("branch_and_cut.max_infeas_subpaths"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
+            pt.get<bool>("branch_and_cut.use_initial_solutions"),
             pt.get<std::string>("branch_and_cut.results_dir"),
             branch_and_cut_params::valid_inequality_with_memory_info(
                 pt.get<unsigned int>("branch_and_cut.subtour_elim_valid_ineq.cut_every_n_nodes"),

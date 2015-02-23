@@ -18,27 +18,28 @@ program::program(const std::vector<std::string>& args) {
     }
     
     load(args[1], args[0]);
+    
+    if(args[2] != "branch_and_cut" && args[2] != "subgradient" && args[2] != "tabu") {
+        print_usage();
+        return;
+    }
+    
+    auto heuristic_solutions = std::vector<path>();
+    
+    if(params.bc.use_initial_solutions) {
+        auto hsolv = heuristic_solver(g, params, data);
+        heuristic_solutions = hsolv.solve();
+    }
 
     if(args[2] == "branch_and_cut") {
-        auto hsolv = heuristic_solver(g, params, data);
-        auto heuristic_solutions = hsolv.solve();
-        
         auto bsolv = bc_solver(g, params, data, heuristic_solutions, args[0]);
         bsolv.solve_with_branch_and_cut();
     } else if(args[2] == "subgradient") {        
-        auto hsolv = heuristic_solver(g, params, data);
-        auto heuristic_solutions = hsolv.solve();
-        
         auto ssolv = subgradient_solver(g, params, heuristic_solutions, args[0]);
         ssolv.solve();
     } else if(args[2] == "tabu") {
-        auto hsolv = heuristic_solver(g, params, data);
-        auto heuristic_solutions = hsolv.solve();
-        
         auto tsolv = tabu_solver(g, params, data, heuristic_solutions, args[0]);
         tsolv.solve();
-    } else {
-        print_usage();
     }
 }
 

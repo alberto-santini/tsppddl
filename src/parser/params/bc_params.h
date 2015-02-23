@@ -9,6 +9,7 @@ struct branch_and_cut_params {
     bool            subpath_elim;
     unsigned int    max_infeas_subpaths;
     bool            print_relaxation_graph;
+    bool            use_initial_solutions;
     std::string     results_dir;
     
     struct valid_inequality_info {
@@ -41,6 +42,7 @@ struct branch_and_cut_params {
                             bool subpath_elim,
                             unsigned int max_infeas_subpaths,
                             bool print_relaxation_graph,
+                            bool use_initial_solutions,
                             std::string results_dir,
                             valid_inequality_with_memory_info subtour_elim,
                             valid_inequality_info feasibility_cuts,
@@ -52,6 +54,7 @@ struct branch_and_cut_params {
                             subpath_elim{subpath_elim},
                             max_infeas_subpaths{max_infeas_subpaths},
                             print_relaxation_graph{print_relaxation_graph},
+                            use_initial_solutions{use_initial_solutions},
                             results_dir{std::move(results_dir)},
                             subtour_elim{std::move(subtour_elim)},
                             feasibility_cuts{std::move(feasibility_cuts)},
