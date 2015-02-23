@@ -15,6 +15,7 @@
         "subpath_elim":                 true,
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
+        "use_initial_solutions":        true,
         "results_dir":                  "../results/branch_and_cut/",
         
         "feasibility_cuts": {
