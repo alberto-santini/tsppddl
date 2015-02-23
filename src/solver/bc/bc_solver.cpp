@@ -267,36 +267,39 @@ path bc_solver::solve(bool k_opt) {
         
         cplex.exportModel("model_err.lp");
         throw std::runtime_error("Some error occurred or the problem is infeasible");
+    }
+    
+    auto t_end = high_resolution_clock::now();
+    auto time_span = duration_cast<duration<double>>(t_end - t_start);
+    
+    time_spent_at_root = time_span.count();
+    number_of_cuts_added_at_root =
+        data.total_number_of_feasibility_cuts_added +
+        data.total_number_of_subtour_elimination_vi_added +
+        data.total_number_of_generalised_order_vi_added +
+        data.total_number_of_capacity_vi_added + 
+        data.total_number_of_simplified_fork_vi_added + 
+        data.total_number_of_fork_vi_added;
+    lb_at_root = cplex.getBestObjValue();
+    
+    if(cplex.isPrimalFeasible()) {
+        ub_at_root = cplex.getObjValue();
     } else {
-        auto t_end = high_resolution_clock::now();
-        auto time_span = duration_cast<duration<double>>(t_end - t_start);
-        
-        time_spent_at_root = time_span.count();
-        number_of_cuts_added_at_root =
-            data.total_number_of_feasibility_cuts_added +
-            data.total_number_of_subtour_elimination_vi_added +
-            data.total_number_of_generalised_order_vi_added +
-            data.total_number_of_capacity_vi_added + 
-            data.total_number_of_simplified_fork_vi_added + 
-            data.total_number_of_fork_vi_added;
-        lb_at_root = cplex.getBestObjValue();
-        
-        if(cplex.isPrimalFeasible()) {
-            ub_at_root = cplex.getObjValue();
-        } else {
-            ub_at_root = std::numeric_limits<double>::max();
-        }
+        ub_at_root = std::numeric_limits<double>::max();
+    }
 
-        // Solve the rest of the BB tree
-        cplex.setParam(IloCplex::NodeLim, 2100000000);
-        if(!cplex.solve()) {
-            std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered after the root node" << std::endl;
-            std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
-            std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
-            
-            cplex.exportModel("model_err.lp");
-            throw std::runtime_error("Some error occurred or the problem is infeasible");
-        }
+    // Solve the rest of the BB tree
+    cplex.setParam(IloCplex::NodeLim, 2100000000);
+    
+    auto success = cplex.solve();
+    
+    if(!success && cplex.getCplexStatus() != IloCplex::NodeLimInfeas) {
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered after the root node" << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+        
+        cplex.exportModel("model_err.lp");
+        throw std::runtime_error("Some error occurred or the problem is infeasible");
     }
 
     auto t_end_total = high_resolution_clock::now();
