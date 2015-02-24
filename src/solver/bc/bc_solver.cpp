@@ -293,7 +293,7 @@ path bc_solver::solve(bool k_opt) {
     
     auto success = cplex.solve();
     
-    if(!success && cplex.getCplexStatus() != IloCplex::NodeLimInfeas) {
+    if(!success && cplex.getCplexStatus() != IloCplex::NodeLimInfeas && cplex.getCplexStatus() != IloCplex::AbortTimeLim) {
         std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered after the root node" << std::endl;
         std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
         std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
