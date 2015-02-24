@@ -23,7 +23,6 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
         auto cycle = std::find(visited_nodes.begin(), visited_nodes.end(), current_node);
         if(cycle != visited_nodes.end()) {
             std::cerr << "path.cpp::path() \t Cycle: the path comes back to " << *cycle << std::endl;
-            throw std::runtime_error("Trying to create a path with a cycle!");
         }
         for(auto j = 0; j <= 2 * n + 1; j++) {
             if(std::abs(x[current_node][j] - 1) < eps) {
@@ -46,7 +45,6 @@ path::path(const tsp_graph& g, const std::vector<std::vector<int>>& x) {
             std::cerr << path_v[i] << " ";
         }
         std::cerr << std::endl;
-        throw std::runtime_error("K-opt heuristic produced a short path!");
     }
 }
 

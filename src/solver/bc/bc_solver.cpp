@@ -317,38 +317,43 @@ path bc_solver::solve(bool k_opt) {
     
     if(k_opt) { data.time_spent_by_k_opt_heuristics += total_cplex_time; }
     
-    IloNumArray x(env);    
-    cplex.getValues(x, variables_x);
-
-    // Get solution
-    auto col_index = 0;
-    auto solution_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
-    for(auto i = 0; i <= 2 * n + 1; i++) {
-        for(auto j = 0; j <= 2 * n + 1; j++) {
-            if(g.cost[i][j] >= 0) {
-                if(x[col_index++] > eps) {
-                    solution_x[i][j] = 1;
+    auto opt_solution_path = path();
+    
+    if(cplex.isPrimalFeasible()) {
+        // Get solution
+        IloNumArray x(env);
+        auto col_index = 0;
+        auto solution_x = std::vector<std::vector<int>>(2 * n + 2, std::vector<int>(2 * n + 2, 0));
+        
+        cplex.getValues(x, variables_x);
+        
+        for(auto i = 0; i <= 2 * n + 1; i++) {
+            for(auto j = 0; j <= 2 * n + 1; j++) {
+                if(g.cost[i][j] >= 0) {
+                    if(x[col_index++] > eps) {
+                        solution_x[i][j] = 1;
+                    }
                 }
             }
         }
-    }
-    
-    if(DEBUG && !k_opt) {
-        print_x_variables(solution_x);
-    }
-    
-    auto opt_solution_path = path(g, solution_x);
-    
-    if(!opt_solution_path.verify_feasible(g)) {
-        std::cerr << "bc_solver.cpp::solve() \t The optimal solution is infeasible!" << std::endl;
-    } else {
-        if(!k_opt) {
-            print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored);
+        
+        if(DEBUG && !k_opt) {
+            print_x_variables(solution_x);
         }
+        
+        opt_solution_path = path(g, solution_x);
+    
+        if(!opt_solution_path.verify_feasible(g)) {
+            std::cerr << "bc_solver.cpp::solve() \t The optimal solution is infeasible!" << std::endl;
+        }
+    }
+    
+    if(!k_opt) {
+        print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored);
     }
 
     env.end();
-        
+
     return opt_solution_path;
 }
 
