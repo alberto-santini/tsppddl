@@ -291,24 +291,17 @@ path bc_solver::solve(bool k_opt) {
     // Solve the rest of the BB tree
     cplex.setParam(IloCplex::NodeLim, 2100000000);
     
-    auto success = cplex.solve();
+    cplex.solve();
     
-    if(!success && cplex.getCplexStatus() != IloCplex::NodeLimInfeas && cplex.getCplexStatus() != IloCplex::AbortTimeLim) {
-        std::cerr << "bc_solver.cpp::solve() \t CPLEX problem encountered after the root node" << std::endl;
-        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
-        std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
-        
-        cplex.exportModel("model_err.lp");
-        throw std::runtime_error("Some error occurred or the problem is infeasible");
-    }
-
     auto t_end_total = high_resolution_clock::now();
     auto time_span_total = duration_cast<duration<double>>(t_end_total - t_start);
 
     if(!k_opt) {
-        IloAlgorithm::Status status = cplex.getStatus();
-        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << status << std::endl;
-        std::cerr << "bc_solver.cpp::solve() \t Objective value: " << cplex.getObjValue() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX status: " << cplex.getStatus() << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t CPLEX ext status: " << cplex.getCplexStatus() << std::endl;
+        if(cplex.isPrimalFeasible()) {
+            std::cerr << "bc_solver.cpp::solve() \t Objective value: " << cplex.getObjValue() << std::endl;
+        }
     }
 
     total_bb_nodes_explored = cplex.getNnodes();
