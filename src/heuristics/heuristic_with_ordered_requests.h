@@ -10,13 +10,19 @@
 #include <stdexcept>
 #include <utility>
 
-template<class RC, class IC>
+struct default_requests_vector_sorter {
+    bool is_custom = false;
+    void sort_in_place(std::vector<int>& whatever) const {}
+};
+
+template<class RequestComparator, class InsertionComparator, class RequestsVectorSorter = default_requests_vector_sorter>
 class heuristic_with_ordered_requests : public heuristic {
-    IC insertion_comparator;
+    InsertionComparator insertion_comparator;
+    RequestsVectorSorter requests_vector_sorter;
     bool insert(int req);
 
 public:
-    heuristic_with_ordered_requests(const tsp_graph& g, const RC& rc, const IC& ic);
+    heuristic_with_ordered_requests(const tsp_graph& g, const RequestComparator& rc, const InsertionComparator& ic, const RequestsVectorSorter& requests_vector_sorter = RequestsVectorSorter());
     boost::optional<path> solve();
 };
 

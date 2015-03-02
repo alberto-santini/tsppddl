@@ -19,16 +19,27 @@ program::program(const std::vector<std::string>& args) {
     
     load(args[1], args[0]);
     
-    if(args[2] != "branch_and_cut" && args[2] != "subgradient" && args[2] != "tabu") {
+    std::vector<std::string> possible_parameters = {
+        "branch_and_cut",
+        "subgradient",
+        "tabu",
+        "heuristics"
+    };
+    
+    if(std::find(possible_parameters.begin(), possible_parameters.end(), args[2]) == possible_parameters.end()) {
         print_usage();
         return;
     }
     
     auto heuristic_solutions = std::vector<path>();
+    auto hsolv = heuristic_solver(g, params, data);
     
-    if(params.bc.use_initial_solutions) {
-        auto hsolv = heuristic_solver(g, params, data);
-        heuristic_solutions = hsolv.solve();
+    if(args[2] == "heuristics") {
+        heuristic_solutions = hsolv.run_constructive();
+    } else {
+        if(params.bc.use_initial_solutions) {
+            heuristic_solutions = hsolv.run_all();
+        }
     }
 
     if(args[2] == "branch_and_cut") {
@@ -58,4 +69,5 @@ void program::print_usage() {
     std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut" << std::endl;
     std::cout << "\t\t subgradient: to start solving the problem with lagrangian relaxation and the subgradient method" << std::endl;
     std::cout << "\t\t tabu: to start solving the problem with the tabu search metaheuristic algorithm" << std::endl;
+    std::cout << "\t\t heuristics: run the constructive heuristics" << std::endl;
 }
