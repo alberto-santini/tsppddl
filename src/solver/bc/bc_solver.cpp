@@ -381,7 +381,7 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     if(initial_solutions.empty()) {
         best_heur_solution = std::numeric_limits<double>::max();
     } else {
-        (*std::min_element(
+        best_heur_solution = (*std::min_element(
             initial_solutions.begin(),
             initial_solutions.end(),
             [] (const path& p1, const path& p2) -> bool {
