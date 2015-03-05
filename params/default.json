@@ -16,7 +16,7 @@
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "use_initial_solutions":        true,
-        "results_dir":                  "../results/branch_and_cut/",
+        "results_dir":                  "../results/branch_and_cut/default/",
         
         "feasibility_cuts": {
             "cut_every_n_nodes":        1
@@ -62,6 +62,12 @@
         "results_dir":                  "../results/tabu_search/",
         "track_progress":               true,
         "progress_results_dir":         "../results/tabu_search_progress/"
+    },
+    
+    "constructive_heuristics": {
+        "print_solutions":              true,
+        "results_dir":                  "../results/heur/",
+        "solutions_dir":                "../results/heur_solutions/"
     },
     
     "cplex_threads":                    1,
