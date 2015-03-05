@@ -19,6 +19,7 @@
 *.dot*
 *.png
 results.txt
+results/**.txt
 .idea
 tabu_search_progress
 
