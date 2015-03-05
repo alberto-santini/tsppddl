@@ -16,13 +16,13 @@ std::vector<path> heuristic_solver::run_constructive() {
     
     // Drop a request (and don't insert it) when the ratio
     // (best_load / best_cost) > (new_load / new_cost)
-    auto ic1 = [] (int c1, int l1, int c2, int l2) -> bool {
+    auto compare_load_over_cost = [] (int c1, int l1, int c2, int l2) -> bool {
         return ((double)l1 / (double) c1) > ((double)l2 / (double)c2);
     };
     
     // Drop a request (and don't insert it) when the ratio
     // (best_load * best_cost) < (new_load * new_cost)
-    auto ic2 = [] (int c1, int l1, int c2, int l2) -> bool {
+    auto compare_load_times_cost = [] (int c1, int l1, int c2, int l2) -> bool {
         if(l1 * c1 == 0) { return false; }
         if(l2 * c2 == 0) { return true; }
         return ((double)l1 * (double) c1) < ((double)l2 * (double)c2);
@@ -30,7 +30,7 @@ std::vector<path> heuristic_solver::run_constructive() {
     
     // Drop a request (and don't insert it) when
     // best_cost < new_cost
-    auto ic3 = [] (int c1, int l1, int c2, int l2) -> bool {
+    auto compare_cost = [] (int c1, int l1, int c2, int l2) -> bool {
         return (c1 < c2);
     };
     
@@ -48,13 +48,13 @@ std::vector<path> heuristic_solver::run_constructive() {
     
     // Request comparator, request 1 is better than request 2 if
     // the distance between its origin and destination is SMALLER than for request 2
-    auto rc1 = [this] (int r1, int r2) -> bool {
+    auto compare_origin_destination_distance_small = [this] (int r1, int r2) -> bool {
         return (this->g.cost[r1][r1 + this->g.g[graph_bundle].n] < this->g.cost[r2][r2 + this->g.g[graph_bundle].n]);
     };
     
     // Request comparator, request 1 is better than request 2 if
     // the distance between its origin and destination is LARGER than for request 2
-    auto rc2 = [this] (int r1, int r2) -> bool {
+    auto compare_origin_destination_distance_large = [this] (int r1, int r2) -> bool {
         return (this->g.cost[r1][r1 + this->g.g[graph_bundle].n] > this->g.cost[r2][r2 + this->g.g[graph_bundle].n]);
     };
     
@@ -115,7 +115,7 @@ std::vector<path> heuristic_solver::run_constructive() {
     
     //  CONSTRUCTIVE HEURISTICS
     
-    auto h1 = max_regret_heuristic<decltype(ic1), decltype(rg1)>(g, ic1, rg1);
+    auto h1 = max_regret_heuristic<decltype(compare_load_over_cost), decltype(rg1)>(g, compare_load_over_cost, rg1);
     auto t_start = high_resolution_clock::now();
     auto p1 = h1.solve();
     auto t_end = high_resolution_clock::now();
@@ -129,7 +129,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
 
-    auto h2 = max_regret_heuristic<decltype(ic2), decltype(rg2)>(g, ic2, rg2);
+    auto h2 = max_regret_heuristic<decltype(compare_load_times_cost), decltype(rg2)>(g, compare_load_times_cost, rg2);
     t_start = high_resolution_clock::now();
     auto p2 = h2.solve();
     t_end = high_resolution_clock::now();
@@ -143,7 +143,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h3 = heuristic_with_ordered_requests<decltype(rc1), decltype(ic3)>(g, rc1, ic3);
+    auto h3 = heuristic_with_ordered_requests<decltype(compare_origin_destination_distance_small), decltype(compare_cost)>(g, compare_origin_destination_distance_small, compare_cost);
     t_start = high_resolution_clock::now();
     auto p3 = h3.solve();
     t_end = high_resolution_clock::now();
@@ -157,7 +157,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h4 = heuristic_with_ordered_requests<decltype(rc2), decltype(ic3)>(g, rc2, ic3);
+    auto h4 = heuristic_with_ordered_requests<decltype(compare_origin_destination_distance_large), decltype(compare_cost)>(g, compare_origin_destination_distance_large, compare_cost);
     t_start = high_resolution_clock::now();
     auto p4 = h4.solve();
     t_end = high_resolution_clock::now();
@@ -171,7 +171,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h5 = best_insertion_heuristic<decltype(ic1)>(g, ic1);
+    auto h5 = best_insertion_heuristic<decltype(compare_load_over_cost)>(g, compare_load_over_cost);
     t_start = high_resolution_clock::now();
     auto p5 = h5.solve();
     t_end = high_resolution_clock::now();
@@ -185,7 +185,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h6 = best_insertion_heuristic<decltype(ic2)>(g, ic2);
+    auto h6 = best_insertion_heuristic<decltype(compare_load_times_cost)>(g, compare_load_times_cost);
     t_start = high_resolution_clock::now();
     auto p6 = h6.solve();
     t_end = high_resolution_clock::now();
@@ -199,7 +199,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h7 = heuristic_with_ordered_requests<decltype(rc1), decltype(ic3), sort_with_low_draught_first_or_last>(g, rc1, ic3, low_draught_sorter);
+    auto h7 = heuristic_with_ordered_requests<decltype(compare_origin_destination_distance_small), decltype(compare_cost), sort_with_low_draught_first_or_last>(g, compare_origin_destination_distance_small, compare_cost, low_draught_sorter);
     t_start = high_resolution_clock::now();
     auto p7 = h7.solve();
     t_end = high_resolution_clock::now();
@@ -213,7 +213,7 @@ std::vector<path> heuristic_solver::run_constructive() {
         std::cout << "xxxx\t";
     }
     
-    auto h8 = heuristic_with_ordered_requests<decltype(rc2), decltype(ic3), sort_with_low_draught_first_or_last>(g, rc2, ic3, low_draught_sorter);
+    auto h8 = heuristic_with_ordered_requests<decltype(compare_origin_destination_distance_large), decltype(compare_cost), sort_with_low_draught_first_or_last>(g, compare_origin_destination_distance_large, compare_cost, low_draught_sorter);
     t_start = high_resolution_clock::now();
     auto p8 = h8.solve();
     t_end = high_resolution_clock::now();
