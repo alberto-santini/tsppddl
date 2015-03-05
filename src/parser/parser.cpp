@@ -159,6 +159,11 @@ program_params  parser::read_program_params() const {
             pt.get<bool>("tabu_search.track_progress"),
             pt.get<std::string>("tabu_search.progress_results_dir")
         ),
+        constructive_heuristics_params(
+            pt.get<bool>("constructive_heuristics.print_solutions"),
+            pt.get<std::string>("constructive_heuristics.results_dir"),
+            pt.get<std::string>("constructive_heuristics.solutions_dir")
+        ),
         pt.get<unsigned int>("cplex_threads"),
         pt.get<unsigned int>("cplex_timeout")
     );

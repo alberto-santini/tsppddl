@@ -56,6 +56,7 @@ set(SOURCE_FILES
     src/network/tsp_graph.cpp
     src/network/tsp_graph.h
     src/parser/params/bc_params.h
+    src/parser/params/constructive_heuristics_params.h
     src/parser/params/k_opt_params.h
     src/parser/params/subgradient_params.h
     src/parser/params/tabu_search_params.h

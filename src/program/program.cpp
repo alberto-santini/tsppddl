@@ -32,13 +32,13 @@ program::program(const std::vector<std::string>& args) {
     }
     
     auto heuristic_solutions = std::vector<path>();
-    auto hsolv = heuristic_solver(g, params, data);
+    auto hsolv = heuristic_solver(g, params, data, args[0]);
     
     if(args[2] == "heuristics") {
-        heuristic_solutions = hsolv.run_constructive();
+        heuristic_solutions = hsolv.run_constructive_heuristics();
     } else {
         if(params.bc.use_initial_solutions) {
-            heuristic_solutions = hsolv.run_all();
+            heuristic_solutions = hsolv.run_all_heuristics();
         }
     }
 

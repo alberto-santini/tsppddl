@@ -13,12 +13,15 @@ class heuristic_solver {
     const program_params&   params;
     program_data&           data;
     std::vector<path>       paths;
+    std::string             instance_name;
+    
+    std::vector<path> run_k_opt();
+    std::vector<path> run_constructive(bool print_output);
     
 public:
-    heuristic_solver(tsp_graph& g, const program_params& params, program_data& data) : g{g}, params{params}, data{data} {}
-    std::vector<path> run_constructive();
-    std::vector<path> run_k_opt();
-    std::vector<path> run_all();
+    heuristic_solver(tsp_graph& g, const program_params& params, program_data& data, std::string instance_path);
+    std::vector<path> run_constructive_heuristics();
+    std::vector<path> run_all_heuristics();
 };
 
 #endif
