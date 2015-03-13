@@ -103,13 +103,13 @@ path tabu_solver::tabu_search(path init_sol) {
     auto consecutive_not_improved = 0u;
     auto iteration = 0u;
     auto progress_report = std::vector<std::pair<unsigned int, int>>();
+    auto kopt3solv = kopt3_solver(g);
     
     if(params.ts.track_progress) {
         progress_report.push_back(std::make_pair(0u, init_sol.total_cost));
     }
         
     while(iteration < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
-        auto kopt3solv = kopt3_solver(g);
         auto tabu_and_non_tabu = kopt3solv.solve(current_solution, tabu_list);
 
         auto overall_best_solution = tabu_and_non_tabu.overall_best;
