@@ -20,7 +20,8 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             y_lower.add(IloRange(env, -IloInfinity, 0.0));
             y_lower[row_n].setName(("y_lower_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
             y_upper.add(IloRange(env, 0.0, IloInfinity));
-            y_upper[row_n++].setName(("y_upper_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
+            y_upper[row_n].setName(("y_upper_" + std::to_string(i) + "_" + std::to_string(j)).c_str());
+            row_n++;
         }
     }
 }
