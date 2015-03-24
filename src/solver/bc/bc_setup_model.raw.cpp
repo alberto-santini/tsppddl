@@ -88,7 +88,18 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                                     alpha = g.demand[i];
                                 }
                             }
-                            beta = std::min(std::min(Q - std::max(0, g.demand[j]), g.draught[i]), g.draught[j] - std::max(0, g.demand[j]));
+                            
+                            auto min3 = [] (auto x, auto y, auto z) { return std::min(x, std::min(y,z)); };
+                            auto max3 = [] (auto x, auto y, auto z) { return std::max(x, std::max(y,z)); };
+                            
+                            beta = min3(
+                                g.draught[i] + std::min(0, g.demand[i]),
+                                g.draught[j] - std::max(0, g.demand[j]),
+                                Q - max3(0, -g.demand[i], g.demand[j])
+                            );
+
+                            // Old version (the new one is tighter than this):
+                            // beta = std::min(std::min(Q - std::max(0, g.demand[j]), g.draught[i]), g.draught[j] - std::max(0, g.demand[j]));
                         }
                         
                         col += y_lower[row_n](alpha);
