@@ -21,6 +21,7 @@ program::program(const std::vector<std::string>& args) {
     
     std::vector<std::string> possible_parameters = {
         "branch_and_cut",
+        "tabu_and_branch_and_cut",
         "subgradient",
         "tabu",
         "heuristics"
@@ -48,9 +49,15 @@ program::program(const std::vector<std::string>& args) {
     } else if(args[2] == "subgradient") {        
         auto ssolv = subgradient_solver(g, params, heuristic_solutions, args[0]);
         ssolv.solve();
-    } else if(args[2] == "tabu") {
+    } else if(args[2] == "tabu" || args[2] == "tabu_and_branch_and_cut") {
         auto tsolv = tabu_solver(g, params, data, heuristic_solutions, args[0]);
-        tsolv.solve();
+        auto sols = tsolv.solve_sequential();
+        
+        if(args[2] == "tabu_and_branch_and_cut") {
+            heuristic_solutions.insert(heuristic_solutions.end(), sols.begin(), sols.end());
+            auto bsolv = bc_solver(g, params, data, heuristic_solutions, args[0]);
+            bsolv.solve_with_branch_and_cut();
+        }
     }
 }
 
@@ -63,11 +70,12 @@ void program::load(const std::string& params_filename, const std::string& instan
 
 void program::print_usage() {
     std::cout << "Usage: " << std::endl;
-    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu]" << std::endl;
+    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu | heuristics | tabu_and_branch_and_cut]" << std::endl;
     std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
     std::cout << "\t\t params: path to the json file with the program params" << std::endl;
-    std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut" << std::endl;
+    std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut (warmstarted with heuristic solutions)" << std::endl;
     std::cout << "\t\t subgradient: to start solving the problem with lagrangian relaxation and the subgradient method" << std::endl;
     std::cout << "\t\t tabu: to start solving the problem with the tabu search metaheuristic algorithm" << std::endl;
-    std::cout << "\t\t heuristics: run the constructive heuristics" << std::endl;
+    std::cout << "\t\t heuristics: to run the constructive heuristics" << std::endl;
+    std::cout << "\t\t tabu_and_branch_and_cut: to start solving the problem with branch and cut (warmstarted with tabu metaheuristics solutions)" << std::endl;
 }
