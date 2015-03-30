@@ -117,10 +117,10 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     
     std::cout << "Heuristic solutions:         \t";
     
-    std::ofstream results_file, solutions_file;
+    std::ofstream results_file, summary_file, solutions_file;
     
     if(print_output) {
-        results_file.open(params.ch.results_dir + "/results.txt", std::ios::out | std::ios::app);
+        results_file.open(params.ch.results_dir + "/results_details.txt", std::ios::out | std::ios::app);
         results_file << instance_name << "\t";
     }
     
@@ -451,6 +451,30 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     if(print_output) {
         results_file << std::endl;
         results_file.close();
+    
+        summary_file.open(params.ch.results_dir + "/results.txt", std::ios::out | std::ios::app);
+        
+        auto name_parts = std::vector<std::string>();
+        boost::split(name_parts, instance_name, boost::is_any_of("_"));
+
+        summary_file << name_parts[0] << "\t";
+        summary_file << name_parts[1] << "\t";
+        summary_file << name_parts[2] << "\t";
+        summary_file << name_parts[3] << "\t";
+        
+        auto best_solution = std::numeric_limits<double>::max();
+        best_solution = (*std::min_element(
+            paths.begin(),
+            paths.end(),
+            [] (const path& p1, const path& p2) -> bool {
+                return (p1.total_cost < p2.total_cost);
+            }
+        )).total_cost;
+        
+        summary_file << best_solution << "\t";
+        summary_file << data.time_spent_by_constructive_heuristics << std::endl;
+        
+        summary_file.close();
     
         solutions_file.open(params.ch.solutions_dir + "/" + instance_name + ".txt", std::ios::out);
     
