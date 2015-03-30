@@ -86,10 +86,19 @@ tabu_solver::tabu_and_non_tabu_solutions kopt3_solver::solve(const path& startin
 }
 
 boost::optional<path> kopt3_solver::exec_3opt(const path& p, const std::vector<int>& i, const std::vector<int>& j) {
-    auto p_x = p.get_x_values(g.g[graph_bundle].n);
+    auto n = g.g[graph_bundle].n;
+    auto p_x = p.get_x_values(n);
     
     for(auto n = 0u; n <= 2u; n++) {
         p_x[i[n]][j[n]] = 0;
+    }
+    
+    if(j[1] > n && ((j[0] <= n && j[0] + n == j[1]) || (i[1] <= n && i[1] + n == j[1]))) {
+        return boost::none;
+    }
+    
+    if(i[2] > n && ((j[0] <= n && j[0] + n == i[2]) || (i[1] <= n && i[1] + n == i[2]))) {
+        return boost::none;
     }
     
     p_x[i[0]][j[1]] = 1;
