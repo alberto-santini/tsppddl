@@ -332,6 +332,8 @@ path bc_solver::solve(bool k_opt) {
             }
         }
         
+        x.end();
+        
         if(DEBUG && !k_opt) {
             print_x_variables(solution_x);
         }
