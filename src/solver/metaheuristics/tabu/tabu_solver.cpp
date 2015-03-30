@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 
-tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions, const std::string& instance_path) : g{g}, params{params}, data{data} {
+tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions, const std::string& instance_path) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
     auto path_parts = std::vector<std::string>();
     boost::split(path_parts, instance_path, boost::is_any_of("/"));
     auto file_parts = std::vector<std::string>();
@@ -37,15 +37,66 @@ tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_dat
     last = (std::distance(last, my_desired_last) >= 0) ? last : my_desired_last;
     
     sliced_initial_solutions = std::vector<path>(initial_solutions.begin(), last);
+}
+
+std::vector<path> tabu_solver::solve_sequential() {
+    std::cout << "Metaheuristic starts:    \t";
+    for(const auto& s : initial_solutions) {
+        std::cout << s.total_cost << "\t";
+    }
+    std::cout << std::endl;
     
+    auto solutions = std::vector<path>();
+    
+    using namespace std::chrono;
+    
+    auto t_start = high_resolution_clock::now();
+    
+    for(const auto& init_sol : initial_solutions) {
+        solutions.push_back(tabu_search(init_sol));
+    }
+    
+    auto t_end = high_resolution_clock::now();
+    auto time_span = duration_cast<duration<double>>(t_end - t_start);
+    data.time_spent_by_tabu_search = time_span.count();
+    
+    std::cout << "Metaheuristic solutions: \t";
+    for(const auto& path : solutions) {
+        std::cout << path.total_cost << "\t";
+    }
+    std::cout << std::endl;
+    std::cout << "Solutions obtained in " << data.time_spent_by_tabu_search << " seconds." << std::endl;
+    
+    print_results(solutions);
+    
+    return solutions;
+}
+
+void tabu_solver::print_results(const std::vector<path>& solutions) const {
+    auto best_result = (*std::min_element(
+            solutions.begin(),
+            solutions.end(),
+            [] (const auto& lhs, const auto& rhs) {
+                return lhs.total_cost < rhs.total_cost;
+            }
+    )).total_cost;
+    
+    std::ofstream results_file;
+    results_file.open(params.ts.results_dir + "results.txt", std::ios::out | std::ios::app);
+    results_file << instance_name << "\t";
+    results_file << best_result << "\t";
+    results_file << data.time_spent_by_tabu_search << "\t";
+    results_file << solutions.size() << std::endl;
+    results_file.close();
+}
+
+std::vector<path> tabu_solver::solve() {
     std::cout << "Metaheuristic starts:    \t";
     for(const auto& s : sliced_initial_solutions) {
         std::cout << s.total_cost << "\t";
     }
     std::cout << std::endl;
-}
-
-std::vector<path> tabu_solver::solve() {
+    
     auto solutions = std::vector<path>();
     auto threads = std::vector<std::thread>();
     std::mutex mtx;
@@ -80,18 +131,7 @@ std::vector<path> tabu_solver::solve() {
     std::cout << std::endl;
     std::cout << "Solutions obtained in " << data.time_spent_by_tabu_search << " seconds." << std::endl;
 
-    auto best_result = (*std::min_element(
-            solutions.begin(),
-            solutions.end(),
-            [] (const auto& lhs, const auto& rhs) {
-                return lhs.total_cost < rhs.total_cost;
-            }
-    )).total_cost;
-
-    std::ofstream results_file;
-    results_file.open(params.ts.results_dir + "results.txt", std::ios::out | std::ios::app);
-    results_file << instance_name << "\t" << best_result << "\t" << data.time_spent_by_tabu_search << std::endl;
-    results_file.close();
+    print_results(solutions);
 
     return solutions;
 }

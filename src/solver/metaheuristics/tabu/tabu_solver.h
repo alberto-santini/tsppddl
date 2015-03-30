@@ -13,6 +13,7 @@ class tabu_solver {
 public:
     tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions, const std::string& instance_path);
     std::vector<path> solve();
+    std::vector<path> solve_sequential();
 
     struct tabu_move {
         std::pair<int,int> vertices;
@@ -47,6 +48,7 @@ private:
     tsp_graph&              g;
     const program_params&   params;
     program_data&           data;
+    std::vector<path>       initial_solutions;
     std::vector<path>       sliced_initial_solutions;
     std::string             instance_name;
     
@@ -54,6 +56,7 @@ private:
 
     path tabu_search(path init_sol);
     void update_tabu_list(std::vector<tabu_move>& tabu_list, const tabu_solver::tabu_result& sol);
+    void print_results(const std::vector<path>& solutions) const;
 };
 
 #endif
