@@ -99,26 +99,18 @@ path bc_solver::solve(bool k_opt) {
             return kv.second;
         }
     );
-    
-    auto current_time = std::time(nullptr);
-    auto local_time = *std::localtime(&current_time);
 
-    // std::put_time not implemented as of GCC 4.9.2
-    // std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions:         \t";
-    char unbealivable_i_have_to_do_this_gcc_wtf[100];
-    if(std::strftime(unbealivable_i_have_to_do_this_gcc_wtf, sizeof(unbealivable_i_have_to_do_this_gcc_wtf), "%H-%M-%S", &local_time)) {
-        std::cerr << "bc_solver.cpp::solve() \t " << unbealivable_i_have_to_do_this_gcc_wtf;
-    }
+    if(DEBUG) {
+        std::cerr << "bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt;
+        if(!initial_solutions.empty()) {
+            std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
+        } else {
+            std::cerr << std::endl;
+        }
     
-    std::cerr << " Invoked with k_opt = " << std::boolalpha << k_opt;
-    if(!initial_solutions.empty()) {
-        std::cerr << " (initial solution value: " << initial_solutions.back().total_cost << ")" << std::endl;
-    } else {
-        std::cerr << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
+        std::cerr << "bc_solver.cpp::solve() \t Adding up to " << params.bc.max_infeas_subpaths << " unfeasible sub-paths to the model" << std::endl;
     }
-    
-    std::cerr << "bc_solver.cpp::solve() \t Currently have " << unfeasible_paths_n << " precomputed unfeasible sub-paths" << std::endl;
-    std::cerr << "bc_solver.cpp::solve() \t Adding up to " << params.bc.max_infeas_subpaths << " unfeasible sub-paths to the model" << std::endl;
 
     auto total_bb_nodes_explored = (long)0;
     auto number_of_cuts_added_at_root = (long)0;
@@ -159,7 +151,9 @@ path bc_solver::solve(bool k_opt) {
     auto t_model_end = high_resolution_clock::now();
     auto model_time_span = duration_cast<duration<double>>(t_model_end - t_model_start);
     
-    std::cerr << "bc_solver.cpp::solve() \t Model built in " << model_time_span.count() << " seconds" << std::endl;
+    if(DEBUG) {
+        std::cerr << "bc_solver.cpp::solve() \t Model built in " << model_time_span.count() << " seconds" << std::endl;
+    }
     
     model.add(obj);
     model.add(variables_x);

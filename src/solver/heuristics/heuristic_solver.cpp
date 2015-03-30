@@ -115,15 +115,7 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
         );
     };
     
-    auto current_time = std::time(nullptr);
-    auto local_time = *std::localtime(&current_time);
-    
-    // std::put_time not implemented as of GCC 4.9.2
-    // std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions:         \t";
-    char unbealivable_i_have_to_do_this_gcc_wtf[100];
-    if(std::strftime(unbealivable_i_have_to_do_this_gcc_wtf, sizeof(unbealivable_i_have_to_do_this_gcc_wtf), "%H-%M-%S", &local_time)) {
-        std::cout << unbealivable_i_have_to_do_this_gcc_wtf << " Heuristic solutions:         \t";
-    }
+    std::cout << "Heuristic solutions:         \t";
     
     std::ofstream results_file, solutions_file;
     
@@ -487,15 +479,7 @@ std::vector<path> heuristic_solver::run_k_opt() {
     auto h7 = k_opt_heuristic(g, params, data, appropriate_k_for_instance_size, paths);
     auto k_opt_paths = h7.solve(); // Time is counted within k_opt_heuristic
 
-    auto current_time = std::time(nullptr);
-    auto local_time = *std::localtime(&current_time);
-    
-    // std::put_time not implemented as of GCC 4.9.2
-    // std::cout << std::put_time(&local_time, "%H-%M-%S") << " Heuristic solutions:         \t";
-    char unbealivable_i_have_to_do_this_gcc_wtf[100];
-    if(std::strftime(unbealivable_i_have_to_do_this_gcc_wtf, sizeof(unbealivable_i_have_to_do_this_gcc_wtf), "%H-%M-%S", &local_time)) {
-        std::cout << unbealivable_i_have_to_do_this_gcc_wtf << " Heuristic solutions:         \t";
-    }
+    std::cout << "Heuristic solutions:         \t";
     
     for(const auto& path : k_opt_paths) {
          std::cout << path.total_cost << "\t";
