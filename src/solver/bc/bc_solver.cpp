@@ -243,6 +243,7 @@ path bc_solver::solve(bool k_opt) {
     // Set CPLEX parameters
     cplex.setParam(IloCplex::TiLim, params.cplex_timeout);
     cplex.setParam(IloCplex::Threads, params.cplex_threads);
+    cplex.setParam(IloCplex::Param::Parallel, IloCplex::Opportunistic);
     cplex.setParam(IloCplex::NodeLim, 0);
     
     if(k_opt && !DEBUG) {
