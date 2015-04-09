@@ -23,6 +23,15 @@ tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_dat
     last = (std::distance(last, my_desired_last) >= 0) ? last : my_desired_last;
     
     sliced_initial_solutions = std::vector<path>(initial_solutions.begin(), last);
+    
+    tabu_list_size = params.ts.tabu_list_size;
+}
+
+void tabu_solver::solve_parameter_tuning() {
+    for(auto lsize : params.ts_tuning.tabu_list_size) {
+        tabu_list_size = lsize;
+        solve_sequential();
+    }
 }
 
 std::vector<path> tabu_solver::solve_sequential() {
@@ -75,6 +84,7 @@ void tabu_solver::print_results(const std::vector<path>& solutions) const {
     results_file << g.g[graph_bundle].k << "\t";
     results_file << best_result << "\t";
     results_file << data.time_spent_by_tabu_search << "\t";
+    results_file << tabu_list_size << "\t";
     results_file << solutions.size() << std::endl;
     results_file.close();
 }
@@ -200,7 +210,7 @@ void tabu_solver::update_tabu_list(std::vector<tabu_move>& tabu_list, const tabu
         tabu_list.push_back(sol.shortest_erased_edge);
     }
     
-    if(tabu_list.size() > params.ts.tabu_list_size) {
+    if(tabu_list.size() > tabu_list_size) {
         tabu_list.erase(tabu_list.begin());
     }
 }

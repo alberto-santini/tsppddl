@@ -14,6 +14,7 @@ public:
     tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions);
     std::vector<path> solve();
     std::vector<path> solve_sequential();
+    void solve_parameter_tuning();
 
     struct tabu_move {
         std::pair<int,int> vertices;
@@ -50,6 +51,7 @@ private:
     program_data&           data;
     std::vector<path>       initial_solutions;
     std::vector<path>       sliced_initial_solutions;
+    unsigned int            tabu_list_size;
     
     static constexpr double eps = 0.0001;
 

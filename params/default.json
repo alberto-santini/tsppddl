@@ -64,6 +64,10 @@
         "progress_results_dir":         "../results/tabu_search_progress/"
     },
     
+    "tabu_tuning": {
+        "tabu_list_size":               [3, 5, 7, 10, 15, 30, 60, 100]
+    },
+    
     "constructive_heuristics": {
         "print_solutions":              true,
         "results_dir":                  "../results/heur/",

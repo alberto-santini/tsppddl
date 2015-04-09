@@ -22,6 +22,7 @@ program::program(const std::vector<std::string>& args) {
     std::vector<std::string> possible_parameters = {
         "branch_and_cut",
         "tabu_and_branch_and_cut",
+        "tabu_tuning",
         "subgradient",
         "tabu",
         "heuristics"
@@ -58,6 +59,9 @@ program::program(const std::vector<std::string>& args) {
             auto bsolv = bc_solver(g, params, data, heuristic_solutions);
             bsolv.solve_with_branch_and_cut();
         }
+    } else if(args[2] == "tabu_tuning") {
+        auto tsolv = tabu_solver(g, params, data, heuristic_solutions);
+        tsolv.solve_parameter_tuning();
     }
 }
 
@@ -76,6 +80,7 @@ void program::print_usage() {
     std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut (warmstarted with heuristic solutions)" << std::endl;
     std::cout << "\t\t subgradient: to start solving the problem with lagrangian relaxation and the subgradient method" << std::endl;
     std::cout << "\t\t tabu: to start solving the problem with the tabu search metaheuristic algorithm" << std::endl;
+    std::cout << "\t\t tabu_tuning: to start the parameter tuning for the tabu search metaheuristic algorithm" << std::endl;
     std::cout << "\t\t heuristics: to run the constructive heuristics" << std::endl;
     std::cout << "\t\t tabu_and_branch_and_cut: to start solving the problem with branch and cut (warmstarted with tabu metaheuristics solutions)" << std::endl;
 }

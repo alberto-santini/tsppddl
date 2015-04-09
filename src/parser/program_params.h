@@ -12,12 +12,13 @@ struct program_params  {
     subgradient_params sg;
     branch_and_cut_params bc;
     tabu_search_params ts;
+    tabu_search_tuning_params ts_tuning;
     constructive_heuristics_params ch;
     unsigned int cplex_threads;
     unsigned int cplex_timeout;
     
     program_params() {}
-    program_params(k_opt_params ko, subgradient_params sg, branch_and_cut_params bc, tabu_search_params ts, constructive_heuristics_params ch, unsigned int cplex_threads, unsigned int cplex_timeout) : ko{std::move(ko)}, sg{std::move(sg)}, bc{std::move(bc)}, ts{std::move(ts)}, ch{std::move(ch)}, cplex_threads{cplex_threads}, cplex_timeout{cplex_timeout} {}
+    program_params(k_opt_params ko, subgradient_params sg, branch_and_cut_params bc, tabu_search_params ts, tabu_search_tuning_params ts_tuning, constructive_heuristics_params ch, unsigned int cplex_threads, unsigned int cplex_timeout) : ko{std::move(ko)}, sg{std::move(sg)}, bc{std::move(bc)}, ts{std::move(ts)}, ts_tuning{std::move(ts_tuning)}, ch{std::move(ch)}, cplex_threads{cplex_threads}, cplex_timeout{cplex_timeout} {}
 };
 
 #endif
