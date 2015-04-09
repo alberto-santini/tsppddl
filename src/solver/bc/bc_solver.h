@@ -21,7 +21,6 @@ class bc_solver {
     const program_params&           params;
     program_data&                   data;
     std::vector<path>               initial_solutions;
-    std::string                     instance_name;
     std::string                     results_subdir;
     
     // x and y of initial_solutions
@@ -41,7 +40,7 @@ class bc_solver {
     void print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored);
     
 public:
-    bc_solver(tsp_graph& g, const program_params& params, program_data& data, const std::vector<path>& initial_solutions, const std::string& instance_path = "");
+    bc_solver(tsp_graph& g, const program_params& params, program_data& data, const std::vector<path>& initial_solutions);
     void solve_with_branch_and_cut();
     path solve_for_k_opt(const path& solution, const std::vector<std::vector<int>>& lhs, int rhs);
 };

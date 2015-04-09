@@ -9,6 +9,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -38,7 +39,7 @@ struct tsp_graph {
     infeasible_paths_map infeas_list;
 
     tsp_graph() {}
-    tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity);
+    tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity, std::string instance_path);
     
     tsp_graph make_reverse_tsp_graph() const;
     bool is_path_eliminable(int i, int j, int k) const;

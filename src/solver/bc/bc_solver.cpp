@@ -6,10 +6,6 @@
 
 #include <ilcplex/ilocplex.h>
 
-// #include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
-
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -20,33 +16,9 @@
 #include <sstream>
 #include <stdexcept>
 
-bc_solver::bc_solver(tsp_graph& g, const program_params& params, program_data& data, const std::vector<path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
+bc_solver::bc_solver(tsp_graph& g, const program_params& params, program_data& data, const std::vector<path>& initial_solutions) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
     add_initial_solution_vals();
-    
-    // PORTABLE WAY:
-    // boost::filesystem::path i_path(instance_path);
-    // std::stringstream ss;
-    // ss << i_path.stem();
-    // instance_name = ss.str();
-    
-    // NOT-PORTABLE WAY:
-    auto path_parts = std::vector<std::string>();
-    boost::split(path_parts, instance_path, boost::is_any_of("/"));
-    auto file_parts = std::vector<std::string>();
-    boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
-    
-    if(file_parts.size() > 1) {
-        file_parts.pop_back();
-    }
-    
-    instance_name = boost::algorithm::join(file_parts, ".");
-        
-    if(path_parts.size() > 1) {
-        results_subdir = path_parts.at(path_parts.size() - 2);
-        create_results_dir(0750, params.bc.results_dir + results_subdir);
-    } else {
-        results_subdir = "k-opt";
-    }
+    create_results_dir(0750, params.bc.results_dir + g.g[graph_bundle].instance_dir);
 }
 
 void bc_solver::add_initial_solution_vals() {
@@ -232,7 +204,7 @@ path bc_solver::solve(bool k_opt) {
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
-        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, instance_name, g));
+        cplex.use(print_relaxation_graph_callback_handle(env, variables_x, variables_y, g));
     }
 
     // Export model to file
@@ -388,15 +360,12 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     }
 
     std::ofstream results_file;
-    results_file.open(params.bc.results_dir + results_subdir + "/results.txt", std::ios::out | std::ios::app);
+    results_file.open(params.bc.results_dir + g.g[graph_bundle].instance_dir + "/results.txt", std::ios::out | std::ios::app);
 
-    auto name_parts = std::vector<std::string>();
-    boost::split(name_parts, instance_name, boost::is_any_of("_"));
-
-    results_file << name_parts[0] << "\t";
-    results_file << name_parts[1] << "\t";
-    results_file << name_parts[2] << "\t";
-    results_file << name_parts[3] << "\t";
+    results_file << g.g[graph_bundle].instance_name << "\t";
+    results_file << g.g[graph_bundle].n << "\t";
+    results_file << g.g[graph_bundle].h << "\t";
+    results_file << g.g[graph_bundle].k << "\t";
 
     // TIMES
     results_file << total_cplex_time << "\t";

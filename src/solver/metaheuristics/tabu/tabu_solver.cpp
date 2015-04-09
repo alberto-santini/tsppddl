@@ -6,21 +6,7 @@
 #include <mutex>
 #include <thread>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
-
-tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions, const std::string& instance_path) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
-    auto path_parts = std::vector<std::string>();
-    boost::split(path_parts, instance_path, boost::is_any_of("/"));
-    auto file_parts = std::vector<std::string>();
-    boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
-
-    if(file_parts.size() > 1) {
-        file_parts.pop_back();
-    }
-
-    instance_name = boost::algorithm::join(file_parts, ".");
-
+tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
     auto max_parallel_searches = std::min((unsigned int) params.ts.max_parallel_searches, (unsigned int) initial_solutions.size());
     
     std::partial_sort(
@@ -83,7 +69,10 @@ void tabu_solver::print_results(const std::vector<path>& solutions) const {
     
     std::ofstream results_file;
     results_file.open(params.ts.results_dir + "results.txt", std::ios::out | std::ios::app);
-    results_file << instance_name << "\t";
+    results_file << g.g[graph_bundle].instance_base_name << "\t";
+    results_file << g.g[graph_bundle].n << "\t";
+    results_file << g.g[graph_bundle].h << "\t";
+    results_file << g.g[graph_bundle].k << "\t";
     results_file << best_result << "\t";
     results_file << data.time_spent_by_tabu_search << "\t";
     results_file << solutions.size() << std::endl;
@@ -191,7 +180,7 @@ path tabu_solver::tabu_search(path init_sol) {
         std::uniform_int_distribution<> dis(1, 9999);
         
         std::stringstream file_name_ss;
-        file_name_ss << params.ts.progress_results_dir << instance_name << "_" << dis(gen) << ".dat";
+        file_name_ss << params.ts.progress_results_dir << g.g[graph_bundle].instance_name << "_" << dis(gen) << ".dat";
         
         std::ofstream progress_file;
         progress_file.open(file_name_ss.str(), std::ios::out | std::ios::app);

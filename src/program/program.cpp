@@ -33,7 +33,7 @@ program::program(const std::vector<std::string>& args) {
     }
     
     auto heuristic_solutions = std::vector<path>();
-    auto hsolv = heuristic_solver(g, params, data, args[0]);
+    auto hsolv = heuristic_solver(g, params, data);
     
     if(args[2] == "heuristics") {
         heuristic_solutions = hsolv.run_constructive_heuristics();
@@ -44,18 +44,18 @@ program::program(const std::vector<std::string>& args) {
     }
 
     if(args[2] == "branch_and_cut") {
-        auto bsolv = bc_solver(g, params, data, heuristic_solutions, args[0]);
+        auto bsolv = bc_solver(g, params, data, heuristic_solutions);
         bsolv.solve_with_branch_and_cut();
     } else if(args[2] == "subgradient") {        
-        auto ssolv = subgradient_solver(g, params, heuristic_solutions, args[0]);
+        auto ssolv = subgradient_solver(g, params, heuristic_solutions);
         ssolv.solve();
     } else if(args[2] == "tabu" || args[2] == "tabu_and_branch_and_cut") {
-        auto tsolv = tabu_solver(g, params, data, heuristic_solutions, args[0]);
+        auto tsolv = tabu_solver(g, params, data, heuristic_solutions);
         auto sols = tsolv.solve_sequential();
         
         if(args[2] == "tabu_and_branch_and_cut") {
             heuristic_solutions.insert(heuristic_solutions.end(), sols.begin(), sols.end());
-            auto bsolv = bc_solver(g, params, data, heuristic_solutions, args[0]);
+            auto bsolv = bc_solver(g, params, data, heuristic_solutions);
             bsolv.solve_with_branch_and_cut();
         }
     }

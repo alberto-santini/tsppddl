@@ -5,36 +5,12 @@
 #include <heuristics/k_opt_heuristic.h>
 #include <heuristics/max_regret_heuristic.h>
 
-// #include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
-
 #include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <ratio>
-
-heuristic_solver::heuristic_solver(tsp_graph& g, const program_params& params, program_data& data, std::string instance_path) : g{g}, params{params}, data{data} {
-    // PORTABLE WAY:
-    // boost::filesystem::path i_path(instance_path);
-    // std::stringstream ss;
-    // ss << i_path.stem();
-    // instance_name = ss.str();
-    
-    // NOT-PORTABLE WAY:
-    auto path_parts = std::vector<std::string>();
-    boost::split(path_parts, instance_path, boost::is_any_of("/"));
-    auto file_parts = std::vector<std::string>();
-    boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
-    
-    if(file_parts.size() > 1) {
-        file_parts.pop_back();
-    }
-    
-    instance_name = boost::algorithm::join(file_parts, ".");
-}
 
 std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     using namespace std::chrono;
@@ -121,7 +97,7 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     
     if(print_output) {
         results_file.open(params.ch.results_dir + "/results_details.txt", std::ios::out | std::ios::app);
-        results_file << instance_name << "\t";
+        results_file << g.g[graph_bundle].instance_name << "\t";
     }
     
     //  CONSTRUCTIVE HEURISTICS
@@ -454,13 +430,10 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     
         summary_file.open(params.ch.results_dir + "/results.txt", std::ios::out | std::ios::app);
         
-        auto name_parts = std::vector<std::string>();
-        boost::split(name_parts, instance_name, boost::is_any_of("_"));
-
-        summary_file << name_parts[0] << "\t";
-        summary_file << name_parts[1] << "\t";
-        summary_file << name_parts[2] << "\t";
-        summary_file << name_parts[3] << "\t";
+        summary_file << g.g[graph_bundle].instance_base_name << "\t";
+        summary_file << g.g[graph_bundle].n << "\t";
+        summary_file << g.g[graph_bundle].h << "\t";
+        summary_file << g.g[graph_bundle].k << "\t";
         
         auto best_solution = std::numeric_limits<double>::max();
         best_solution = (*std::min_element(
@@ -476,7 +449,7 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
         
         summary_file.close();
     
-        solutions_file.open(params.ch.solutions_dir + "/" + instance_name + ".txt", std::ios::out);
+        solutions_file.open(params.ch.solutions_dir + "/" + g.g[graph_bundle].instance_name + ".txt", std::ios::out);
     
         for(auto i = 0u; i < paths.back().load_v.size(); i++) {
             for(auto p = 0u; p < paths.size(); p++) {

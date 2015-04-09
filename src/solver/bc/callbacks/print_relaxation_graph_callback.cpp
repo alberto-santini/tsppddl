@@ -34,5 +34,5 @@ void print_relaxation_graph_callback::main() {
     }
 
     auto gw = graph_writer(g, std::move(solution_x), std::move(solution_y));
-    gw.write("graphs/" + instance_name + "." + std::to_string(node_number));
+    gw.write("graphs/" + g.g[graph_bundle].instance_name + "." + std::to_string(node_number));
 }

@@ -11,7 +11,7 @@
 
 class tabu_solver {
 public:
-    tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions, const std::string& instance_path);
+    tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions);
     std::vector<path> solve();
     std::vector<path> solve_sequential();
 
@@ -50,7 +50,6 @@ private:
     program_data&           data;
     std::vector<path>       initial_solutions;
     std::vector<path>       sliced_initial_solutions;
-    std::string             instance_name;
     
     static constexpr double eps = 0.0001;
 

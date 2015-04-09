@@ -89,7 +89,7 @@ tsp_graph parser::generate_tsp_graph() const {
         }
     }
     
-    return tsp_graph(demand, draught, cost, capacity);
+    return tsp_graph(demand, draught, cost, capacity, instance_file_name);
 }
 
 program_params  parser::read_program_params() const {
@@ -101,6 +101,11 @@ program_params  parser::read_program_params() const {
     auto instance_size_limits = k_opt_params::k_opt_limits();
     BOOST_FOREACH(const ptree::value_type& limit_pair, pt.get_child("k_opt.instance_size_limit")) {
         instance_size_limits.push_back(k_opt_params::k_opt_limit(limit_pair.second.get<unsigned int>("k"), limit_pair.second.get<unsigned int>("n")));
+    }
+    
+    auto tabu_tuning_list_size = std::vector<unsigned int>();
+    BOOST_FOREACH(const ptree::value_type& lsize, pt.get_child("tabu_tuning.tabu_list_size")) {
+        tabu_tuning_list_size.push_back(lsize.second.get<unsigned int>(""));
     }
     
     return program_params(
@@ -158,6 +163,9 @@ program_params  parser::read_program_params() const {
             pt.get<std::string>("tabu_search.results_dir"),
             pt.get<bool>("tabu_search.track_progress"),
             pt.get<std::string>("tabu_search.progress_results_dir")
+        ),
+        tabu_search_tuning_params(
+            tabu_tuning_list_size
         ),
         constructive_heuristics_params(
             pt.get<bool>("constructive_heuristics.print_solutions"),

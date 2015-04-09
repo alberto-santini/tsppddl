@@ -8,7 +8,7 @@ std::vector<path> k_opt_heuristic::solve() const {
     for(const auto& solution : initial_solutions) {
         if(solution.path_v.size() > 0) {
             auto sol_x = solution.get_x_values(n);
-            auto msolv = bc_solver(g, params, data, initial_solutions, (std::to_string(k) + "-opt"));
+            auto msolv = bc_solver(g, params, data, initial_solutions);
             auto p = msolv.solve_for_k_opt(solution, sol_x, (2 * n) + 1 - k);
         
             paths.push_back(p);

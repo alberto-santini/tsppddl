@@ -27,7 +27,6 @@ class subgradient_solver {
     const tsp_graph&        g;
     const program_params&   params;
     std::vector<path>       initial_solutions;
-    std::string             instance_name;
     double                  best_sol;
     
     void print_headers(std::ofstream& results_file) const;
@@ -36,7 +35,7 @@ class subgradient_solver {
     void print_mult_dump_headers(std::ofstream& dump_file) const;
 	void print_mult_dump(std::ofstream& dump_file, const std::vector<std::vector<double>>& L, const std::vector<std::vector<double>>& lambda, const IloNumArray& x, const IloNumArray& t) const;
 public:
-    subgradient_solver(const tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path);
+    subgradient_solver(const tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions) : g{g}, params{params}, initial_solutions{initial_solutions}, best_sol{std::numeric_limits<double>::max()} {}
     void solve();
 };
 

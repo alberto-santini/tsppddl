@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-tsp_graph::tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity) : demand{demand}, draught{draught}, cost{cost} {
+tsp_graph::tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity, std::string instance_path) : demand{demand}, draught{draught}, cost{cost} {
     auto n = (size_t)((demand.size() - 2) / 2);
     
     assert(demand.size() == (2 * n + 2));
     assert(draught.size() == (2 * n + 2));
     assert(cost.size() == (2 * n + 2));
     
-    g[graph_bundle] = graph_info(n, capacity);
+    g[graph_bundle] = graph_info(n, capacity, instance_path);
 
     auto start_depot = node(0, demand[0], draught[0]);
     auto end_depot = node(2*n+1, demand[2*n+1], draught[2*n+1]);

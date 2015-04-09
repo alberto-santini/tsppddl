@@ -48,6 +48,7 @@ set(SOURCE_FILES
     src/heuristics/max_regret_heuristic.h
     src/network/arc.h
     src/network/graph_info.h
+    src/network/graph_info.cpp
     src/network/graph_writer.cpp
     src/network/graph_writer.h
     src/network/node.h

@@ -1,9 +1,5 @@
 #include <solver/subgradient/subgradient_solver.h>
 
-// #include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -13,22 +9,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-subgradient_solver::subgradient_solver(const tsp_graph& g, const program_params& params, const std::vector<path>& initial_solutions, const std::string& instance_path) : g{g}, params{params}, initial_solutions{initial_solutions}, best_sol{std::numeric_limits<double>::max()} {
-    // PORTABLE WAY:
-    // boost::filesystem::path i_path(instance_path);
-    // std::stringstream ss; ss << i_path.stem();
-    // instance_name = ss.str();
-    
-    // NOT-PORTABLE WAY:
-    auto path_parts = std::vector<std::string>();
-    boost::split(path_parts, instance_path, boost::is_any_of("/"));
-    auto file_parts = std::vector<std::string>();
-    boost::split(file_parts, path_parts.back(), boost::is_any_of("."));
-    file_parts.pop_back();
-    
-    instance_name = boost::algorithm::join(file_parts, ".");
-}
 
 void subgradient_solver::print_mult_dump_headers(std::ofstream& dump_file) const {
     auto n = g.g[graph_bundle].n;
@@ -250,14 +230,14 @@ void subgradient_solver::solve() {
     
     std::stringstream ss;
     std::ofstream results_file;
-    ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_" << instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
+    ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_" << g.g[graph_bundle].instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
     results_file.open(ss.str(), std::ios::out);
     print_headers(results_file);
 	
     ss.str("");
 	std::ofstream mult_dump;
 	if(n < 4) {
-        ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_dump_" << instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
+        ss << params.sg.results_dir << "mult_" << std::setprecision(2) << (params.sg.relax_mtz ? params.sg.initial_lambda : params.sg.initial_mu) << "_dump_" << g.g[graph_bundle].instance_name << (params.sg.relax_mtz ? "_mtz" : "") << (params.sg.relax_prec ? "_prec" : "") << ".txt";
         mult_dump.open(ss.str(), std::ios::out);
         print_mult_dump_headers(mult_dump);
     }
