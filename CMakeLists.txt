@@ -32,7 +32,7 @@ find_package(Boost)
 # INCLUDE DIRECTORIES
 include_directories("src")
 include_directories(SYSTEM ${CPLEX_INCLUDE_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDEDIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # BUILD THE EXECUTABLE INSIDE ./build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
