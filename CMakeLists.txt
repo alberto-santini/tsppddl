@@ -29,6 +29,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Cplex)
 find_package(Boost)
 
+set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
+
 # INCLUDE DIRECTORIES
 include_directories("src")
 include_directories(SYSTEM ${CPLEX_INCLUDE_DIRS})
