@@ -17,12 +17,7 @@ else
     echo "Using params file $params_file"
 fi
 
-excluded_instances=(
-"_0.75."
-"_5_"
-"_16_"
-"_24_"
-)
+excluded_instances=()
 
 contains_element () {
     for element in "${@:2}"
@@ -84,7 +79,7 @@ schedule_jobs() {
             stdout_file=$(printf "%s%s%s" "$stdout_dir" "$instance" ".stdout")
             stderr_file=$(printf "%s%s%s" "$stderr_dir" "$instance" ".stderr")
 
-            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file branch_and_cut"
+            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file tabu_and_branch_and_cut"
         fi
     done
 }
