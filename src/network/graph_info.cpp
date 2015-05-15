@@ -37,9 +37,13 @@ graph_info::graph_info(int n, int capacity, std::string instance_path) : n{n}, c
         #pragma GCC diagnostic pop
     }
     
+    ss.str(std::string());
+    ss.clear();
     ss << name_parts[2];
     ss >> h;
     
-    ss << name_parts[3];
+    ss.str(std::string());
+    ss.clear();
+    ss << name_parts[3];    
     ss >> k;
 }
