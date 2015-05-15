@@ -424,6 +424,16 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     
     std::cout << std::endl;
     
+    data.n_constructive_solutions = paths.size();
+    
+    if(data.n_constructive_solutions > 0) {
+        auto best_solution = std::min_element(paths.begin(), paths.end(), [] (const auto& p1, const auto& p2) { return p1.total_cost < p2.total_cost; });
+        assert(best_solution != paths.end());
+        data.best_constructive_solution = (*best_solution).total_cost;
+    } else {
+        data.best_constructive_solution = std::numeric_limits<double>::max();
+    }
+    
     if(print_output) {
         results_file << std::endl;
         results_file.close();
@@ -435,16 +445,7 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
         summary_file << g.g[graph_bundle].h << "\t";
         summary_file << g.g[graph_bundle].k << "\t";
         
-        auto best_solution = std::numeric_limits<double>::max();
-        best_solution = (*std::min_element(
-            paths.begin(),
-            paths.end(),
-            [] (const path& p1, const path& p2) -> bool {
-                return (p1.total_cost < p2.total_cost);
-            }
-        )).total_cost;
-        
-        summary_file << best_solution << "\t";
+        summary_file << data.best_constructive_solution << "\t";
         summary_file << data.time_spent_by_constructive_heuristics << std::endl;
         
         summary_file.close();
@@ -484,6 +485,14 @@ std::vector<path> heuristic_solver::run_k_opt() {
     std::cout << std::endl;
 
     paths.insert(paths.end(), k_opt_paths.begin(), k_opt_paths.end());
+    
+    if(paths.size() > 0u) {
+        auto best_solution = std::min_element(paths.begin(), paths.end(), [] (const auto& p1, const auto& p2) { return p1.total_cost < p2.total_cost; });
+        assert(best_solution != paths.end());
+        data.best_constructive_solution = (*best_solution).total_cost;
+    } else {
+        data.best_constructive_solution = std::numeric_limits<double>::max();
+    }
     
     return paths;
 }

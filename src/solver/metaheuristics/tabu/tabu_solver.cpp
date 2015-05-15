@@ -64,25 +64,25 @@ std::vector<path> tabu_solver::solve_sequential() {
     
     print_results(solutions);
     
+    if(solutions.size() > 0u) {
+        auto best_solution = std::min_element(solutions.begin(), solutions.end(), [] (const auto& p1, const auto& p2) { return p1.total_cost < p2.total_cost; });
+        assert(best_solution != solutions.end());
+        data.best_tabu_solution = (*best_solution).total_cost;
+    } else {
+        data.best_tabu_solution = std::numeric_limits<double>::max();
+    }
+    
     return solutions;
 }
 
 void tabu_solver::print_results(const std::vector<path>& solutions) const {
-    auto best_result = (*std::min_element(
-            solutions.begin(),
-            solutions.end(),
-            [] (const auto& lhs, const auto& rhs) {
-                return lhs.total_cost < rhs.total_cost;
-            }
-    )).total_cost;
-    
     std::ofstream results_file;
     results_file.open(params.ts.results_dir + "results.txt", std::ios::out | std::ios::app);
     results_file << g.g[graph_bundle].instance_base_name << "\t";
     results_file << g.g[graph_bundle].n << "\t";
     results_file << g.g[graph_bundle].h << "\t";
     results_file << g.g[graph_bundle].k << "\t";
-    results_file << best_result << "\t";
+    results_file << data.best_tabu_solution << "\t";
     results_file << data.time_spent_by_tabu_search << "\t";
     results_file << tabu_list_size << "\t";
     results_file << solutions.size() << std::endl;
@@ -131,7 +131,15 @@ std::vector<path> tabu_solver::solve() {
     std::cout << "Solutions obtained in " << data.time_spent_by_tabu_search << " seconds." << std::endl;
 
     print_results(solutions);
-
+    
+    if(solutions.size() > 0u) {
+        auto best_solution = std::min_element(solutions.begin(), solutions.end(), [] (const auto& p1, const auto& p2) { return p1.total_cost < p2.total_cost; });
+        assert(best_solution != solutions.end());
+        data.best_tabu_solution = (*best_solution).total_cost;
+    } else {
+        data.best_tabu_solution = std::numeric_limits<double>::max();
+    }
+    
     return solutions;
 }
 

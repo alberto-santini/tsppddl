@@ -55,12 +55,12 @@
     },
     
     "tabu_search": {
-        "tabu_list_size":               15,
+        "tabu_list_size":               30,
         "max_iter":                     50000,
         "max_iter_without_improving":   500,
-        "max_parallel_searches":        4,
+        "max_parallel_searches":        1,
         "results_dir":                  "../results/tabu_search/",
-        "track_progress":               true,
+        "track_progress":               false,
         "progress_results_dir":         "../results/tabu_search_progress/"
     },
     
@@ -69,7 +69,7 @@
     },
     
     "constructive_heuristics": {
-        "print_solutions":              true,
+        "print_solutions":              false,
         "results_dir":                  "../results/heur/",
         "solutions_dir":                "../results/heur_solutions/"
     },

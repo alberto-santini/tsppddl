@@ -345,20 +345,6 @@ void bc_solver::print_x_variables(std::vector<std::vector<int>> x) {
 }
 
 void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {
-    auto best_heur_solution = 0.0;
-    
-    if(initial_solutions.empty()) {
-        best_heur_solution = std::numeric_limits<double>::max();
-    } else {
-        best_heur_solution = (*std::min_element(
-            initial_solutions.begin(),
-            initial_solutions.end(),
-            [] (const path& p1, const path& p2) -> bool {
-                return (p1.total_cost < p2.total_cost);
-            }
-        )).total_cost;
-    }
-
     std::ofstream results_file;
     results_file.open(params.bc.results_dir + g.g[graph_bundle].instance_dir + "/results.txt", std::ios::out | std::ios::app);
 
@@ -372,6 +358,7 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     results_file << time_spent_at_root << "\t";
     results_file << data.time_spent_by_constructive_heuristics << "\t";
     results_file << data.time_spent_by_k_opt_heuristics << "\t";
+    results_file << data.time_spent_by_tabu_search << "\t";
     results_file << data.time_spent_separating_feasibility_cuts << "\t";
     if(params.bc.subtour_elim.enabled) {
         results_file << data.time_spent_separating_subtour_elimination_vi << "\t";
@@ -395,7 +382,9 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     }
 
     // SOLUTIONS
-    results_file << best_heur_solution << "\t";
+    results_file << data.n_constructive_solutions << "\t";
+    results_file << data.best_constructive_solution << "\t";
+    results_file << data.best_tabu_solution << "\t";
     results_file << ub << "\t";
     results_file << lb << "\t";
     results_file << (ub - lb) / ub << "\t";
