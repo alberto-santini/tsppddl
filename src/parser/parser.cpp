@@ -125,6 +125,7 @@ program_params  parser::read_program_params() const {
         branch_and_cut_params(
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
             pt.get<bool>("branch_and_cut.subpath_elim"),
+            pt.get<bool>("branch_and_cut.clique_cuts"),
             pt.get<unsigned int>("branch_and_cut.max_infeas_subpaths"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
             pt.get<bool>("branch_and_cut.use_initial_solutions"),

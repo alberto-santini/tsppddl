@@ -13,6 +13,7 @@
     "branch_and_cut": {
         "two_cycles_elim":              true,
         "subpath_elim":                 true,
+        "clique_cuts":                  true,
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "use_initial_solutions":        true,

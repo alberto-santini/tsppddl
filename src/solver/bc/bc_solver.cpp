@@ -71,6 +71,7 @@ path bc_solver::solve(bool k_opt) {
             return kv.second;
         }
     );
+    auto clique_cuts_n = 0u;
 
     if(DEBUG) {
         std::cerr << "bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt;
@@ -112,6 +113,7 @@ path bc_solver::solve(bool k_opt) {
     IloRange      initial_load(env, 0.0, 0.0, "initial_load");
     IloRangeArray two_cycles_elimination(env);
     IloRangeArray subpath_elimination(env);
+    IloRangeArray clique(env);
     IloRange      k_opt_constraint(env, k_opt_rhs, IloInfinity, "k_opt_constraint");
 
     IloObjective obj = IloMinimize(env);
@@ -143,6 +145,9 @@ path bc_solver::solve(bool k_opt) {
     if(params.bc.subpath_elim) {
         model.add(subpath_elimination);
     }
+    if(params.bc.clique_cuts) {
+        model.add(clique);
+    }
     if(k_opt) {
         model.add(k_opt_constraint);
     }
@@ -169,28 +174,29 @@ path bc_solver::solve(bool k_opt) {
 
         cplex.addMIPStart(initial_vars, initial_values);
 
-        // IloConstraintArray constraints(env);
-        // constraints.add(outdegree); constraints.add(indegree);
-        // constraints.add(y_upper); constraints.add(y_lower);
-        // constraints.add(load); constraints.add(initial_load);
-        // if(params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
-        // if(k_opt) { constraints.add(k_opt_constraint); }
-        //
-        // IloNumArray preferences(env);
-        // for(auto i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
-        //
-        // if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
-        //     IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
-        //     env.getImpl()->useDetailedDisplay(IloTrue);
-        //     for(auto i = 0; i < constraints.getSize(); i++) {
-        //         if(conflict[i] == IloCplex::ConflictMember) {
-        //             std::cerr << "bc_solver.cpp::solve() \t Proven conflict: " << constraints[i] << std::endl;
-        //         }
-        //         if(conflict[i] == IloCplex::ConflictPossibleMember) {
-        //             std::cerr << "bc_solver.cpp::solve() \t Possible conflict: " << constraints[i] << std::endl;
-        //         }
-        //     }
-        // }
+        IloConstraintArray constraints(env);
+        constraints.add(outdegree); constraints.add(indegree);
+        constraints.add(y_upper); constraints.add(y_lower);
+        constraints.add(load); constraints.add(initial_load);
+        constraints.add(clique);
+        if(params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
+        if(k_opt) { constraints.add(k_opt_constraint); }
+
+        IloNumArray preferences(env);
+        for(auto i = 0; i < constraints.getSize(); i++) { preferences.add(1.0); }
+
+        if(cplex.refineMIPStartConflict(0, constraints, preferences)) {
+            IloCplex::ConflictStatusArray conflict = cplex.getConflict(constraints);
+            env.getImpl()->useDetailedDisplay(IloTrue);
+            for(auto i = 0; i < constraints.getSize(); i++) {
+                if(conflict[i] == IloCplex::ConflictMember) {
+                    std::cerr << "bc_solver.cpp::solve() \t Proven conflict: " << constraints[i] << std::endl;
+                }
+                if(conflict[i] == IloCplex::ConflictPossibleMember) {
+                    std::cerr << "bc_solver.cpp::solve() \t Possible conflict: " << constraints[i] << std::endl;
+                }
+            }
+        }
 
         initial_values.end();
         initial_vars.end();
@@ -221,7 +227,7 @@ path bc_solver::solve(bool k_opt) {
     if(k_opt && !DEBUG) {
         cplex.setOut(env.getNullStream());
     }
-        
+    
     auto t_start = high_resolution_clock::now();
 
     // Solve root node
@@ -318,7 +324,7 @@ path bc_solver::solve(bool k_opt) {
     }
     
     if(!k_opt) {
-        print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored);
+        print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored, clique_cuts_n);
     }
 
     env.end();
@@ -344,7 +350,7 @@ void bc_solver::print_x_variables(std::vector<std::vector<int>> x) {
     x_vars_file.close();
 }
 
-void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {
+void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored, unsigned int clique_cuts_n) {
     std::ofstream results_file;
     results_file.open(params.bc.results_dir + g.g[graph_bundle].instance_dir + "/results.txt", std::ios::out | std::ios::app);
 
@@ -416,6 +422,13 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     }
     results_file << number_of_cuts_added_at_root << "\t";
 
+    // CLIQUE CUTS
+    if(params.bc.clique_cuts) {
+        results_file << clique_cuts_n << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    
     // UNFEASIBLE PATHS
     results_file << unfeasible_paths_n << "\t";
 
