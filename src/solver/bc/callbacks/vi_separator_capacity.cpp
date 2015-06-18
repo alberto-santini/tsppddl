@@ -206,7 +206,7 @@ double vi_separator_capacity::calculate_rhs() const {
         )]
     );
         
-    rhs = S.size() + T.size() - std::ceil(demand_s / gamma_s_draught) - std::ceil(demand_u / gamma_t_draught);
+    rhs = S.size() + T.size() - std::ceil(demand_s + demand_u / std::max(gamma_s_draught, gamma_t_draught));
         
     return rhs;
 }
