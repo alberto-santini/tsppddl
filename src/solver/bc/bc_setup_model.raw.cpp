@@ -29,7 +29,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
     }
 }
 
-if(params.bc.two_cycles_elim) {
+if(k_opt || params.bc.two_cycles_elim) {
     row_n = 0;
     for(auto i = 0; i <= 2*n + 1; i++) {
         for(auto j = i + 1; j <= 2*n + 1; j++) {
@@ -41,7 +41,7 @@ if(params.bc.two_cycles_elim) {
     }
 }
 
-if(params.bc.subpath_elim) {
+if(k_opt || params.bc.subpath_elim) {
     row_n = 0;
     for(const auto& pi : g.infeas_list) {
         if((unsigned int)row_n < params.bc.max_infeas_subpaths) {
@@ -114,7 +114,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            if(params.bc.two_cycles_elim) {
+            if(k_opt || params.bc.two_cycles_elim) {
                 row_n = 0;
                 for(auto ii = 0; ii <= 2*n + 1; ii++) {
                     for(auto jj = ii + 1; jj <= 2*n + 1; jj++) {
@@ -128,7 +128,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
                 }
             }
             
-            if(params.bc.subpath_elim) {
+            if(k_opt || params.bc.subpath_elim) {
                 row_n = 0;
                 for(const auto& pi : g.infeas_list) {
                     if((unsigned int)row_n < params.bc.max_infeas_subpaths) {

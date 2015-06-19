@@ -16,6 +16,7 @@ class program {
     program_data    data;
     
     void load(const std::string& params_filename, const std::string& instance_filename);
+    void try_all_combinations_of_bc(const std::vector<path>& heuristic_solutions);
     void print_usage();
 
 public:

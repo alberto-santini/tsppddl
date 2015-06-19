@@ -44,7 +44,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.subtour_elim.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.subtour_elim.cut_every_n_nodes == 0)) {
+    if((k_opt || params.bc.subtour_elim.enabled) && (sol_from_cplex.sol.is_integer || node_number % params.bc.subtour_elim.cut_every_n_nodes == 0)) {
         auto sub_solv = vi_separator_subtour_elimination(g, params, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_1 = sub_solv.separate_valid_cuts();
@@ -62,7 +62,7 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.generalised_order.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.generalised_order.cut_every_n_nodes == 0)) {
+    if((k_opt || params.bc.generalised_order.enabled) && (sol_from_cplex.sol.is_integer || node_number % params.bc.generalised_order.cut_every_n_nodes == 0)) {
         auto go_solv = vi_separator_generalised_order(g, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_2 = go_solv.separate_valid_cuts();

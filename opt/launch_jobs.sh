@@ -57,6 +57,12 @@ check_command_line_options() {
         echo "I need the instances type as a parameter"
         exit
     fi
+    
+    if [[ -z "$2" ]]
+    then
+      echo "I need the type of action to run as a parameter"
+      exit
+    fi
 }
 
 schedule_jobs() {
@@ -79,7 +85,7 @@ schedule_jobs() {
             stdout_file=$(printf "%s%s%s" "$stdout_dir" "$instance" ".stdout")
             stderr_file=$(printf "%s%s%s" "$stderr_dir" "$instance" ".stderr")
 
-            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file tabu_and_branch_and_cut"
+            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file $2"
         fi
     done
 }

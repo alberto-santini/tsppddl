@@ -43,6 +43,7 @@ struct program_data {
         total_number_of_fork_vi_added{0} {}
         
     void reset_times_and_cuts();
+    void reset_for_new_branch_and_cut();
 };
 
 #endif

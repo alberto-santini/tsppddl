@@ -94,7 +94,7 @@ path bc_solver::solve(bool k_opt) {
     auto lb = 0.0;
     auto total_cplex_time = 0.0;
     
-    data.reset_times_and_cuts();
+    data.reset_for_new_branch_and_cut();
 
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
@@ -139,10 +139,10 @@ path bc_solver::solve(bool k_opt) {
     model.add(y_lower);
     model.add(load);
     model.add(initial_load);
-    if(params.bc.two_cycles_elim) {
+    if(k_opt || params.bc.two_cycles_elim) {
         model.add(two_cycles_elimination);
     }
-    if(params.bc.subpath_elim) {
+    if(k_opt || params.bc.subpath_elim) {
         model.add(subpath_elimination);
     }
     if(params.bc.clique_cuts) {
@@ -178,8 +178,8 @@ path bc_solver::solve(bool k_opt) {
         constraints.add(outdegree); constraints.add(indegree);
         constraints.add(y_upper); constraints.add(y_lower);
         constraints.add(load); constraints.add(initial_load);
-        constraints.add(clique);
-        if(params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
+        if(params.bc.clique_cuts) { constraints.add(clique); }
+        if(k_opt || params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
         if(k_opt) { constraints.add(k_opt_constraint); }
 
         IloNumArray preferences(env);
@@ -206,7 +206,7 @@ path bc_solver::solve(bool k_opt) {
     auto gr_with_reverse = g.make_reverse_tsp_graph();
     auto last_solution = IloNumArray(env);
     cplex.use(cuts_lazy_constraint_handle(env, variables_x, g, gr_with_reverse, data));
-    cplex.use(cuts_callback_handle(env, variables_x, g, gr_with_reverse, params, data, last_solution));
+    cplex.use(cuts_callback_handle(env, variables_x, k_opt, g, gr_with_reverse, params, data, last_solution));
     
     // Add callback to print graphviz stuff
     if(!k_opt && params.bc.print_relaxation_graph) {
@@ -422,15 +422,26 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     }
     results_file << number_of_cuts_added_at_root << "\t";
 
+    // 2-CYCLE ELIMINATION
+    if(params.bc.two_cycles_elim) {
+        results_file << "yes\t";
+    } else {
+        results_file << "no\t";
+    }
+
+    // UNFEASIBLE PATHS
+    if(params.bc.subpath_elim) {
+        results_file << unfeasible_paths_n << "\t";
+    } else {
+        results_file << "no\t";
+    }
+
     // CLIQUE CUTS
     if(params.bc.clique_cuts) {
         results_file << clique_cuts_n << "\t";
     } else {
         results_file << "no\t";
     }
-    
-    // UNFEASIBLE PATHS
-    results_file << unfeasible_paths_n << "\t";
 
     // BB NODES
     results_file << total_bb_nodes_explored << "\t";
