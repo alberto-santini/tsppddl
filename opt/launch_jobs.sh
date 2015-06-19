@@ -9,6 +9,8 @@ stdout_dir="../output/stdout/"
 stderr_dir="../output/stderr/"
 exec_file="../build/tsppddl"
 
+cmdline_args=($*)
+
 if [[ -z "$params_file" ]]
 then
     echo "Using default params file"
@@ -17,7 +19,7 @@ else
     echo "Using params file $params_file"
 fi
 
-excluded_instances=()
+excluded_instances=("gr48")
 
 contains_element () {
     for element in "${@:2}"
@@ -52,13 +54,13 @@ create_output_dirs() {
 }
 
 check_command_line_options() {
-    if [[ -z "$1" ]]
+    if [[ -z "${cmdline_args[0]}" ]]
     then
         echo "I need the instances type as a parameter"
         exit
     fi
     
-    if [[ -z "$2" ]]
+    if [[ -z "${cmdline_args[1]}" ]]
     then
       echo "I need the type of action to run as a parameter"
       exit
@@ -66,7 +68,7 @@ check_command_line_options() {
 }
 
 schedule_jobs() {
-    for file in $(printf "%s%s%s" "$data_dir" "$1" "/*")
+    for file in $(printf "%s%s%s" "$data_dir" "${cmdline_args[0]}" "/*")
     do
         filename=$(basename "$file")
         extension="${filename##*.}"
@@ -85,7 +87,7 @@ schedule_jobs() {
             stdout_file=$(printf "%s%s%s" "$stdout_dir" "$instance" ".stdout")
             stderr_file=$(printf "%s%s%s" "$stderr_dir" "$instance" ".stderr")
 
-            oarsub -n "$1 $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file $2"
+            oarsub -n "${cmdline_args[0]} $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=24 "$exec_file $file $params_file ${cmdline_args[1]}"
         fi
     done
 }
