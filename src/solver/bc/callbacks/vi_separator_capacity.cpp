@@ -173,8 +173,7 @@ double vi_separator_capacity::calculate_rhs() const {
     auto rhs = 0.0;
     auto demand_s = 0.0;
     auto demand_u = 0.0;
-    auto gamma_s_draught = 0.0;
-    auto gamma_t_draught = 0.0;
+    auto s_and_t_draught = 0.0;
     
     for(const auto& s : S) {
         demand_s += g.demand.at(s);
@@ -188,17 +187,12 @@ double vi_separator_capacity::calculate_rhs() const {
         }
     }
     
-    gamma_s_draught = std::min(
-        g.g[graph_bundle].capacity,
+    s_and_t_draught = std::max(
         g.draught[*std::max_element(S.begin(), S.end(),
             [this] (int n1, int n2) -> bool {
                return (g.draught[n1] < g.draught[n2]);
             }
-        )]
-    );
-        
-    gamma_t_draught = std::min(
-        g.g[graph_bundle].capacity,
+        )],
         g.draught[*std::max_element(T.begin(), T.end(),
             [this] (int n1, int n2) -> bool {
                return (g.draught[n1] < g.draught[n2]);
@@ -206,7 +200,7 @@ double vi_separator_capacity::calculate_rhs() const {
         )]
     );
         
-    rhs = S.size() + T.size() - std::ceil(demand_s + demand_u / std::max(gamma_s_draught, gamma_t_draught));
+    rhs = S.size() + T.size() - std::ceil((demand_s + demand_u) / s_and_t_draught);
         
     return rhs;
 }
