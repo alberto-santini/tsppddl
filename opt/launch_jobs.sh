@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Example usage:
-# ./launch_jobs.sh tsppd
-# params_file=../params/go_only.json ./launch_jobs.sh tsppddl
+# ./launch_jobs.sh tsppd branch_and_cut
+# params_file=../params/go_only.json ./launch_jobs.sh tsppddl tabu_and_branch_and_cut
 
 data_dir="../data/new/"
 stdout_dir="../output/stdout/"
