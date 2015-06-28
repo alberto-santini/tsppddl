@@ -224,7 +224,7 @@ if(params.bc.clique_cuts) {
                     for(auto k = n+1; k <= 2*n; k++) {
                         if(g.cost[j][k] >= 0 && k != n + i && k != n + j && (
                             g.demand[i] + g.demand[j] - g.demand[k] > min3(Q, g.draught[j], g.draught[k]) ||
-                            g.demand[i] - g.demand[k] > g.draught[i]
+                            g.demand[i] - g.demand[k] > std::min(g.draught[i], g.draught[j])
                         )) {
                             expr2 += variables_x[cn(j,k)];
                             any_k2 = true;
@@ -262,7 +262,7 @@ if(params.bc.clique_cuts) {
                     for(auto k = n+1; k <= 2*n; k++) {
                         if(g.cost[j][k] >= 0 && k != n + i && (
                             g.demand[i] - g.demand[j] - g.demand[k] > min3(Q, g.draught[i], g.draught[j]) ||
-                            g.demand[i] - g.demand[k] > g.draught[k]
+                            g.demand[i] - g.demand[k] > std::min(g.draught[k], g.draught[j]);
                         )) {
                             expr2 += variables_x[cn(j,k)];
                             any_k2 = true;
