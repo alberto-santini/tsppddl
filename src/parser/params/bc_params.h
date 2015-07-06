@@ -7,7 +7,6 @@
 struct branch_and_cut_params {
     bool            two_cycles_elim;
     bool            subpath_elim;
-    bool            clique_cuts;
     unsigned int    max_infeas_subpaths;
     bool            print_relaxation_graph;
     bool            use_initial_solutions;
@@ -41,7 +40,6 @@ struct branch_and_cut_params {
     branch_and_cut_params() {}
     branch_and_cut_params(  bool two_cycles_elim,
                             bool subpath_elim,
-                            bool clique_cuts,
                             unsigned int max_infeas_subpaths,
                             bool print_relaxation_graph,
                             bool use_initial_solutions,
@@ -54,7 +52,6 @@ struct branch_and_cut_params {
                             valid_inequality_info fork) :
                             two_cycles_elim{two_cycles_elim},
                             subpath_elim{subpath_elim},
-                            clique_cuts{clique_cuts},
                             max_infeas_subpaths{max_infeas_subpaths},
                             print_relaxation_graph{print_relaxation_graph},
                             use_initial_solutions{use_initial_solutions},

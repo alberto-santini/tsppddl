@@ -104,28 +104,26 @@ bool tsp_graph::is_path_eliminable(int i, int j, int k) const {
         return true;
     }
     
+    auto min3 = [] (auto x, auto y, auto z) { return std::min(x, std::min(y,z)); };
+    
     if(i <= n) {
         if(j <= n) {
             if(k <= n) {
                 return (demand.at(i) + demand.at(j) + demand.at(k) > std::min(Q, draught.at(k)));
             } else {
                 return (    k != n+i && k != n+j && (
-                                (demand.at(i) + demand.at(j) + demand.at(k-n) >
-                                    std::min(Q, std::min(draught.at(j), draught.at(k)))) ||
-                                (demand.at(i) + demand.at(k-n) >
-                                    std::min(Q, draught.at(k)))
+                                demand.at(i) + demand.at(j) + demand.at(k-n) > min3(Q, draught.at(j), draught.at(k)) ||
+                                demand.at(i) + demand.at(k-n) > std::min(Q, draught.at(k))
                             )
                        );
             }
         } else {
             if(k <= n) {
-                return (j != n+i && (demand.at(i) + demand.at(k) > std::min(Q, draught.at(k))));
+                return (j != n+i && demand.at(i) + demand.at(k) > std::min(Q, draught.at(k)));
             } else {
                 return (    j != n+i && k != n+i && (
-                                (demand.at(i) + demand.at(j-n) + demand.at(k-n) >
-                                    std::min(Q, std::min(draught.at(i), draught.at(j)))) ||
-                                (demand.at(i) + demand.at(k-n) >
-                                    std::min(Q, draught.at(k)))
+                                demand.at(i) + demand.at(j-n) + demand.at(k-n) > min3(Q, draught.at(i), draught.at(j)) ||
+                                demand.at(i) + demand.at(k-n) > std::min(Q, draught.at(k))
                             )
                        );
             }

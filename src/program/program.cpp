@@ -77,7 +77,6 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     // 1) Basic model
     params.bc.two_cycles_elim = false;
     params.bc.subpath_elim = false;
-    params.bc.clique_cuts = false;
     params.bc.subtour_elim.enabled = false;
     params.bc.generalised_order.enabled = false;
     params.bc.capacity.enabled = false;
@@ -106,17 +105,8 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     }
     data.reset_for_new_branch_and_cut();
     
-    // 4) Enable ONLY clique cuts
+    // 4) Enable ONLY SE cuts
     params.bc.subpath_elim = false;
-    params.bc.clique_cuts = true;
-    {
-        auto solv = bc_solver(g, params, data, heuristic_solutions);
-        solv.solve_with_branch_and_cut();
-    }
-    data.reset_for_new_branch_and_cut();
-    
-    // 5) Enable ONLY SE cuts
-    params.bc.clique_cuts = false;
     params.bc.subtour_elim.enabled = true;
     {
         auto solv = bc_solver(g, params, data, heuristic_solutions);
@@ -124,7 +114,7 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     }
     data.reset_for_new_branch_and_cut();
     
-    // 6) Enable ONLY GO cuts
+    // 5) Enable ONLY GO cuts
     params.bc.subtour_elim.enabled = false;
     params.bc.generalised_order.enabled = true;
     {
@@ -133,7 +123,7 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     }
     data.reset_for_new_branch_and_cut();
     
-    // 7) Enable ONLY CAP cuts
+    // 6) Enable ONLY CAP cuts
     params.bc.generalised_order.enabled = false;
     params.bc.capacity.enabled = true;
     {
@@ -142,7 +132,7 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     }
     data.reset_for_new_branch_and_cut();
     
-    // 8) Enable ONLY FORK cuts
+    // 7) Enable ONLY FORK cuts
     params.bc.capacity.enabled = false;
     params.bc.fork.enabled = true;
     {

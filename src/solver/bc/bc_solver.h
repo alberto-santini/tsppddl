@@ -37,7 +37,7 @@ class bc_solver {
     void add_initial_solution_vals();
     path solve(bool k_opt);
     void print_x_variables(std::vector<std::vector<int>> x);
-    void print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored,unsigned int clique_cuts_n);
+    void print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored);
     
 public:
     bc_solver(tsp_graph& g, const program_params& params, program_data& data, const std::vector<path>& initial_solutions);

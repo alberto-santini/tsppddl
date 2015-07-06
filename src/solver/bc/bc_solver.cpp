@@ -71,7 +71,6 @@ path bc_solver::solve(bool k_opt) {
             return kv.second;
         }
     );
-    auto clique_cuts_n = 0u;
 
     if(DEBUG) {
         std::cerr << "bc_solver.cpp::solve() \t Invoked with k_opt = " << std::boolalpha << k_opt;
@@ -145,9 +144,6 @@ path bc_solver::solve(bool k_opt) {
     if(k_opt || params.bc.subpath_elim) {
         model.add(subpath_elimination);
     }
-    if(params.bc.clique_cuts) {
-        model.add(clique);
-    }
     if(k_opt) {
         model.add(k_opt_constraint);
     }
@@ -178,7 +174,6 @@ path bc_solver::solve(bool k_opt) {
         constraints.add(outdegree); constraints.add(indegree);
         constraints.add(y_upper); constraints.add(y_lower);
         constraints.add(load); constraints.add(initial_load);
-        if(params.bc.clique_cuts) { constraints.add(clique); }
         if(k_opt || params.bc.two_cycles_elim) { constraints.add(two_cycles_elimination); }
         if(k_opt) { constraints.add(k_opt_constraint); }
 
@@ -324,7 +319,7 @@ path bc_solver::solve(bool k_opt) {
     }
     
     if(!k_opt) {
-        print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored, clique_cuts_n);
+        print_results(total_cplex_time, time_spent_at_root, ub, lb, ub_at_root, lb_at_root, number_of_cuts_added_at_root, unfeasible_paths_n, total_bb_nodes_explored);
     }
 
     env.end();
@@ -350,7 +345,7 @@ void bc_solver::print_x_variables(std::vector<std::vector<int>> x) {
     x_vars_file.close();
 }
 
-void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored, unsigned int clique_cuts_n) {
+void bc_solver::print_results(double total_cplex_time, double time_spent_at_root, double ub, double lb, double ub_at_root, double lb_at_root, double number_of_cuts_added_at_root, double unfeasible_paths_n, double total_bb_nodes_explored) {
     std::ofstream results_file;
     results_file.open(params.bc.results_dir + g.g[graph_bundle].instance_dir + "/results.txt", std::ios::out | std::ios::app);
 
@@ -432,13 +427,6 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     // UNFEASIBLE PATHS
     if(params.bc.subpath_elim) {
         results_file << unfeasible_paths_n << "\t";
-    } else {
-        results_file << "no\t";
-    }
-
-    // CLIQUE CUTS
-    if(params.bc.clique_cuts) {
-        results_file << clique_cuts_n << "\t";
     } else {
         results_file << "no\t";
     }
