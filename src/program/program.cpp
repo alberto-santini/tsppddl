@@ -82,6 +82,7 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     params.bc.capacity.enabled = false;
     params.bc.simplified_fork.enabled = false;
     params.bc.fork.enabled = false;
+    params.bc.fork.lifted = false;
     {
         auto solv = bc_solver(g, params, data, heuristic_solutions);
         solv.solve_with_branch_and_cut();
@@ -126,6 +127,15 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     // 6) Enable ONLY CAP cuts
     params.bc.generalised_order.enabled = false;
     params.bc.capacity.enabled = true;
+    params.bc.capacity.cut_every_n_nodes = 1;
+    {
+        auto solv = bc_solver(g, params, data, heuristic_solutions);
+        solv.solve_with_branch_and_cut();
+    }
+    data.reset_for_new_branch_and_cut();
+    
+    // 6-bis) Enable ONLY CAP cuts every 50 nodes
+    params.bc.capacity.cut_every_n_nodes = 50;
     {
         auto solv = bc_solver(g, params, data, heuristic_solutions);
         solv.solve_with_branch_and_cut();
@@ -135,6 +145,32 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     // 7) Enable ONLY FORK cuts
     params.bc.capacity.enabled = false;
     params.bc.fork.enabled = true;
+    params.bc.fork.cut_every_n_nodes = 1;
+    {
+        auto solv = bc_solver(g, params, data, heuristic_solutions);
+        solv.solve_with_branch_and_cut();
+    }
+    data.reset_for_new_branch_and_cut();
+    
+    // 7-bis) Enable ONLY FORK cuts every 50 nodes
+    params.bc.fork.cut_every_n_nodes = 50;
+    {
+        auto solv = bc_solver(g, params, data, heuristic_solutions);
+        solv.solve_with_branch_and_cut();
+    }
+    data.reset_for_new_branch_and_cut();
+    
+    // 8) Enable ONLY FORK, IN-FORK, OUT-FORK cuts
+    params.bc.fork.cut_every_n_nodes = 1;
+    params.bc.fork.lifted = true;
+    {
+        auto solv = bc_solver(g, params, data, heuristic_solutions);
+        solv.solve_with_branch_and_cut();
+    }
+    data.reset_for_new_branch_and_cut();
+
+    // 8-bis) Enable ONLY FORK, IN-FORK, OUT-FORK cuts every 50 nodes
+    params.bc.fork.cut_every_n_nodes = 50;
     {
         auto solv = bc_solver(g, params, data, heuristic_solutions);
         solv.solve_with_branch_and_cut();

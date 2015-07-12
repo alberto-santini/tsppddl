@@ -41,7 +41,8 @@
         },
         "fork_valid_ineq": {
             "cut_every_n_nodes":        1,
-            "enabled":                  false
+            "enabled":                  false,
+            "lifted_version_enabled":   false
         }
     },
     
