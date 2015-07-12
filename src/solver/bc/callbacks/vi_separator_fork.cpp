@@ -5,7 +5,7 @@
 std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
-    
+        
     for(auto cur_node = 1; cur_node <= 2*n; cur_node++) {
         auto paths_to_check = std::vector<std::vector<int>>();                
         paths_to_check.push_back({cur_node});
@@ -21,20 +21,28 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
             
             if(path.size() >= 3u) {
                 //  2)  Process current <path> = {<node 0>,...,<node l>} and create a set T
-                //      of <j> s.t. {<node 0>,...,<node l>, <j>} is infeasible
+                //      of <j> s.t. {<node 0>,...,<node l>, <j>} is infeasible                
                 auto T = create_set_T_for(path);
             
                 if(T.size() > 0u) {
                     //  3)  Process current <path> and T --- and create a set S (containing <node 0>)
                     //      of <i> s.t. {<i>,<node 1>,...<node l>,<j>} is infeasible
                     auto S = create_set_S_for(path, T);
-                
+                    
                     if(S.size() > 0u) {
                         //  4)  Add the cut
-                        boost::optional<IloRange> cut = generate_cut(path, S, T);
+                        auto cut = generate_cut(path, S, T);
             
                         if(cut) {
                             cuts.push_back(*cut);
+                        } else if(params.bc.fork.lifted) {
+                            auto lifted_cuts = try_to_lift(path, S, T);
+                        
+                            if(lifted_cuts) {
+                                for(auto& c : *lifted_cuts) {
+                                    cuts.push_back(c);
+                                }
+                            }
                         }
                     }
                 }
@@ -43,6 +51,161 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
     }
     
     return cuts;
+}
+
+boost::optional<std::vector<IloRange>> vi_separator_fork::try_to_lift(const std::vector<int>& path, const std::vector<int>& S, const std::vector<int>& T) {
+    auto n = g.g[graph_bundle].n;
+    auto out_violated = false;
+    auto in_violated = true;
+    auto out_cut = IloRange();
+    auto in_cut = IloRange();
+    
+    // Path is <node 1>, ..., <node l>;
+    // S
+    //  <node s>, <node 1>, ..., <node l> is infeasible for all s in S
+    // T
+    //  <node s>, <node 1>, ..., <node l>, <node t> is infeasible for all t in T
+    
+    // First, try to lift out-fork inequality:
+    
+    // Create sets T_1, ..., T_l
+    auto Ts = std::vector<std::vector<int>>(path.size(), std::vector<int>());
+    // We already know T_l: it's T
+    Ts[path.size() - 1] = T;
+    
+    for(auto h = 0u; h < path.size() - 1; ++h) {
+        // Create set T_h
+        
+        for(auto j = 1; j <= 2*n; ++j) {
+            // See if j should go in T_h
+            auto infeasible_for_all = true;
+            
+            if(j != path[h+1]) {
+                for(const auto& i : S) {
+                    if(i != j) {
+                        // See if (i, <node 1>, ..., <node h>, j) is unfeasible
+                        auto subpath = std::vector<int>(h+1 + 2);
+                                
+                        subpath[0] = i;
+                        std::copy(path.begin(), path.begin() + h + 1, subpath.begin() + 1);
+                        subpath[h+2] = j;
+                
+                        if(!is_infeasible(subpath)) {
+                            infeasible_for_all = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if(infeasible_for_all) {
+                    Ts[h].push_back(j);
+                }
+            }
+        }
+    }
+    
+    auto lhsout = calculate_lifted_lhs_out(path, S, Ts);
+    auto rhsout = path.size();
+
+    if(lhsout.value > rhsout + ch::eps(rhsout)) {
+        out_violated = true;
+
+        IloExpr cplex_lhs(env);
+        IloNum cplex_rhs = rhsout;
+
+        auto col_index = 0;
+        for(auto ii = 0; ii <= 2 * n + 1; ii++) {
+            for(auto jj = 0; jj <= 2 * n + 1; jj++) {
+                if(g.cost[ii][jj] >= 0) {
+                    if(std::find(lhsout.arcs.begin(), lhsout.arcs.end(), std::make_pair(ii, jj)) != lhsout.arcs.end()) {
+                        cplex_lhs += x[col_index];
+                    }
+                    col_index++;
+                }
+            }
+        }
+
+        data.total_number_of_outfork_vi_added++;
+        out_cut = (cplex_lhs <= cplex_rhs);
+    }
+    
+    // Then, try to lift in-fork inequality:
+    
+    // Create sets S_1, ..., S_l
+    auto Ss = std::vector<std::vector<int>>(path.size(), std::vector<int>());
+    // We already know S_1: it's S
+    Ss[0] = S;
+    
+    for(auto h = 1u; h < path.size(); ++h) {
+        // Create set S_h
+        for(auto i = 1; i <= 2*n; ++i) {
+            // See if i should go in S_h
+            auto infeasible_for_all = true;
+            
+            if(h > 0 && i != path[h-1]) {
+                for(const auto& j : T) {
+                    if(i != j) {
+                        // See if (i, <node h>, ..., <node l>, j) is unfeasible
+                        auto subpath = std::vector<int>(path.size() - h + 2);
+
+                        subpath[0] = i;
+                        std::copy(path.begin() + h, path.end(), subpath.begin() + 1);
+                        subpath[path.size() - h + 1] = j;
+                
+                        if(!is_infeasible(subpath)) {
+                            infeasible_for_all = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if(infeasible_for_all) {
+                    Ss[h].push_back(i);
+                }
+            }
+        }
+    }
+    
+    auto lhsin = calculate_lifted_lhs_in(path, Ss, T);
+    auto rhsin = path.size();
+
+    if(lhsin.value > rhsin + ch::eps(rhsin)) {
+        in_violated = true;
+
+        IloExpr cplex_lhs(env);
+        IloNum cplex_rhs = rhsin;
+
+        auto col_index = 0;
+        for(auto ii = 0; ii <= 2 * n + 1; ii++) {
+            for(auto jj = 0; jj <= 2 * n + 1; jj++) {
+                if(g.cost[ii][jj] >= 0) {
+                    if(std::find(lhsin.arcs.begin(), lhsin.arcs.end(), std::make_pair(ii, jj)) != lhsin.arcs.end()) {
+                        cplex_lhs += x[col_index];
+                    }
+                    col_index++;
+                }
+            }
+        }
+
+        data.total_number_of_infork_vi_added++;
+        in_cut = (cplex_lhs <= cplex_rhs);
+    }
+    
+    auto cuts = std::vector<IloRange>();
+    
+    if(out_violated) {
+        cuts.push_back(out_cut);
+    }
+    
+    if(in_violated) {
+        cuts.push_back(in_cut);
+    }
+    
+    if(cuts.size() > 0u) {
+        return cuts;
+    }
+    
+    return boost::none;
 }
 
 boost::optional<IloRange> vi_separator_fork::generate_cut(const std::vector<int>& path, const std::vector<int>& S, const std::vector<int>& T) const {
@@ -65,6 +228,8 @@ boost::optional<IloRange> vi_separator_fork::generate_cut(const std::vector<int>
                 }
             }
         }
+        
+        data.total_number_of_fork_vi_added++;
         
         IloRange cut;
         cut = (cplex_lhs <= cplex_rhs);
@@ -94,6 +259,54 @@ vi_separator_fork::lhs_info vi_separator_fork::calculate_lhs(const std::vector<i
     for(auto j : T) {
         value += sol.x[path.back()][j];
         arcs.push_back(std::make_pair(path.back(), j));
+    }
+    
+    return lhs_info(value, arcs);
+}
+
+vi_separator_fork::lhs_info vi_separator_fork::calculate_lifted_lhs_out(const std::vector<int>& path, const std::vector<int>& S, const std::vector<std::vector<int>>& Ts) const {
+    auto value = 0.0;
+    auto arcs = std::vector<std::pair<int, int>>();
+    
+    for(auto i : S) {
+        value += sol.x[i][path[0]];
+        arcs.push_back(std::make_pair(i, path[0]));
+    }
+    
+    for(auto h = 0u; h < path.size() - 1; h++) {
+        value += sol.x[path[h]][path[h+1]];
+        arcs.push_back(std::make_pair(path[h], path[h+1]));
+    }
+    
+    for(auto h = 0u; h < path.size(); h++) {
+        for(auto j : Ts[h]) {
+            value += sol.x[path[h]][j];
+            arcs.push_back(std::make_pair(path[h], j));
+        }
+    }
+    
+    return lhs_info(value, arcs);
+}
+
+vi_separator_fork::lhs_info vi_separator_fork::calculate_lifted_lhs_in(const std::vector<int>& path, const std::vector<std::vector<int>>& Ss, const std::vector<int>& T) const {
+    auto value = 0.0;
+    auto arcs = std::vector<std::pair<int, int>>();
+    
+    for(auto h = 0u; h < path.size(); h++) {
+        for(auto i : Ss[h]) {
+            value += sol.x[i][path[h]];
+            arcs.push_back(std::make_pair(i, path[h]));
+        }
+    }
+    
+    for(auto h = 0u; h < path.size() - 1; h++) {
+        value += sol.x[path[h]][path[h+1]];
+        arcs.push_back(std::make_pair(path[h], path[h+1]));
+    }
+    
+    for(auto j : T) {
+        value += sol.x[path[path.size() - 1]][j];
+        arcs.push_back(std::make_pair(path[path.size() - 1], j));
     }
     
     return lhs_info(value, arcs);

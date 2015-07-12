@@ -28,14 +28,22 @@ struct branch_and_cut_params {
     };
 
     struct valid_inequality_with_memory_info : public valid_inequality_info {
-        bool            memory;
+        bool memory;
     
         valid_inequality_with_memory_info() {}
         valid_inequality_with_memory_info(unsigned int cut_every_n_nodes, bool enabled, bool memory) : valid_inequality_info{cut_every_n_nodes, enabled}, memory{memory} {}
     };
     
+    struct valid_inequality_with_lifted_version_info : public valid_inequality_info {
+        bool lifted;
+        
+        valid_inequality_with_lifted_version_info() {}
+        valid_inequality_with_lifted_version_info(unsigned int cut_every_n_nodes, bool enabled, bool lifted) : valid_inequality_info{cut_every_n_nodes, enabled}, lifted{lifted} {}
+    };
+    
     valid_inequality_with_memory_info subtour_elim;
-    valid_inequality_info feasibility_cuts, generalised_order, capacity, simplified_fork, fork;
+    valid_inequality_info feasibility_cuts, generalised_order, capacity, simplified_fork;
+    valid_inequality_with_lifted_version_info fork;
     
     branch_and_cut_params() {}
     branch_and_cut_params(  bool two_cycles_elim,
@@ -49,7 +57,7 @@ struct branch_and_cut_params {
                             valid_inequality_info generalised_order,
                             valid_inequality_info capacity,
                             valid_inequality_info simplified_fork,
-                            valid_inequality_info fork) :
+                            valid_inequality_with_lifted_version_info fork) :
                             two_cycles_elim{two_cycles_elim},
                             subpath_elim{subpath_elim},
                             max_infeas_subpaths{max_infeas_subpaths},

@@ -117,7 +117,7 @@ void cuts_callback::main() {
     }
     
     if(params.bc.fork.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.fork.cut_every_n_nodes == 0)) {
-        auto fork_solv = vi_separator_fork(g, sol_from_cplex.sol, env, x);
+        auto fork_solv = vi_separator_fork(g, sol_from_cplex.sol, env, x, params, data);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_5 = fork_solv.separate_valid_cuts();
         auto end_time = high_resolution_clock::now();
@@ -130,7 +130,7 @@ void cuts_callback::main() {
         
         for(auto& cut : valid_cuts_5) {
             add(cut, IloCplex::UseCutForce).end();
-            data.total_number_of_fork_vi_added++;
+            // Number of inequalities is increased by the separator
         }
     }
 }

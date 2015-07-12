@@ -19,6 +19,8 @@ struct program_data {
     long total_number_of_capacity_vi_added;
     long total_number_of_simplified_fork_vi_added;
     long total_number_of_fork_vi_added;
+    long total_number_of_infork_vi_added;
+    long total_number_of_outfork_vi_added;
     
     unsigned int n_constructive_solutions;
     
@@ -40,7 +42,9 @@ struct program_data {
         total_number_of_generalised_order_vi_added{0},
         total_number_of_capacity_vi_added{0},
         total_number_of_simplified_fork_vi_added{0},
-        total_number_of_fork_vi_added{0} {}
+        total_number_of_fork_vi_added{0},
+        total_number_of_infork_vi_added{0},
+        total_number_of_outfork_vi_added{0} {}
         
     void reset_times_and_cuts();
     void reset_for_new_branch_and_cut();

@@ -247,7 +247,9 @@ path bc_solver::solve(bool k_opt) {
         data.total_number_of_generalised_order_vi_added +
         data.total_number_of_capacity_vi_added + 
         data.total_number_of_simplified_fork_vi_added + 
-        data.total_number_of_fork_vi_added;
+        data.total_number_of_fork_vi_added +
+        data.total_number_of_infork_vi_added + 
+        data.total_number_of_outfork_vi_added;
     lb_at_root = cplex.getBestObjValue();
     
     if(cplex.isPrimalFeasible()) {
@@ -415,7 +417,36 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     } else {
         results_file << "no\t";
     }
+    if(params.bc.fork.lifted) {
+        results_file << data.total_number_of_outfork_vi_added << "\t";
+        results_file << data.total_number_of_infork_vi_added << "\t";
+    } else {
+        results_file << "no\tno\t";
+    }
     results_file << number_of_cuts_added_at_root << "\t";
+
+    // CUTS SEPARATED EVERY N NODES
+    results_file << params.bc.feasibility_cuts.cut_every_n_nodes << "\t";
+    if(params.bc.subtour_elim.enabled) {
+        results_file << params.bc.subtour_elim.cut_every_n_nodes << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.generalised_order.enabled) {
+        results_file << params.bc.generalised_order.cut_every_n_nodes << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.capacity.enabled) {
+        results_file << params.bc.capacity.cut_every_n_nodes << "\t";
+    } else {
+        results_file << "no\t";
+    }
+    if(params.bc.fork.enabled) {
+        results_file << params.bc.fork.cut_every_n_nodes << "\t";
+    } else {
+        results_file << "no\t";
+    }
 
     // 2-CYCLE ELIMINATION
     if(params.bc.two_cycles_elim) {
