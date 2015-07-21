@@ -34,11 +34,22 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
                         auto cut = generate_cut(path, S, T);
             
                         if(cut) {
+                            if(DEBUG) {
+                                std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Found a violated fork cut" << std::endl;
+                                std::cerr << "\t" << *cut << std::endl;
+                            }
                             cuts.push_back(*cut);
                         } else if(params.bc.fork.lifted) {
                             auto lifted_cuts = try_to_lift(path, S, T);
                         
                             if(lifted_cuts) {
+                                if(DEBUG) {
+                                    std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Fork cut not violated, but strengthened cuts violated. Number of cuts: " << (*lifted_cuts).size() << "." << std::endl;
+                                    for(auto& c : *lifted_cuts) {
+                                        std::cerr << "\t" << c << std::endl;
+                                    }
+                                }
+                                
                                 for(auto& c : *lifted_cuts) {
                                     cuts.push_back(c);
                                 }
@@ -56,7 +67,7 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
 boost::optional<std::vector<IloRange>> vi_separator_fork::try_to_lift(const std::vector<int>& path, const std::vector<int>& S, const std::vector<int>& T) {
     auto n = g.g[graph_bundle].n;
     auto out_violated = false;
-    auto in_violated = true;
+    auto in_violated = false;
     auto out_cut = IloRange();
     auto in_cut = IloRange();
     
