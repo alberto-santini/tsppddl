@@ -87,7 +87,7 @@ schedule_jobs() {
             stdout_file=$(printf "%s%s%s" "$stdout_dir" "$instance" ".stdout")
             stderr_file=$(printf "%s%s%s" "$stderr_dir" "$instance" ".stderr")
 
-            oarsub -n "${cmdline_args[0]} $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=48 "$exec_file $file $params_file ${cmdline_args[1]}"
+            oarsub -n "${cmdline_args[0]} $instance" -O "$stdout_file" -E "$stderr_file" -p "network_address!='drbl10-201-201-21'" -l /nodes=1/core=1,walltime=96 "$exec_file $file $params_file ${cmdline_args[1]}"
         fi
     done
 }
