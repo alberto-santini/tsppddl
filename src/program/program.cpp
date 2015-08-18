@@ -187,7 +187,7 @@ void program::load(const std::string& params_filename, const std::string& instan
 
 void program::print_usage() {
     std::cout << "Usage: " << std::endl;
-    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu | heuristics | tabu_and_branch_and_cut]" << std::endl;
+    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu | heuristics | tabu_and_branch_and_cut | try_combinations_branch_and_cut]" << std::endl;
     std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
     std::cout << "\t\t params: path to the json file with the program params" << std::endl;
     std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut (warmstarted with heuristic solutions)" << std::endl;
