@@ -70,14 +70,14 @@ bool path::verify_feasible(const tsp_graph& g) const {
     auto visited_sources = std::vector<int>();
     
     if(path_v.size() != (size_t)(2 * n + 2)) {
-        if(DEBUG) {
-            std::cerr << "path.cpp::verify_feasible() \t Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
-            std::cerr << "path.cpp::verify_feasible() \t Path: ";
-            for(auto i = 0u; i < path_v.size(); i++) {
-                std::cerr << path_v.at(i) << " ";
-            }
-            std::cerr << std::endl;
-        }
+        // if(DEBUG) {
+        //     std::cerr << "path.cpp::verify_feasible() \t Wrong path length: " << path_v.size() << " vs. " << 2 * n + 2 << std::endl;
+        //     std::cerr << "path.cpp::verify_feasible() \t Path: ";
+        //     for(auto i = 0u; i < path_v.size(); i++) {
+        //         std::cerr << path_v.at(i) << " ";
+        //     }
+        //     std::cerr << std::endl;
+        // }
         return false;
     }
     
@@ -86,9 +86,9 @@ bool path::verify_feasible(const tsp_graph& g) const {
         visited_nodes++;
         
         if(current_node == 2 * n + 1 && visited_nodes < 2 * n + 2) {
-            if(DEBUG) {
-                std::cerr << "path.cpp::verify_feasible() \t Reached 2n+1 after just " << visited_nodes << " nodes vs. " << 2 * n + 2 << std::endl;
-            }
+            // if(DEBUG) {
+            //     std::cerr << "path.cpp::verify_feasible() \t Reached 2n+1 after just " << visited_nodes << " nodes vs. " << 2 * n + 2 << std::endl;
+            // }
             return false;
         }
         
@@ -104,26 +104,26 @@ bool path::verify_feasible(const tsp_graph& g) const {
                 }
             }
             if(!source_visited) {
-                if(DEBUG) {
-                    std::cerr << "path.cpp::verify_feasible() \t Visited " << current_node << " before its origin " << current_node - n << std::endl;
-                }
+                // if(DEBUG) {
+                //     std::cerr << "path.cpp::verify_feasible() \t Visited " << current_node << " before its origin " << current_node - n << std::endl;
+                // }
                 return false;
             }
         }
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            if(DEBUG) {
-                std::cerr << "path.cpp::verify_feasible() \t Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
-            }
+            // if(DEBUG) {
+            //     std::cerr << "path.cpp::verify_feasible() \t Load upon entering " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            // }
             return false;
         }
         
         current_load += g.demand.at(current_node);
         
         if(current_load > std::min(Q, g.draught.at(current_node))) {
-            if(DEBUG) {
-                std::cerr << "path.cpp::verify_feasible() \t Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
-            }
+            // if(DEBUG) {
+            //     std::cerr << "path.cpp::verify_feasible() \t Load upon exiting " << current_node << " is " << current_load << " vs. Q (" << Q << ") or draught (" << g.draught.at(current_node) << ")" << std::endl;
+            // }
             return false;
         }
     }
