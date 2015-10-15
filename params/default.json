@@ -75,6 +75,6 @@
         "solutions_dir":                "../results/heur_solutions/"
     },
     
-    "cplex_threads":                    4,
+    "cplex_threads":                    1,
     "cplex_timeout":                    3600
 }
