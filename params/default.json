@@ -23,7 +23,7 @@
         },
         
         "subtour_elim_valid_ineq": {
-            "cut_every_n_nodes":        1,
+            "cut_every_n_nodes":        10,
             "enabled":                  true,
             "memory":                   true
         },
@@ -75,6 +75,6 @@
         "solutions_dir":                "../results/heur_solutions/"
     },
     
-    "cplex_threads":                    1,
+    "cplex_threads":                    4,
     "cplex_timeout":                    3600
 }
