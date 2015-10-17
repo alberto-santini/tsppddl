@@ -30,11 +30,15 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     ps_cost_opposite                                                    path_scorer_cost;
     ps_load_over_cost                                                   path_scorer_load_over_cost;
     ps_load_times_cost_opposite                                         path_scorer_load_times_cost;
+    ps_capacity_usage                                                   path_scorer_q_usage;
+    ps_capacity_usage_with_draught                                      path_scorer_q_usage_draught;
     
     // Insertion scorers
     insertion_scorer<decltype(path_scorer_cost)>                        insertion_scorer_cost(path_scorer_cost);
     insertion_scorer<decltype(path_scorer_load_over_cost)>              insertion_scorer_load_over_cost(path_scorer_load_over_cost);
     insertion_scorer<decltype(path_scorer_load_times_cost)>             insertion_scorer_load_times_cost(path_scorer_load_times_cost);
+    insertion_scorer<decltype(path_scorer_q_usage)>                     insertion_scorer_q_usage(path_scorer_q_usage);
+    insertion_scorer<decltype(path_scorer_q_usage_draught)>             insertion_scorer_q_usage_draught(path_scorer_q_usage_draught);
     
     // Request scorers
     rs_origin_destination_distance                                      request_scorer_dist;
@@ -42,21 +46,36 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     rs_draught_demand_difference                                        request_scorer_draught_demand;
     rs_draught_demand_difference_opposite                               request_scorer_draught_demand_opp;
     
-    // Inserters
+    // Inserters (normal)
     normal_inserter<decltype(insertion_scorer_cost)>                    inserter_cost(insertion_scorer_cost);
     normal_inserter<decltype(insertion_scorer_load_over_cost)>          inserter_load_over_cost(insertion_scorer_load_over_cost);
     normal_inserter<decltype(insertion_scorer_load_times_cost)>         inserter_load_times_cost(insertion_scorer_load_times_cost);
+    normal_inserter<decltype(insertion_scorer_q_usage)>                 inserter_q_usage(insertion_scorer_q_usage);
+    normal_inserter<decltype(insertion_scorer_q_usage_draught)>         inserter_q_usage_draught(insertion_scorer_q_usage_draught);
+    
+    // Inserters (max regret)
     max_regret_inserter<decltype(insertion_scorer_cost)>                mr_inserter_cost(insertion_scorer_cost);
     max_regret_inserter<decltype(insertion_scorer_load_over_cost)>      mr_inserter_load_over_cost(insertion_scorer_load_over_cost);
     max_regret_inserter<decltype(insertion_scorer_load_times_cost)>     mr_inserter_load_times_cost(insertion_scorer_load_times_cost);
+    max_regret_inserter<decltype(insertion_scorer_q_usage)>             mr_inserter_q_usage(insertion_scorer_q_usage);
+    max_regret_inserter<decltype(insertion_scorer_q_usage_draught)>     mr_inserter_q_usage_draught(insertion_scorer_q_usage_draught);
     
-    // 1-phase heuristics
+    // 1-phase heuristics (normal)
     one_phase_heuristic<decltype(inserter_cost)>                        oph_1(g, inserter_cost);
     one_phase_heuristic<decltype(inserter_load_over_cost)>              oph_2(g, inserter_load_over_cost);
     one_phase_heuristic<decltype(inserter_load_times_cost)>             oph_3(g, inserter_load_times_cost);
-    one_phase_heuristic<decltype(mr_inserter_cost)>                     oph_4(g, mr_inserter_cost);
-    one_phase_heuristic<decltype(mr_inserter_load_over_cost)>           oph_5(g, mr_inserter_load_over_cost);
-    one_phase_heuristic<decltype(mr_inserter_load_times_cost)>          oph_6(g, mr_inserter_load_times_cost);
+    one_phase_heuristic<decltype(inserter_q_usage)>                     oph_4(g, inserter_q_usage);
+    one_phase_heuristic<decltype(inserter_q_usage_draught)>             oph_5(g, inserter_q_usage_draught);
+    
+    // 1-phase heuristics (max-regret)
+    one_phase_heuristic<decltype(mr_inserter_cost)>                     oph_6(g, mr_inserter_cost);
+    one_phase_heuristic<decltype(mr_inserter_load_over_cost)>           oph_7(g, mr_inserter_load_over_cost);
+    one_phase_heuristic<decltype(mr_inserter_load_times_cost)>          oph_8(g, mr_inserter_load_times_cost);
+    one_phase_heuristic<decltype(mr_inserter_q_usage)>                  oph_9(g, mr_inserter_q_usage);
+    one_phase_heuristic<decltype(mr_inserter_q_usage_draught)>          oph_10(g, mr_inserter_q_usage_draught);
+    
+    // N.B. In 2-phase heuristics insertion_scorer_cost and insertion_scorer_load_times_cost are equivalent,
+    // because once the sequence of requests is fixed, the total_load at each step is fixed, so only the cost part varies!
     
     // 2-phase heuristics
     two_phase_heuristic<
@@ -67,34 +86,49 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
         decltype(insertion_scorer_load_over_cost)>                      tph_2(g, request_scorer_dist, insertion_scorer_load_over_cost);
     two_phase_heuristic<
         decltype(request_scorer_dist),
-        decltype(insertion_scorer_load_times_cost)>                     tph_3(g, request_scorer_dist, insertion_scorer_load_times_cost);
+        decltype(insertion_scorer_q_usage)>                             tph_3(g, request_scorer_dist, insertion_scorer_q_usage);
+    two_phase_heuristic<
+        decltype(request_scorer_dist),
+        decltype(insertion_scorer_q_usage_draught)>                     tph_4(g, request_scorer_dist, insertion_scorer_q_usage_draught);
+           
     two_phase_heuristic<
         decltype(request_scorer_dist_opp),
-        decltype(insertion_scorer_cost)>                                tph_4(g, request_scorer_dist_opp, insertion_scorer_cost);
+        decltype(insertion_scorer_cost)>                                tph_5(g, request_scorer_dist_opp, insertion_scorer_cost);
     two_phase_heuristic<
         decltype(request_scorer_dist_opp),
-        decltype(insertion_scorer_load_over_cost)>                      tph_5(g, request_scorer_dist_opp, insertion_scorer_load_over_cost);
+        decltype(insertion_scorer_load_over_cost)>                      tph_6(g, request_scorer_dist_opp, insertion_scorer_load_over_cost);
     two_phase_heuristic<
         decltype(request_scorer_dist_opp),
-        decltype(insertion_scorer_load_times_cost)>                     tph_6(g, request_scorer_dist_opp, insertion_scorer_load_times_cost);
+        decltype(insertion_scorer_q_usage)>                             tph_7(g, request_scorer_dist_opp, insertion_scorer_q_usage);
+    two_phase_heuristic<
+        decltype(request_scorer_dist_opp),
+        decltype(insertion_scorer_q_usage_draught)>                     tph_8(g, request_scorer_dist_opp, insertion_scorer_q_usage_draught);
+    
     two_phase_heuristic<
         decltype(request_scorer_draught_demand),
-        decltype(insertion_scorer_cost)>                                tph_7(g, request_scorer_draught_demand, insertion_scorer_cost);
+        decltype(insertion_scorer_cost)>                                tph_9(g, request_scorer_draught_demand, insertion_scorer_cost);
     two_phase_heuristic<
         decltype(request_scorer_draught_demand),
-        decltype(insertion_scorer_load_over_cost)>                      tph_8(g, request_scorer_draught_demand, insertion_scorer_load_over_cost);
+        decltype(insertion_scorer_load_over_cost)>                      tph_10(g, request_scorer_draught_demand, insertion_scorer_load_over_cost);
     two_phase_heuristic<
         decltype(request_scorer_draught_demand),
-        decltype(insertion_scorer_load_times_cost)>                     tph_9(g, request_scorer_draught_demand, insertion_scorer_load_times_cost);
+        decltype(insertion_scorer_q_usage)>                             tph_11(g, request_scorer_draught_demand, insertion_scorer_q_usage);
+    two_phase_heuristic<
+        decltype(request_scorer_draught_demand),
+        decltype(insertion_scorer_q_usage_draught)>                     tph_12(g, request_scorer_draught_demand, insertion_scorer_q_usage_draught);
+    
     two_phase_heuristic<
         decltype(request_scorer_draught_demand_opp),
-        decltype(insertion_scorer_cost)>                                tph_10(g, request_scorer_draught_demand_opp, insertion_scorer_cost);
+        decltype(insertion_scorer_cost)>                                tph_13(g, request_scorer_draught_demand_opp, insertion_scorer_cost);
     two_phase_heuristic<
         decltype(request_scorer_draught_demand_opp),
-        decltype(insertion_scorer_load_over_cost)>                      tph_11(g, request_scorer_draught_demand_opp, insertion_scorer_load_over_cost);
+        decltype(insertion_scorer_load_over_cost)>                      tph_14(g, request_scorer_draught_demand_opp, insertion_scorer_load_over_cost);
     two_phase_heuristic<
         decltype(request_scorer_draught_demand_opp),
-        decltype(insertion_scorer_load_times_cost)>                     tph_12(g, request_scorer_draught_demand_opp, insertion_scorer_load_times_cost);
+        decltype(insertion_scorer_q_usage)>                             tph_15(g, request_scorer_draught_demand_opp, insertion_scorer_q_usage);
+    two_phase_heuristic<
+        decltype(request_scorer_draught_demand_opp),
+        decltype(insertion_scorer_q_usage_draught)>                     tph_16(g, request_scorer_draught_demand_opp, insertion_scorer_q_usage_draught);
     
     
     #define TOKENPASTE(x, y) x ## y
@@ -119,15 +153,23 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
         auto HEUR_START_TIME(type, number) = high_resolution_clock::now(); \
         auto HEUR_RESULT(type, number) = HEUR_NAME(type, number).solve(); \
         auto HEUR_END_TIME(type, number) = high_resolution_clock::now(); \
-        auto HEUR_SPAN_TIME(type, number) = duration_cast<duration<double>>(HEUR_START_TIME(type, number) - HEUR_END_TIME(type, number)); \
+        auto HEUR_SPAN_TIME(type, number) = duration_cast<duration<double>>(HEUR_END_TIME(type, number) - HEUR_START_TIME(type, number)); \
         data.time_spent_by_constructive_heuristics += HEUR_SPAN_TIME(type, number).count(); \
         \
         if(HEUR_RESULT(type, number)) { \
-            std::cout << (*HEUR_RESULT(type, number)).total_cost << "\t"; \
+            std::cout << #type << "_" << #number << ":" << (*HEUR_RESULT(type, number)).total_cost << "\t"; \
             if(print_output) { \
                 results_file << (*HEUR_RESULT(type, number)).total_cost << "\t"; \
             } \
-            paths.push_back(*HEUR_RESULT(type, number)); \
+            if((*HEUR_RESULT(type, number)).verify_feasible(g)) { \
+                paths.push_back(*HEUR_RESULT(type, number)); \
+            } else { \
+                std::cout << "Generated path is not feasible!" << std::endl; \
+                (*HEUR_RESULT(type, number)).print(std::cout); std::cout << std::endl; \
+                if(print_output) { \
+                    results_file << "iiii\t"; \
+                } \
+            } \
         } else { \
             std::cout << "xxxx\t"; \
             if(print_output) { \
@@ -141,6 +183,10 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     EXECUTE_HEURISTIC(oph, 4)
     EXECUTE_HEURISTIC(oph, 5)
     EXECUTE_HEURISTIC(oph, 6)
+    EXECUTE_HEURISTIC(oph, 7)
+    EXECUTE_HEURISTIC(oph, 8)
+    EXECUTE_HEURISTIC(oph, 9)
+    EXECUTE_HEURISTIC(oph, 10)
     EXECUTE_HEURISTIC(tph, 1)
     EXECUTE_HEURISTIC(tph, 2)
     EXECUTE_HEURISTIC(tph, 3)
@@ -153,6 +199,10 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     EXECUTE_HEURISTIC(tph, 10)
     EXECUTE_HEURISTIC(tph, 11)
     EXECUTE_HEURISTIC(tph, 12)
+    EXECUTE_HEURISTIC(tph, 13)
+    EXECUTE_HEURISTIC(tph, 14)
+    EXECUTE_HEURISTIC(tph, 15)
+    EXECUTE_HEURISTIC(tph, 16)
     
     std::cout << std::endl;
     

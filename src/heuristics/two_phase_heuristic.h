@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <set>
 
 #include <boost/optional.hpp>
 
@@ -33,12 +34,12 @@ boost::optional<path> two_phase_heuristic<RS, IS>::solve() const {
     p.path_v.push_back(0); p.path_v.push_back(2*n+1);
     p.load_v.push_back(0); p.load_v.push_back(0);
     
-    std::set<scored_request, scored_request_comparator> R;
+    std::multiset<scored_request, scored_request_comparator> R;
     
     for(int i = 1; i <= n; ++i) {
         R.insert({i, this->r_scorer(g, i)});
     }
-    
+        
     normal_inserter<IS> i(ins_scorer);
     
     for(const auto& sr : R) {

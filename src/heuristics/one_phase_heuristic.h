@@ -39,6 +39,9 @@ boost::optional<path> one_phase_heuristic<I>::solve() const {
         path best_path;
         // Insertion corresponding to the best_path
         int best_insertion;
+        // Did we manage to insert something at this round?
+        bool round_success = false;
+
         
         for(auto i : R) {
             bool success;
@@ -51,10 +54,11 @@ boost::optional<path> one_phase_heuristic<I>::solve() const {
                 best_score = new_score;
                 best_path = new_path;
                 best_insertion = i;
+                round_success = true;
             }
         }
         
-        if(best_score == std::numeric_limits<double>::lowest()) {
+        if(!round_success) {
             return boost::none;
         }
         

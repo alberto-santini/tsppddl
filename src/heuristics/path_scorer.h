@@ -41,4 +41,35 @@ struct ps_load_times_cost_opposite : ps_load_times_cost {
     }
 };
 
+struct ps_capacity_usage : path_scorer {
+    double operator()(const tsp_graph& g, const path& p) const {
+        auto Q = g.g[graph_bundle].capacity;
+        auto residual_capacity = 0u;
+        
+        for(auto i = 0u; i < p.length() - 1; ++i) {
+            auto load = p.load_v[i];
+            residual_capacity += (Q - load);
+        }
+        
+        return -residual_capacity;
+    }
+};
+
+struct ps_capacity_usage_with_draught : path_scorer {
+    double operator()(const tsp_graph& g, const path& p) const {
+        auto min3 = [] (double x, double y, double z) { return std::min(x, std::min(y, z)); };
+        auto Q = g.g[graph_bundle].capacity;
+        auto residual_capacity = 0u;
+        
+        for(auto i = 0u; i < p.length() - 1; ++i) {
+            auto load = p.load_v[i];
+            auto capacity = min3(Q, g.draught[p.path_v[i]], g.draught[p.path_v[i+1]]);
+            
+            residual_capacity += (capacity - load);
+        }
+        
+        return -residual_capacity;
+    }
+};
+
 #endif
