@@ -40,14 +40,14 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
 set(SOURCE_FILES
-    src/heuristics/best_insertion_heuristic.h
-    src/heuristics/heuristic.cpp
-    src/heuristics/heuristic.h
-    src/heuristics/heuristic_helper.h
-    src/heuristics/heuristic_with_ordered_requests.h
+    src/heuristics/inserter.h
+    src/heuristics/insertion_scorer.h
+    src/heuristics/path_scorer.h
+    src/heuristics/request_scorer.h
+    src/heuristics/one_phase_heuristic.h
+    src/heuristics/two_phase_heuristic.h
     src/heuristics/k_opt_heuristic.cpp
     src/heuristics/k_opt_heuristic.h
-    src/heuristics/max_regret_heuristic.h
     src/network/arc.h
     src/network/graph_info.h
     src/network/graph_info.cpp
