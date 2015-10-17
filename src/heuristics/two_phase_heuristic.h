@@ -14,13 +14,13 @@
 template<class RS, class IS>
 struct two_phase_heuristic {
     const tsp_graph& g;
-    const RS& request_scorer;
-    const IS& insertion_scorer;
+    const RS& r_scorer;
+    const IS& ins_scorer;
     
     struct scored_request { int i; double score; };
     struct scored_request_comparator { bool operator()(const scored_request& lhs, const scored_request& rhs) const { return lhs.score > rhs.score; /* lhs goes *before* rhs iff its score is higher */ } };
     
-    two_phase_heuristic(const tsp_graph& g, const RS& request_scorer, const IS& scorer) : g(g), request_scorer(request_scorer), insertion_scorer(insertion_scorer) {}
+    two_phase_heuristic(const tsp_graph& g, const RS& r_scorer, const IS& ins_scorer) : g(g), r_scorer(r_scorer), ins_scorer(ins_scorer) {}
     boost::optional<path> solve() const;
 };
 
@@ -36,10 +36,10 @@ boost::optional<path> two_phase_heuristic<RS, IS>::solve() const {
     std::set<scored_request, scored_request_comparator> R;
     
     for(int i = 1; i <= n; ++i) {
-        R.insert({i, this->request_scorer(g, i)});
+        R.insert({i, this->r_scorer(g, i)});
     }
     
-    normal_inserter<IS> i(insertion_scorer);
+    normal_inserter<IS> i(ins_scorer);
     
     for(const auto& sr : R) {
         bool success;

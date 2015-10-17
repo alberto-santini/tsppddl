@@ -13,12 +13,9 @@
 template<class I>
 struct one_phase_heuristic {
     const tsp_graph& g;
-    const I& inserter;
+    const I& ins;
     
-    one_phase_heuristic(const tsp_graph& g, const I& inserter) : g(g), inserter(inserter) {
-        std::cout << "one_phase_heuristic\t" << classname(typeid(this)) << "\t" << this << std::endl;
-        std::cout << ">>> inserter\t" << classname(typeid(&inserter)) << "\t" << &inserter << std::endl << std::endl;
-    }
+    one_phase_heuristic(const tsp_graph& g, const I& ins) : g(g), ins(ins) {}
     boost::optional<path> solve() const;
 };
 
@@ -48,7 +45,7 @@ boost::optional<path> one_phase_heuristic<I>::solve() const {
             double new_score;
             path new_path;
             
-            std::tie(success, new_score, new_path) = this->inserter(this->g, p, i);
+            std::tie(success, new_score, new_path) = this->ins(this->g, p, i);
             
             if(success && new_score > best_score) {
                 best_score = new_score;

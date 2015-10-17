@@ -12,13 +12,9 @@ template<class IS>
 struct inserter {
     using result = std::tuple<bool, double, path>;
     
-    const IS& insertion_scorer;
+    const IS& ins_scorer;
     
-    inserter(const IS& scorer) : insertion_scorer(insertion_scorer) {
-        std::cout << "inserter\t\t" << classname(typeid(this)) << "\t" << this << std::endl;
-        std::cout << ">>> insertion_scorer\t" << classname(typeid(&insertion_scorer)) << "\t" << &insertion_scorer << std::endl;
-        std::cout << ">>> >>> path_scorer\t" << classname(typeid(&(insertion_scorer.path_scorer))) << "\t\t" << &(insertion_scorer.path_scorer) << std::endl << std::endl;
-    }
+    inserter(const IS& ins_scorer) : ins_scorer(ins_scorer) {}
     virtual result operator()(const tsp_graph& g, const path& old_path, int request) const = 0;
 };
 
@@ -40,7 +36,7 @@ typename inserter<IS>::result normal_inserter<IS>::operator()(const tsp_graph& g
             double new_score;
             path new_path;
             
-            std::tie(success, new_score, new_path) = this->insertion_scorer(g, old_path, request, orig_position, dest_position);
+            std::tie(success, new_score, new_path) = this->ins_scorer(g, old_path, request, orig_position, dest_position);
             
             if(success && new_score > best_score) {
                 best_score = new_score;
@@ -71,7 +67,7 @@ typename inserter<IS>::result max_regret_inserter<IS>::operator()(const tsp_grap
             double new_score;
             path new_path;
             
-            std::tie(success, new_score, new_path) = this->insertion_scorer(g, old_path, request, orig_position, dest_position);
+            std::tie(success, new_score, new_path) = this->ins_scorer(g, old_path, request, orig_position, dest_position);
             
             if(success && new_score > second_best_score) {
                 second_best_score = new_score;

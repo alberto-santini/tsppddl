@@ -7,9 +7,6 @@
 #include <limits>
 
 struct path_scorer {
-    path_scorer() {
-        std::cout << "path_scorer\t\t" << classname(typeid(this)) << "\t\t" << this << std::endl << std::endl;
-    }
     virtual double operator()(const tsp_graph& g, const path& p) const = 0;
 };
 

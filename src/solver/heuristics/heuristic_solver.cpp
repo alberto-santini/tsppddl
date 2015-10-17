@@ -17,7 +17,7 @@
 std::vector<path> heuristic_solver::run_constructive(bool print_output) {
     using namespace std::chrono;
     
-    // std::cout << "Heuristic solutions:         \t";
+    std::cout << "Heuristic solutions:         \t";
     
     std::ofstream results_file, summary_file, solutions_file;
     

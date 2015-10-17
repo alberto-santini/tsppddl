@@ -10,12 +10,9 @@ template<class PS>
 struct insertion_scorer {
     using result = std::tuple<bool, double, path>;
     
-    const PS& path_scorer;
+    const PS& p_scorer;
     
-    insertion_scorer(const PS& path_scorer) : path_scorer(path_scorer) {
-        std::cout << "insertion_scorer\t" << classname(typeid(this)) << "\t" << this << std::endl;
-        std::cout << ">>> path_scorer\t\t" << classname(typeid(&path_scorer)) << "\t\t" << &path_scorer << std::endl << std::endl;
-    }
+    insertion_scorer(const PS& p_scorer) : p_scorer(p_scorer) {}
     
     // Place request i with origin in position x and destination in position y
     result operator()(const tsp_graph& g, const path& p, int i, unsigned int x, unsigned int y) const;
@@ -105,7 +102,7 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
         }
     }
     
-    score = path_scorer(g, np);
+    score = p_scorer(g, np);
     return std::make_tuple(true, score, np);
 }
 
