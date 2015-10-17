@@ -34,7 +34,7 @@ boost::optional<path> one_phase_heuristic<I>::solve() const {
     
     while(!R.empty()) {
         // Score of the best insertion of the best request
-        double best_score = std::numeric_limits<double>::min();
+        double best_score = std::numeric_limits<double>::lowest();
         // Best new path (the one where the best insertion of the best request is performed, starting from p)
         path best_path;
         // Insertion corresponding to the best_path
@@ -54,7 +54,7 @@ boost::optional<path> one_phase_heuristic<I>::solve() const {
             }
         }
         
-        if(best_score == std::numeric_limits<double>::min()) {
+        if(best_score == std::numeric_limits<double>::lowest()) {
             return boost::none;
         }
         

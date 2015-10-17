@@ -26,7 +26,7 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
     auto Q = g.g[graph_bundle].capacity;
     auto new_cost = p.total_cost;
     auto new_load = (p.total_load + g.demand[i]);
-    double score = std::numeric_limits<double>::min();
+    double score = std::numeric_limits<double>::lowest();
     
     if(x == y) {
         new_cost += -std::max(g.cost[p.path_v[x-1]][p.path_v[x]], 0) + g.cost[p.path_v[x-1]][i] + g.cost[i][n+i] + g.cost[n+i][p.path_v[x]];
@@ -50,6 +50,9 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
 
     if(x == y) {
         if(np.load_v[x] > std::min({g.draught[i], g.draught[n+i], Q})) {
+            if(DEBUG) {
+                std::cerr << "1) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+            }
             return std::make_tuple(false, score, np);
         }
     
@@ -57,6 +60,9 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
         np.load_v[x+1] = np.load_v[x] + g.demand[n+i];
     
         if(np.load_v[x] > std::min({g.draught[n+i], g.draught[p.path_v[x]], Q})) {
+            if(DEBUG) {
+                std::cerr << "2) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+            }
             return std::make_tuple(false, score, np);
         }
     
@@ -66,6 +72,9 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
         
             auto next_port_draught = (j <= p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
             if(np.load_v[j] > std::min({g.draught[np.path_v[j]], next_port_draught, Q})) {
+                if(DEBUG) {
+                    std::cerr << "3) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+                }
                 return std::make_tuple(false, score, np);
             }
         }
@@ -80,6 +89,9 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
     
             auto next_port_draught = (j < (size_t)y ? g.draught[p.path_v[j]] : g.draught[n+i]);
             if(np.load_v[j] > std::min({g.draught[np.path_v[j]], next_port_draught, Q})) {
+                if(DEBUG) {
+                    std::cerr << "4) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+                }
                 return std::make_tuple(false, score, np);
             }
         }
@@ -88,6 +100,9 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
         np.load_v[y+1] = np.load_v[y] + g.demand[n+i];
 
         if(np.load_v[y+1] > std::min({g.draught[n+i], g.draught[p.path_v[y]], Q})) {
+            if(DEBUG) {
+                std::cerr << "5) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+            }
             return std::make_tuple(false, score, np);
         }
 
@@ -97,12 +112,20 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
             
             auto next_port_draught = (j <= p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
             if(np.load_v[j] > std::min({g.draught[np.path_v[j]], next_port_draught, Q})) {
+                if(DEBUG) {
+                    std::cerr << "6) Giving up insertion of " << i << " at position (" << x << "," << y << ")" << std::endl;
+                }
                 return std::make_tuple(false, score, np);
             }
         }
     }
     
     score = p_scorer(g, np);
+    
+    if(DEBUG) {
+        std::cerr << "Inserted " << i << " at position (" << x << "," << y << ") -- Score: " << score << std::endl;
+    }
+    
     return std::make_tuple(true, score, np);
 }
 

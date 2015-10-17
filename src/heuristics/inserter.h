@@ -27,7 +27,7 @@ struct normal_inserter : inserter<IS> {
 template<class IS>
 typename inserter<IS>::result normal_inserter<IS>::operator()(const tsp_graph& g, const path& old_path, int request) const {
     bool overall_success;
-    double best_score = std::numeric_limits<double>::min();
+    double best_score = std::numeric_limits<double>::lowest();
     path best_path;
     
     for(auto orig_position = 1u; orig_position < old_path.length(); ++orig_position) {
@@ -38,12 +38,33 @@ typename inserter<IS>::result normal_inserter<IS>::operator()(const tsp_graph& g
             
             std::tie(success, new_score, new_path) = this->ins_scorer(g, old_path, request, orig_position, dest_position);
             
+            if(DEBUG) {
+                std::cerr << "Normal inserter" << std::endl;
+                std::cerr << "\tinserted " << request << " in position (" << orig_position << "," << dest_position << ")" << std::endl;
+                std::cerr << "\tsuccess: " << std::boolalpha << success << std::endl;
+                std::cerr << "\tscore: " << new_score << std::endl;
+                std::cerr << "\tbest: " << best_score << std::endl;
+                std::cerr << "\tscore improves on best: " << std::boolalpha << (new_score > best_score) << std::endl;
+                std::cerr << "\tprevious path length: " << old_path.length() << "; new path length: " << new_path.length() << std::endl;
+            }
+            
             if(success && new_score > best_score) {
+                if(DEBUG) {
+                    std::cerr << ">> Updating best score! It is now: " << new_score << std::endl;
+                }
+                
                 best_score = new_score;
                 best_path = new_path;
                 overall_success = true;
             }
         }
+    }
+    
+    if(DEBUG) {
+        std::cerr << "normal_inserter completed" << std::endl;
+        std::cerr << "\toveral_success: " << std::boolalpha << overall_success << std::endl;
+        std::cerr << "\tbest_score: " << best_score << std::endl;
+        std::cerr << "\tbest_path returned with length: " << best_path.length() << std::endl;
     }
     
     return std::make_tuple(overall_success, best_score, best_path);
@@ -58,7 +79,7 @@ struct max_regret_inserter : inserter<IS> {
 template<class IS>
 typename inserter<IS>::result max_regret_inserter<IS>::operator()(const tsp_graph& g, const path& old_path, int request) const {
     bool overall_success;
-    double best_score = std::numeric_limits<double>::min(), second_best_score = std::numeric_limits<double>::min();
+    double best_score = std::numeric_limits<double>::lowest(), second_best_score = std::numeric_limits<double>::lowest();
     path best_path, second_best_path;
     
     for(auto orig_position = 1u; orig_position < old_path.length(); ++orig_position) {
@@ -83,7 +104,7 @@ typename inserter<IS>::result max_regret_inserter<IS>::operator()(const tsp_grap
     }
     
     if(overall_success) {
-        if(second_best_score > std::numeric_limits<double>::min()) {
+        if(second_best_score > std::numeric_limits<double>::lowest()) {
             return std::make_tuple(overall_success, best_score - second_best_score, best_path);
         }
     }
