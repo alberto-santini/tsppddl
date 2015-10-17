@@ -14,8 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include <cxxabi.h>
-
 using namespace boost;
 
 struct tsp_graph {
@@ -47,10 +45,5 @@ struct tsp_graph {
     bool is_path_eliminable(int i, int j, int k) const;
     void populate_list_of_infeasible_3_paths();
 };
-
-inline std::string classname(const std::type_info& ti) {
-    int status;
-    return abi::__cxa_demangle(ti.name(), 0, 0, &status);
-}
 
 #endif
