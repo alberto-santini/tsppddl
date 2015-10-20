@@ -4,6 +4,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
+#include <limits>
+
 tsp_graph parser::generate_tsp_graph() const {
     using namespace boost::property_tree;
     
@@ -37,6 +39,7 @@ tsp_graph parser::generate_tsp_graph() const {
     BOOST_FOREACH(const ptree::value_type& port_child, pt.get_child("ports")) {
         auto port_id = port_child.second.get<int>("id");
         auto is_depot = port_child.second.get<bool>("depot");
+        auto draught = port_child.second.get<int>("draught");
         if(is_depot) {
             if(depot_id == -1) {
                 depot_id = port_id;
@@ -44,7 +47,7 @@ tsp_graph parser::generate_tsp_graph() const {
                 throw std::runtime_error("There is an instance with two depots!");
             }
         }
-        ports.push_back(port(port_id, port_child.second.get<int>("draught"), is_depot));
+        ports.push_back(port(port_id, (is_depot ? std::numeric_limits<int>::max() : draught), is_depot));
     }
         
     BOOST_FOREACH(const ptree::value_type& request_child, pt.get_child("requests")) {
