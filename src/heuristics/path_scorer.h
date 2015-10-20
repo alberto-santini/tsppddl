@@ -22,10 +22,15 @@ struct ps_cost_opposite : ps_cost {
     }
 };
 
-struct ps_load_over_cost : path_scorer {
+struct ps_cost_plus_load : path_scorer {
     double operator()(const tsp_graph& g, const path& p) const {
-        if(p.total_cost == 0) { return std::numeric_limits<double>::max(); }
-        return p.total_load / p.total_cost;
+        return p.total_cost + p.total_load);
+    }
+};
+
+struct ps_cost_plus_load_opposite : ps_cost_plus_load {
+    double operator()(const tsp_graph& g, const path& p) const {
+        return -ps_cost_plus_load::operator()(g, p);
     }
 };
 
@@ -38,20 +43,6 @@ struct ps_load_times_cost : path_scorer {
 struct ps_load_times_cost_opposite : ps_load_times_cost {
     double operator()(const tsp_graph& g, const path& p) const {
         return -ps_load_times_cost::operator()(g, p);
-    }
-};
-
-struct ps_capacity_usage : path_scorer {
-    double operator()(const tsp_graph& g, const path& p) const {
-        auto Q = g.g[graph_bundle].capacity;
-        auto residual_capacity = 0u;
-        
-        for(auto i = 0u; i < p.length() - 1; ++i) {
-            auto load = p.load_v[i];
-            residual_capacity += (Q - load);
-        }
-        
-        return -residual_capacity;
     }
 };
 
@@ -69,6 +60,12 @@ struct ps_capacity_usage_with_draught : path_scorer {
         }
         
         return -residual_capacity;
+    }
+};
+
+struct ps_cost_times_capacity_usage : ps_capacity_usage_with_draught {
+    double operator()(const tsp_graph& g, const path& p) const {
+        return -p.total_cost * ps_capacity_usage_with_draught::operator()(g, p);
     }
 };
 
