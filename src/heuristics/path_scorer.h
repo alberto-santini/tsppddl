@@ -24,7 +24,7 @@ struct ps_cost_opposite : ps_cost {
 
 struct ps_cost_plus_load : path_scorer {
     double operator()(const tsp_graph& g, const path& p) const {
-        return p.total_cost + p.total_load);
+        return p.total_cost + p.total_load;
     }
 };
 
