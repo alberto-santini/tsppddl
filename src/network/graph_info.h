@@ -5,7 +5,7 @@
 
 struct graph_info {
     int n;
-    int h;
+    double h;
     double k;
     int capacity;
     
