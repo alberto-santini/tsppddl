@@ -196,5 +196,5 @@ void program::print_usage() {
     std::cout << "\t\t tabu_tuning: to start the parameter tuning for the tabu search metaheuristic algorithm" << std::endl;
     std::cout << "\t\t heuristics: to run the constructive heuristics" << std::endl;
     std::cout << "\t\t tabu_and_branch_and_cut: to start solving the problem with branch and cut (warmstarted with tabu metaheuristics solutions)" << std::endl;
-    std::cout << "\t\t try_combinations_branch_and_cut: execute a calibration run with may different options for bc" << std::endl;
+    std::cout << "\t\t try_combinations_branch_and_cut: execute a calibration run with many different options for bc" << std::endl;
 }
