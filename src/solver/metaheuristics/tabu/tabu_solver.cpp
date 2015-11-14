@@ -7,7 +7,7 @@
 #include <thread>
 
 tabu_solver::tabu_solver(tsp_graph& g, const program_params& params, program_data& data, std::vector<path> initial_solutions) : g{g}, params{params}, data{data}, initial_solutions{initial_solutions} {
-    auto max_parallel_searches = std::min((unsigned int) params.ts.max_parallel_searches, (unsigned int) initial_solutions.size());
+    auto max_parallel_searches = std::min(params.ts.max_parallel_searches, (int)initial_solutions.size());
     
     std::partial_sort(
         initial_solutions.begin(),
@@ -147,13 +147,13 @@ path tabu_solver::tabu_search(path init_sol) {
     auto current_solution = init_sol;
     auto best_solution = init_sol;
     auto tabu_list = std::vector<tabu_move>();
-    auto consecutive_not_improved = 0u;
-    auto iteration = 0u;
-    auto progress_report = std::vector<std::pair<unsigned int, int>>();
+    auto consecutive_not_improved = 0;
+    auto iteration = 0;
+    auto progress_report = std::vector<std::pair<int, int>>();
     auto kopt3solv = kopt3_solver(g);
     
     if(params.ts.track_progress) {
-        progress_report.push_back(std::make_pair(0u, init_sol.total_cost));
+        progress_report.push_back(std::make_pair(0, init_sol.total_cost));
     }
         
     while(iteration < params.ts.max_iter && consecutive_not_improved < params.ts.max_iter_without_improving) {        
@@ -169,7 +169,7 @@ path tabu_solver::tabu_search(path init_sol) {
             return path();
         } else {
             if(overall_best_solution.p.total_cost < best_solution.total_cost - eps) {
-                consecutive_not_improved = 0u;
+                consecutive_not_improved = 0;
                 update_tabu_list(tabu_list, overall_best_solution);
                 current_solution = overall_best_solution.p;
                 best_solution = overall_best_solution.p;
@@ -218,7 +218,7 @@ void tabu_solver::update_tabu_list(std::vector<tabu_move>& tabu_list, const tabu
         tabu_list.push_back(sol.shortest_erased_edge);
     }
     
-    if(tabu_list.size() > tabu_list_size) {
+    if((int)tabu_list.size() > tabu_list_size) {
         tabu_list.erase(tabu_list.begin());
     }
 }

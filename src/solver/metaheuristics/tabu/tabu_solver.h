@@ -51,7 +51,7 @@ private:
     program_data&           data;
     std::vector<path>       initial_solutions;
     std::vector<path>       sliced_initial_solutions;
-    unsigned int            tabu_list_size;
+    int                     tabu_list_size;
     
     static constexpr double eps = 0.0001;
 

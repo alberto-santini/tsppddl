@@ -210,10 +210,10 @@ std::vector<path> heuristic_solver::run_constructive(bool print_output) {
 }
 
 std::vector<path> heuristic_solver::run_k_opt() {
-    auto appropriate_k_for_instance_size = 0u;
+    auto appropriate_k_for_instance_size = 0;
 
     for(const auto& limit_pair : params.ko.instance_size_limits) {
-         if((unsigned int) g.g[graph_bundle].n <= limit_pair.n && limit_pair.k > appropriate_k_for_instance_size) {
+         if(g.g[graph_bundle].n <= limit_pair.n && limit_pair.k > appropriate_k_for_instance_size) {
              appropriate_k_for_instance_size = limit_pair.k;
          }
     }

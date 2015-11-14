@@ -22,7 +22,7 @@ struct program_data {
     long total_number_of_infork_vi_added;
     long total_number_of_outfork_vi_added;
     
-    unsigned int n_constructive_solutions;
+    int n_constructive_solutions;
     
     double best_constructive_solution;
     double best_tabu_solution;

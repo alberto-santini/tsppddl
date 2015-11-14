@@ -3,11 +3,13 @@
 #include <algorithm>
 
 tsp_graph::tsp_graph(const demand_t& demand, const draught_t& draught, const cost_t& cost, int capacity, std::string instance_path) : demand{demand}, draught{draught}, cost{cost} {
-    auto n = (size_t)((demand.size() - 2) / 2);
+    assert(demand.size() % 2 == 0);
     
-    assert(demand.size() == (2 * n + 2));
-    assert(draught.size() == (2 * n + 2));
-    assert(cost.size() == (2 * n + 2));
+    auto n = (int)((demand.size() - 2) / 2);
+    
+    assert((int)demand.size() == (2 * n + 2));
+    assert((int)draught.size() == (2 * n + 2));
+    assert((int)cost.size() == (2 * n + 2));
     
     g[graph_bundle] = graph_info(n, capacity, instance_path);
 
@@ -18,7 +20,7 @@ tsp_graph::tsp_graph(const demand_t& demand, const draught_t& draught, const cos
     auto end_depot_v = add_vertex(g);
     g[end_depot_v] = end_depot;
     
-    for(auto i = 1u; i <= n; i++) {
+    for(auto i = 1; i <= n; i++) {
         auto origin = node(i, demand[i], draught[i]);
         auto destination = node(n + i, demand[n + i], draught[n + i]);
         auto origin_v = add_vertex(g); g[origin_v] = origin;

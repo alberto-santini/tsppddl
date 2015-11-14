@@ -50,7 +50,7 @@ struct ps_capacity_usage_with_draught : path_scorer {
     double operator()(const tsp_graph& g, const path& p) const {
         auto min3 = [] (double x, double y, double z) { return std::min(x, std::min(y, z)); };
         auto Q = g.g[graph_bundle].capacity;
-        auto residual_capacity = 0u;
+        auto residual_capacity = 0;
         
         for(auto i = 0u; i < p.length() - 1; ++i) {
             auto load = p.load_v[i];

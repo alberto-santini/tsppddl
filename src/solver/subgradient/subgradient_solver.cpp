@@ -224,7 +224,7 @@ void subgradient_solver::solve() {
     cplex.setParam(IloCplex::TiLim, 3600);
     cplex.setParam(IloCplex::Threads, 4);
     
-    auto subgradient_iteration = (unsigned int)0;
+    auto subgradient_iteration = 0;
     auto rounds_without_improvement = 0;
     auto theta = 2.0;
     

@@ -3,11 +3,11 @@
 
 struct k_opt_params {
     struct k_opt_limit {
-        unsigned int k;
-        unsigned int n;
+        int k;
+        int n;
 
         k_opt_limit() {}
-        k_opt_limit(unsigned int k, unsigned int n) : k{k}, n{n} {}
+        k_opt_limit(int k, int n) : k{k}, n{n} {}
     };
     
     using k_opt_limits = std::vector<k_opt_limit>;

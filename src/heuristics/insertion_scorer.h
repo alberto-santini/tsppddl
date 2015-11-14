@@ -15,12 +15,12 @@ struct insertion_scorer {
     insertion_scorer(const PS& p_scorer) : p_scorer(p_scorer) {}
     
     // Place request i with origin in position x and destination in position y
-    result operator()(const tsp_graph& g, const path& p, int i, unsigned int x, unsigned int y) const;
+    result operator()(const tsp_graph& g, const path& p, int i, int x, int y) const;
 };
 
 template<class PS>
-typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp_graph& g, const path& p, int i, unsigned int x, unsigned int y) const {
-    assert(x <= y && y <= p.length());
+typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp_graph& g, const path& p, int i, int x, int y) const {
+    assert(x <= y && y <= (int)p.length());
     
     auto n = g.g[graph_bundle].n;
     auto Q = g.g[graph_bundle].capacity;
@@ -40,7 +40,7 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
     np.total_cost = new_cost;
     np.total_load = new_load;
     
-    for(auto j = 0u; j <= x-1; j++) {
+    for(auto j = 0; j <= x-1; j++) {
         np.path_v[j] = p.path_v[j];
         np.load_v[j] = p.load_v[j];
     }
@@ -60,11 +60,11 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
             return std::make_tuple(false, score, np);
         }
     
-        for(auto j = x + 2; j < p.path_v.size() + 2; j++) {
+        for(auto j = x + 2; j < (int)p.path_v.size() + 2; j++) {
             np.path_v[j] = p.path_v[j-2];
             np.load_v[j] = np.load_v[j-1] + g.demand[np.path_v[j]];
         
-            auto next_port_draught = (j <= p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
+            auto next_port_draught = (j <= (int)p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
             if(np.load_v[j] > std::min({g.draught[np.path_v[j]], next_port_draught, Q})) {
                 return std::make_tuple(false, score, np);
             }
@@ -91,11 +91,11 @@ typename insertion_scorer<PS>::result insertion_scorer<PS>::operator()(const tsp
             return std::make_tuple(false, score, np);
         }
 
-        for(auto j = y + 2; j < p.path_v.size() + 2; j++) {
+        for(auto j = y + 2; j < (int)p.path_v.size() + 2; j++) {
             np.path_v[j] = p.path_v[j-2];
             np.load_v[j] = np.load_v[j-1] + g.demand[np.path_v[j]];
             
-            auto next_port_draught = (j <= p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
+            auto next_port_draught = (j <= (int)p.path_v.size() ? g.draught[p.path_v[j-1]] : std::numeric_limits<int>::max());
             if(np.load_v[j] > std::min({g.draught[np.path_v[j]], next_port_draught, Q})) {
                 return std::make_tuple(false, score, np);
             }

@@ -89,7 +89,7 @@ boost::optional<path> kopt3_solver::exec_3opt(const path& p, const std::vector<i
     auto n = g.g[graph_bundle].n;
     auto p_x = p.get_x_values(n);
     
-    for(auto n = 0u; n <= 2u; n++) {
+    for(auto n = 0; n <= 2; n++) {
         p_x[i[n]][j[n]] = 0;
     }
     

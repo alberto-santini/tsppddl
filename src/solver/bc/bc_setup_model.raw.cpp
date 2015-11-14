@@ -44,7 +44,7 @@ if(k_opt || params.bc.two_cycles_elim) {
 if(k_opt || params.bc.subpath_elim) {
     row_n = 0;
     for(const auto& pi : g.infeas_list) {
-        if((unsigned int)row_n < params.bc.max_infeas_subpaths) {
+        if(row_n < params.bc.max_infeas_subpaths) {
             if(pi.second) {
                 std::stringstream name;
                 name << "sub_";
@@ -63,8 +63,8 @@ if(k_opt || params.bc.subpath_elim) {
 // COLUMNS
 #include <boost/functional/hash.hpp>
 
-auto ij_to_column = std::unordered_map<std::pair<int, int>, unsigned int, boost::hash<std::pair<int, int>>>();
-auto col_n = 0u;
+auto ij_to_column = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>();
+auto col_n = 0;
 
 for(auto i = 0; i <= 2*n + 1; i++) {
     for(auto j = 0; j <= 2*n + 1; j++) {
@@ -131,7 +131,7 @@ for(auto i = 0; i <= 2*n + 1; i++) {
             if(k_opt || params.bc.subpath_elim) {
                 row_n = 0;
                 for(const auto& pi : g.infeas_list) {
-                    if((unsigned int)row_n < params.bc.max_infeas_subpaths) {
+                    if(row_n < params.bc.max_infeas_subpaths) {
                         if(pi.second) {
                             for(auto path_pos = 0u; path_pos < pi.first.size() - 1; path_pos++) {
                                 if(i == pi.first[path_pos] && j == pi.first[path_pos + 1]) {

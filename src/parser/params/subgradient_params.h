@@ -8,9 +8,9 @@ struct subgradient_params {
     bool            relax_prec;
     double          initial_lambda;
     double          initial_mu;
-    unsigned int    iter_reduce_theta;
+    int             iter_reduce_theta;
     double          theta_reduce_factor;
-    unsigned int    max_iter;
+    int             max_iter;
     std::string     results_dir;
     
     subgradient_params() {}
@@ -18,9 +18,9 @@ struct subgradient_params {
                         bool relax_prec,
                         double initial_lambda,
                         double initial_mu,
-                        unsigned int iter_reduce_theta,
+                        int iter_reduce_theta,
                         double theta_reduce_factor,
-                        unsigned int max_iter,
+                        int max_iter,
                         std::string results_dir) :
                         relax_mtz{relax_mtz},
                         relax_prec{relax_prec},
@@ -29,7 +29,7 @@ struct subgradient_params {
                         iter_reduce_theta{iter_reduce_theta},
                         theta_reduce_factor{theta_reduce_factor},
                         max_iter{max_iter},
-                        results_dir{std::move(results_dir)} {}
+                        results_dir{results_dir} {}
 };
 
 #endif
