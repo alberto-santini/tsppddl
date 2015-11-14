@@ -4,7 +4,6 @@
 #include <parser/params/bc_params.h>
 #include <parser/params/constructive_heuristics_params.h>
 #include <parser/params/k_opt_params.h>
-#include <parser/params/subgradient_params.h>
 #include <parser/params/tabu_search_params.h>
 
 struct program_params  {

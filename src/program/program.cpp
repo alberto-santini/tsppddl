@@ -3,7 +3,6 @@
 #include <solver/heuristics/heuristic_solver.h>
 #include <solver/bc/bc_solver.h>
 #include <solver/metaheuristics/tabu/tabu_solver.h>
-#include <solver/subgradient/subgradient_solver.h>
 
 #include <fstream>
 #include <iomanip>

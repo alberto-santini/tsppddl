@@ -115,16 +115,6 @@ program_params  parser::read_program_params() const {
         k_opt_params(
             instance_size_limits
         ),
-        subgradient_params(
-            pt.get<bool>("subgradient.relax_mtz"),
-            pt.get<bool>("subgradient.relax_prec"),
-            pt.get<double>("subgradient.initial_lambda"),
-            pt.get<double>("subgradient.initial_mu"),
-            pt.get<int>("subgradient.iter_reduce_theta"),
-            pt.get<double>("subgradient.theta_reduce_fact"),
-            pt.get<int>("subgradient.max_iter"),
-            pt.get<std::string>("subgradient.results_dir")
-        ),
         branch_and_cut_params(
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
             pt.get<bool>("branch_and_cut.subpath_elim"),
