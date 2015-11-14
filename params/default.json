@@ -18,25 +18,37 @@
         "use_initial_solutions":        true,
         "results_dir":                  "../results/branch_and_cut/default/",
         
-        "feasibility_cuts": {
-            "cut_every_n_nodes":        1
-        },
-        
         "subtour_elim_valid_ineq": {
-            "cut_every_n_nodes":        10,
+            "n1":        				100,
+			"n2":						20000,
+			"p1":						0.9,
+			"p2":						0.125,
+			"p3":						0.025,
             "enabled":                  true,
             "memory":                   true
         },
         "generalised_order_valid_ineq": {
-            "cut_every_n_nodes":        1,
+            "n1":        				100,
+			"n2":						20000,
+			"p1":						1.0,
+			"p2":						1.0,
+			"p3":						0.75,
             "enabled":                  true
         },
         "capacity_valid_ineq": {
-            "cut_every_n_nodes":        50,
+            "n1":        				100,
+			"n2":						20000,
+			"p1":						0.9,
+			"p2":						0.05,
+			"p3":						0.005,
             "enabled":                  true
         },
         "fork_valid_ineq": {
-            "cut_every_n_nodes":        50,
+            "n1":        				100,
+			"n2":						20000,
+			"p1":						0.75,
+			"p2":						0.02,
+			"p3":						0.005,
             "enabled":                  true,
             "lifted_version_enabled":   true
         }

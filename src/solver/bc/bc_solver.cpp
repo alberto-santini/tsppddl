@@ -426,24 +426,39 @@ void bc_solver::print_results(double total_cplex_time, double time_spent_at_root
     results_file << number_of_cuts_added_at_root << "\t";
 
     // CUTS SEPARATED EVERY N NODES
-    results_file << params.bc.feasibility_cuts.cut_every_n_nodes << "\t";
     if(params.bc.subtour_elim.enabled) {
-        results_file << params.bc.subtour_elim.cut_every_n_nodes << "\t";
+        results_file << params.bc.subtour_elim.n1 << ",";
+        results_file << params.bc.subtour_elim.n2 << ",";
+        results_file << params.bc.subtour_elim.p1 << ",";
+        results_file << params.bc.subtour_elim.p2 << ",";
+        results_file << params.bc.subtour_elim.p3 << "\t";
     } else {
         results_file << "no\t";
     }
     if(params.bc.generalised_order.enabled) {
-        results_file << params.bc.generalised_order.cut_every_n_nodes << "\t";
+        results_file << params.bc.generalised_order.n1 << ",";
+        results_file << params.bc.generalised_order.n2 << ",";
+        results_file << params.bc.generalised_order.p1 << ",";
+        results_file << params.bc.generalised_order.p2 << ",";
+        results_file << params.bc.generalised_order.p3 << "\t";
     } else {
         results_file << "no\t";
     }
     if(params.bc.capacity.enabled) {
-        results_file << params.bc.capacity.cut_every_n_nodes << "\t";
+        results_file << params.bc.capacity.n1 << ",";
+        results_file << params.bc.capacity.n2 << ",";
+        results_file << params.bc.capacity.p1 << ",";
+        results_file << params.bc.capacity.p2 << ",";
+        results_file << params.bc.capacity.p3 << "\t";
     } else {
         results_file << "no\t";
     }
     if(params.bc.fork.enabled) {
-        results_file << params.bc.fork.cut_every_n_nodes << "\t";
+        results_file << params.bc.fork.n1 << ",";
+        results_file << params.bc.fork.n2 << ",";
+        results_file << params.bc.fork.p1 << ",";
+        results_file << params.bc.fork.p2 << ",";
+        results_file << params.bc.fork.p3 << "\t";
     } else {
         results_file << "no\t";
     }

@@ -68,9 +68,9 @@ std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
                 auto rhs = calculate_rhs();
                         
                 if(lhs >= rhs + ch::eps(rhs)) {
-                    if(DEBUG) {
-                        std::cerr << "vi_separator_capacity.cpp::separate_valid_cuts() \t Violated capacity cut: " << lhs << " >= " << rhs << " + " << ch::eps(rhs) << std::endl;
-                    }
+                    // if(DEBUG) {
+                    //     std::cerr << "vi_separator_capacity.cpp::separate_valid_cuts() \t Violated capacity cut: " << lhs << " >= " << rhs << " + " << ch::eps(rhs) << std::endl;
+                    // }
                     cuts.push_back(add_cut(rhs));
                 }
             }

@@ -5,8 +5,8 @@
 std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
-        
-    for(auto cur_node = 1; cur_node <= 2*n; cur_node++) {
+    
+    for(auto cur_node = 1; cur_node <= 2*n; ++cur_node) {
         auto paths_to_check = std::vector<std::vector<int>>();                
         paths_to_check.push_back({cur_node});
         
@@ -34,21 +34,21 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
                         auto cut = generate_cut(path, S, T);
             
                         if(cut) {
-                            if(DEBUG) {
-                                std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Found a violated fork cut" << std::endl;
-                                std::cerr << "\t" << *cut << std::endl;
-                            }
+                            // if(DEBUG) {
+                            //     std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Found a violated fork cut" << std::endl;
+                            //     std::cerr << "\t" << *cut << std::endl;
+                            // }
                             cuts.push_back(*cut);
                         } else if(params.bc.fork.lifted) {
                             auto lifted_cuts = try_to_lift(path, S, T);
                         
                             if(lifted_cuts) {
-                                if(DEBUG) {
-                                    std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Fork cut not violated, but strengthened cuts violated. Number of cuts: " << (*lifted_cuts).size() << "." << std::endl;
-                                    for(auto& c : *lifted_cuts) {
-                                        std::cerr << "\t" << c << std::endl;
-                                    }
-                                }
+                                // if(DEBUG) {
+                                //     std::cerr << "vi_separator_fork.cpp::separate_valid_cuts() \t Fork cut not violated, but strengthened cuts violated. Number of cuts: " << (*lifted_cuts).size() << "." << std::endl;
+                                //     for(auto& c : *lifted_cuts) {
+                                //         std::cerr << "\t" << c << std::endl;
+                                //     }
+                                // }
                                 
                                 for(auto& c : *lifted_cuts) {
                                     cuts.push_back(c);

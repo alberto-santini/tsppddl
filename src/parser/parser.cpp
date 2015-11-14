@@ -103,12 +103,12 @@ program_params  parser::read_program_params() const {
     
     auto instance_size_limits = k_opt_params::k_opt_limits();
     BOOST_FOREACH(const ptree::value_type& limit_pair, pt.get_child("k_opt.instance_size_limit")) {
-        instance_size_limits.push_back(k_opt_params::k_opt_limit(limit_pair.second.get<unsigned int>("k"), limit_pair.second.get<unsigned int>("n")));
+        instance_size_limits.push_back(k_opt_params::k_opt_limit(limit_pair.second.get<int>("k"), limit_pair.second.get<int>("n")));
     }
     
-    auto tabu_tuning_list_size = std::vector<unsigned int>();
+    auto tabu_tuning_list_size = std::vector<int>();
     BOOST_FOREACH(const ptree::value_type& lsize, pt.get_child("tabu_tuning.tabu_list_size")) {
-        tabu_tuning_list_size.push_back(lsize.second.get<unsigned int>(""));
+        tabu_tuning_list_size.push_back(lsize.second.get<int>(""));
     }
     
     return program_params(
@@ -120,46 +120,58 @@ program_params  parser::read_program_params() const {
             pt.get<bool>("subgradient.relax_prec"),
             pt.get<double>("subgradient.initial_lambda"),
             pt.get<double>("subgradient.initial_mu"),
-            pt.get<unsigned int>("subgradient.iter_reduce_theta"),
+            pt.get<int>("subgradient.iter_reduce_theta"),
             pt.get<double>("subgradient.theta_reduce_fact"),
-            pt.get<unsigned int>("subgradient.max_iter"),
+            pt.get<int>("subgradient.max_iter"),
             pt.get<std::string>("subgradient.results_dir")
         ),
         branch_and_cut_params(
             pt.get<bool>("branch_and_cut.two_cycles_elim"),
             pt.get<bool>("branch_and_cut.subpath_elim"),
-            pt.get<unsigned int>("branch_and_cut.max_infeas_subpaths"),
+            pt.get<int>("branch_and_cut.max_infeas_subpaths"),
             pt.get<bool>("branch_and_cut.print_relaxation_graph"),
             pt.get<bool>("branch_and_cut.use_initial_solutions"),
             pt.get<std::string>("branch_and_cut.results_dir"),
             branch_and_cut_params::valid_inequality_with_memory_info(
-                pt.get<unsigned int>("branch_and_cut.subtour_elim_valid_ineq.cut_every_n_nodes"),
+                pt.get<int>("branch_and_cut.subtour_elim_valid_ineq.n1"),
+                pt.get<int>("branch_and_cut.subtour_elim_valid_ineq.n2"),
+                pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p1"),
+                pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p2"),
+                pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p3"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.enabled"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.memory")
             ),
             branch_and_cut_params::valid_inequality_info(
-                pt.get<unsigned int>("branch_and_cut.feasibility_cuts.cut_every_n_nodes"),
-                true // Always enabled
-            ),    
-            branch_and_cut_params::valid_inequality_info(
-                pt.get<unsigned int>("branch_and_cut.generalised_order_valid_ineq.cut_every_n_nodes"),
+                pt.get<int>("branch_and_cut.generalised_order_valid_ineq.n1"),
+                pt.get<int>("branch_and_cut.generalised_order_valid_ineq.n2"),
+                pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p1"),
+                pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p2"),
+                pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p3"),
                 pt.get<bool>("branch_and_cut.generalised_order_valid_ineq.enabled")
             ),
             branch_and_cut_params::valid_inequality_info(
-                pt.get<unsigned int>("branch_and_cut.capacity_valid_ineq.cut_every_n_nodes"),
+                pt.get<int>("branch_and_cut.capacity_valid_ineq.n1"),
+                pt.get<int>("branch_and_cut.capacity_valid_ineq.n2"),
+                pt.get<double>("branch_and_cut.capacity_valid_ineq.p1"),
+                pt.get<double>("branch_and_cut.capacity_valid_ineq.p2"),
+                pt.get<double>("branch_and_cut.capacity_valid_ineq.p3"),
                 pt.get<bool>("branch_and_cut.capacity_valid_ineq.enabled")
             ),
             branch_and_cut_params::valid_inequality_with_lifted_version_info(
-                pt.get<unsigned int>("branch_and_cut.fork_valid_ineq.cut_every_n_nodes"),
+                pt.get<int>("branch_and_cut.fork_valid_ineq.n1"),
+                pt.get<int>("branch_and_cut.fork_valid_ineq.n2"),
+                pt.get<double>("branch_and_cut.fork_valid_ineq.p1"),
+                pt.get<double>("branch_and_cut.fork_valid_ineq.p2"),
+                pt.get<double>("branch_and_cut.fork_valid_ineq.p3"),
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.enabled"),
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.lifted_version_enabled")
             )
         ),
         tabu_search_params(
-            pt.get<unsigned int>("tabu_search.tabu_list_size"),
-            pt.get<unsigned int>("tabu_search.max_iter"),
-            pt.get<unsigned int>("tabu_search.max_iter_without_improving"),
-            pt.get<unsigned int>("tabu_search.max_parallel_searches"),
+            pt.get<int>("tabu_search.tabu_list_size"),
+            pt.get<int>("tabu_search.max_iter"),
+            pt.get<int>("tabu_search.max_iter_without_improving"),
+            pt.get<int>("tabu_search.max_parallel_searches"),
             pt.get<std::string>("tabu_search.results_dir"),
             pt.get<bool>("tabu_search.track_progress"),
             pt.get<std::string>("tabu_search.progress_results_dir")
@@ -172,7 +184,7 @@ program_params  parser::read_program_params() const {
             pt.get<std::string>("constructive_heuristics.results_dir"),
             pt.get<std::string>("constructive_heuristics.solutions_dir")
         ),
-        pt.get<unsigned int>("cplex_threads"),
-        pt.get<unsigned int>("cplex_timeout")
+        pt.get<int>("cplex_threads"),
+        pt.get<int>("cplex_timeout")
     );
 }

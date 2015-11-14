@@ -25,7 +25,7 @@ std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(cons
     
     auto already_checked_cycle = std::vector<int>();
 
-    for(auto i = 1u; i <= (unsigned int)n; i++) {
+    for(auto i = 1; i <= n; i++) {
         auto residual_capacity_prec = std::vector<double>(num_edges(gr.g), 0);
         auto residual_capacity_cycles = std::vector<double>(num_edges(gr.g), 0);
         auto colour_prec = std::vector<int>(num_vertices(gr.g), 0);
@@ -41,7 +41,7 @@ std::vector<IloRange> feasibility_cuts_separator::separate_feasibility_cuts(cons
                 source_v_cycles = *vi;
                 sink_v_prec = *vi;
             }
-            if(gr.g[*vi].id == (unsigned int)2*n+1) {
+            if(gr.g[*vi].id == 2*n+1) {
                 sink_v_cycles = *vi;
             }
         }

@@ -175,9 +175,9 @@ void vi_separator_subtour_elimination::add_groetschel_sigma_cut_if_violated(std:
     auto lhs = calculate_groetschel_lhs_sigma(my_S, sigma);
         
     if(lhs > my_S.size() - 1 + ch::eps(my_S.size() - 1)) {
-        if(DEBUG) {
-            std::cerr << "vi_separator_subtour_elimination.cpp::add_groetschel_sigma_cut_if_violated() \t Violated gr sigma: " << lhs << " > " << (my_S.size() - 1 + ch::eps(my_S.size() - 1)) << std::endl;
-        }
+        // if(DEBUG) {
+        //     std::cerr << "vi_separator_subtour_elimination.cpp::add_groetschel_sigma_cut_if_violated() \t Violated gr sigma: " << lhs << " > " << (my_S.size() - 1 + ch::eps(my_S.size() - 1)) << std::endl;
+        // }
         actually_add_groetschel_sigma_cut(cuts, my_S, sigma);
     }
 }
@@ -206,9 +206,9 @@ void vi_separator_subtour_elimination::add_groetschel_pi_cut_if_violated(std::ve
     auto lhs = calculate_groetschel_lhs_pi(my_S, pi);
     
     if(lhs > my_S.size() - 1 + ch::eps(my_S.size() - 1)) {
-        if(DEBUG) {
-            std::cerr << "vi_separator_subtour_elimination.cpp::add_groetschel_pi_cut_if_violated() \t Violated gr pi: " << lhs << " > " << ch::eps(my_S.size() - 1) << std::endl;
-        }
+        // if(DEBUG) {
+        //     std::cerr << "vi_separator_subtour_elimination.cpp::add_groetschel_pi_cut_if_violated() \t Violated gr pi: " << lhs << " > " << ch::eps(my_S.size() - 1) << std::endl;
+        // }
         actually_add_groetschel_pi_cut(cuts, my_S, pi);
     }
 }
@@ -376,9 +376,9 @@ void vi_separator_subtour_elimination::add_pi_cut_if_violated(std::vector<IloRan
         }
     }
     
-    if(DEBUG) {
-        std::cerr << "vi_separator_subtour_elimination.cpp::add_pi_cut_if_violated() \t Violated pi: " << pi.lhs << " < " << (2 - ch::eps(2)) << std::endl;
-    }
+    // if(DEBUG) {
+    //     std::cerr << "vi_separator_subtour_elimination.cpp::add_pi_cut_if_violated() \t Violated pi: " << pi.lhs << " < " << (2 - ch::eps(2)) << std::endl;
+    // }
     
     IloRange cut;
     cut = (lhs >= rhs);
@@ -414,9 +414,9 @@ void vi_separator_subtour_elimination::add_sigma_cut_if_violated(std::vector<Ilo
         }
     }
     
-    if(DEBUG) {
-        std::cerr << "vi_separator_subtour_elimination.cpp::add_sigma_cut_if_violated() \t Violated sigma: " << sigma.lhs << " < " << (2 - ch::eps(2)) << std::endl;
-    }
+    // if(DEBUG) {
+    //     std::cerr << "vi_separator_subtour_elimination.cpp::add_sigma_cut_if_violated() \t Violated sigma: " << sigma.lhs << " < " << (2 - ch::eps(2)) << std::endl;
+    // }
     
     IloRange cut;
     cut = (lhs >= rhs);
