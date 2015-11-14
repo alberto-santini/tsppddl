@@ -35,10 +35,6 @@
             "cut_every_n_nodes":        50,
             "enabled":                  true
         },
-        "simplified_fork_valid_ineq": {
-            "cut_every_n_nodes":        1,
-            "enabled":                  false  
-        },
         "fork_valid_ineq": {
             "cut_every_n_nodes":        50,
             "enabled":                  true,

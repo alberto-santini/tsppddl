@@ -42,7 +42,7 @@ struct branch_and_cut_params {
     };
     
     valid_inequality_with_memory_info subtour_elim;
-    valid_inequality_info feasibility_cuts, generalised_order, capacity, simplified_fork;
+    valid_inequality_info generalised_order, capacity;
     valid_inequality_with_lifted_version_info fork;
     
     branch_and_cut_params() {}
@@ -56,7 +56,6 @@ struct branch_and_cut_params {
                             valid_inequality_info feasibility_cuts,
                             valid_inequality_info generalised_order,
                             valid_inequality_info capacity,
-                            valid_inequality_info simplified_fork,
                             valid_inequality_with_lifted_version_info fork) :
                             two_cycles_elim{two_cycles_elim},
                             subpath_elim{subpath_elim},
@@ -68,10 +67,8 @@ struct branch_and_cut_params {
                             feasibility_cuts{std::move(feasibility_cuts)},
                             generalised_order{std::move(generalised_order)},
                             capacity{std::move(capacity)},
-                            simplified_fork{std::move(simplified_fork)},
                             fork{std::move(fork)} {
         if(simplified_fork.enabled) {
-            std::cerr << "bc_params.h::branch_and_cut_params() \t WARNING: simplified_fork cuts are deprecated, as they don't do much. All these cuts are already enumerated by subpath_elim (if you have it on) or very likely separated by the feasibility cut generator (as they concern generalised_order). Even with subpath_elim off, in our instances it's almost never the case that separate_simplified_fork can find a violated cut." << std::endl;
         }
         if(feasibility_cuts.cut_every_n_nodes != 1u) {
             std::cerr << "bc_params.h::branch_and_cut_params() \t WARNING: you are not separating feasibility cuts at every node. This will likely produce infeasible solutions! Only do this if you know what you are doing!" << std::endl;

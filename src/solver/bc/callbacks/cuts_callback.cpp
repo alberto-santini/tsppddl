@@ -98,23 +98,6 @@ void cuts_callback::main() {
         }
     }
     
-    if(params.bc.simplified_fork.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.simplified_fork.cut_every_n_nodes == 0)) {
-        auto sfork_solv = vi_separator_simplified_fork(g, sol_from_cplex.sol, env, x);
-        auto start_time = high_resolution_clock::now();
-        auto valid_cuts_4 = sfork_solv.separate_valid_cuts();
-        auto end_time = high_resolution_clock::now();
-        auto time_span = duration_cast<duration<double>>(end_time - start_time);
-        data.time_spent_separating_simplified_fork_vi += time_span.count();
-        
-        if(DEBUG && valid_cuts_4.size() > 0) {
-            std::cerr << "cuts_callback.cpp::main() \t Adding " << valid_cuts_4.size() << " simplified fork cuts" << std::endl;
-        }
-        
-        for(auto& cut : valid_cuts_4) {
-            add(cut, IloCplex::UseCutForce).end();
-            data.total_number_of_simplified_fork_vi_added++;
-        }
-    }
     
     if(params.bc.fork.enabled && (sol_from_cplex.sol.is_integer || node_number % params.bc.fork.cut_every_n_nodes == 0)) {
         auto fork_solv = vi_separator_fork(g, sol_from_cplex.sol, env, x, params, data);

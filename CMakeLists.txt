@@ -85,8 +85,6 @@ set(SOURCE_FILES
     src/solver/bc/callbacks/vi_separator_fork.h
     src/solver/bc/callbacks/vi_separator_generalised_order.cpp
     src/solver/bc/callbacks/vi_separator_generalised_order.h
-    src/solver/bc/callbacks/vi_separator_simplified_fork.cpp
-    src/solver/bc/callbacks/vi_separator_simplified_fork.h
     src/solver/bc/callbacks/vi_separator_subtour_elimination.cpp
     src/solver/bc/callbacks/vi_separator_subtour_elimination.h
     src/solver/bc/bc_solver.cpp

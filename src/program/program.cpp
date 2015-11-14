@@ -80,7 +80,6 @@ void program::try_all_combinations_of_bc(const std::vector<path>& heuristic_solu
     params.bc.subtour_elim.enabled = false;
     params.bc.generalised_order.enabled = false;
     params.bc.capacity.enabled = false;
-    params.bc.simplified_fork.enabled = false;
     params.bc.fork.enabled = false;
     params.bc.fork.lifted = false;
     {
