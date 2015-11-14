@@ -155,7 +155,7 @@ void program::load(const std::string& params_filename, const std::string& instan
 void program::print_usage() {
     std::cout   << "Usage: " << std::endl
                 << "./tsppddl <instance> <params> <action>" << std::endl
-                << "Actions:" << std::endl;
+                << "Actions:" << std::endl
                 << "\t constructive_heuristics_and_branch_and_cut" << std::endl
                 << "\t constructive_heuristics_only" << std::endl
                 << "\t tabu_only" << std::endl
