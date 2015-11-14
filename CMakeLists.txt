@@ -95,9 +95,7 @@ set(SOURCE_FILES
     src/solver/metaheuristics/tabu/kopt3_solver.h
     src/solver/metaheuristics/tabu/tabu_solver.cpp
     src/solver/metaheuristics/tabu/tabu_solver.h
-    src/solver/subgradient/subgradient_solver.cpp
-    src/solver/subgradient/subgradient_solver.h
-    src/main.cpp)
+src/main.cpp)
 
 add_executable(tsppddl ${SOURCE_FILES})
 target_link_libraries(tsppddl ${CPLEX_LIBRARIES})
