@@ -20,13 +20,12 @@ program::program(const std::vector<std::string>& args) {
     load(args[1], args[0]);
     
     std::vector<std::string> possible_parameters = {
-        "branch_and_cut",
-        "tabu_and_branch_and_cut",
+        "constructive_heuristics_and_branch_and_cut",
+        "constructive_heuristics_only",
+        "tabu_only",
         "tabu_tuning",
-        "subgradient",
-        "tabu",
-        "heuristics",
-        "try_combinations_branch_and_cut"
+        "tabu_and_branch_and_cut",
+        "branch_and_cut_tuning"
     };
     
     if(std::find(possible_parameters.begin(), possible_parameters.end(), args[2]) == possible_parameters.end()) {
@@ -45,17 +44,14 @@ program::program(const std::vector<std::string>& args) {
         }
     }
 
-    if(args[2] == "branch_and_cut") {
+    if(args[2] == "constructive_heuristics_and_branch_and_cut") {
         auto bsolv = bc_solver(g, params, data, heuristic_solutions);
         bsolv.solve_with_branch_and_cut();
-    } else if(args[2] == "subgradient") {        
-        auto ssolv = subgradient_solver(g, params, heuristic_solutions);
-        ssolv.solve();
-    } else if(args[2] == "tabu" || args[2] == "tabu_and_branch_and_cut" || args[2] == "try_combinations_branch_and_cut") {
+    } else if(args[2] == "tabu_only" || args[2] == "tabu_and_branch_and_cut" || args[2] == "branch_and_cut_tuning") {
         auto tsolv = tabu_solver(g, params, data, heuristic_solutions);
         auto sols = tsolv.solve_sequential();
         
-        if(args[2] != "tabu") {
+        if(args[2] != "tabu_only") {
             heuristic_solutions.insert(heuristic_solutions.end(), sols.begin(), sols.end());
         }
         
@@ -68,7 +64,7 @@ program::program(const std::vector<std::string>& args) {
         tsolv.solve_parameter_tuning();
     }
     
-    if(args[2] == "try_combinations_branch_and_cut") {
+    if(args[2] == "branch_and_cut_tuning") {
         try_all_combinations_of_bc(heuristic_solutions);
     }
 }
@@ -158,15 +154,13 @@ void program::load(const std::string& params_filename, const std::string& instan
 }
 
 void program::print_usage() {
-    std::cout << "Usage: " << std::endl;
-    std::cout << "\t./tsppddl <instance> <params> [branch_and_cut | subgradient | tabu | heuristics | tabu_and_branch_and_cut | try_combinations_branch_and_cut]" << std::endl;
-    std::cout << "\t\t instance: path to the json file with the instance data" << std::endl;
-    std::cout << "\t\t params: path to the json file with the program params" << std::endl;
-    std::cout << "\t\t branch_and_cut: to start solving the problem with branch and cut (warmstarted with heuristic solutions)" << std::endl;
-    std::cout << "\t\t subgradient: to start solving the problem with lagrangian relaxation and the subgradient method" << std::endl;
-    std::cout << "\t\t tabu: to start solving the problem with the tabu search metaheuristic algorithm" << std::endl;
-    std::cout << "\t\t tabu_tuning: to start the parameter tuning for the tabu search metaheuristic algorithm" << std::endl;
-    std::cout << "\t\t heuristics: to run the constructive heuristics" << std::endl;
-    std::cout << "\t\t tabu_and_branch_and_cut: to start solving the problem with branch and cut (warmstarted with tabu metaheuristics solutions)" << std::endl;
-    std::cout << "\t\t try_combinations_branch_and_cut: execute a calibration run with many different options for bc" << std::endl;
+    std::cout   << "Usage: " << std::endl
+                << "./tsppddl <instance> <params> <action>" << std::endl
+                << "Actions:" << std::endl;
+                << "\t constructive_heuristics_and_branch_and_cut" << std::endl
+                << "\t constructive_heuristics_only" << std::endl
+                << "\t tabu_only" << std::endl
+                << "\t tabu_tuning" << std::endl
+                << "\t tabu_and_branch_and_cut" << std::endl
+                << "\t branch_and_cut_tuning" << std::endl;
 }

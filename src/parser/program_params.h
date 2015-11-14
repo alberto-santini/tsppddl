@@ -9,7 +9,6 @@
 
 struct program_params  {
     k_opt_params ko;
-    subgradient_params sg;
     branch_and_cut_params bc;
     tabu_search_params ts;
     tabu_search_tuning_params ts_tuning;
@@ -19,7 +18,6 @@ struct program_params  {
     
     program_params() {}
     program_params( k_opt_params ko,
-                    subgradient_params sg,
                     branch_and_cut_params bc,
                     tabu_search_params ts,
                     tabu_search_tuning_params ts_tuning,
@@ -27,7 +25,6 @@ struct program_params  {
                     int cplex_threads,
                     int cplex_timeout) : 
                     ko{ko},
-                    sg{sg},
                     bc{bc},
                     ts{ts},
                     ts_tuning{ts_tuning},
