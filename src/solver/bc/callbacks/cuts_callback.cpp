@@ -44,7 +44,7 @@ void cuts_callback::main() {
     bool separate_se = (
         (k_opt || params.bc.subtour_elim.enabled) &&
         should_separate(node_number, params.bc.subtour_elim.n1, params.bc.subtour_elim.n2, params.bc.subtour_elim.p1, params.bc.subtour_elim.p2, params.bc.subtour_elim.p3) &&
-        node_number != last_node_no_se
+        (node_number < 2 || node_number != last_node_no_se)
     );
     if(separate_se) {
         auto sub_solv = vi_separator_subtour_elimination(g, params, sol_from_cplex.sol, env, x);
@@ -71,7 +71,7 @@ void cuts_callback::main() {
     bool separate_go = (
         (k_opt || params.bc.generalised_order.enabled) &&
         should_separate(node_number, params.bc.generalised_order.n1, params.bc.generalised_order.n2, params.bc.generalised_order.p1, params.bc.generalised_order.p2, params.bc.generalised_order.p3) &&
-        node_number != last_node_no_go
+        (node_number < 2 || node_number != last_node_no_go)
     );
     if(separate_go) {
         auto go_solv = vi_separator_generalised_order(g, sol_from_cplex.sol, env, x);
@@ -98,7 +98,7 @@ void cuts_callback::main() {
     bool separate_cap = (
         (k_opt || params.bc.capacity.enabled) &&
         should_separate(node_number, params.bc.capacity.n1, params.bc.capacity.n2, params.bc.capacity.p1, params.bc.capacity.p2, params.bc.capacity.p3) &&
-        node_number != last_node_no_cap
+        (node_number < 2 || node_number != last_node_no_cap)
     );
     if(separate_cap) {
         auto cap_solv = vi_separator_capacity(g, sol_from_cplex.sol, env, x);
@@ -125,7 +125,7 @@ void cuts_callback::main() {
     bool separate_fork = (
         (k_opt || params.bc.fork.enabled) &&
         should_separate(node_number, params.bc.fork.n1, params.bc.fork.n2, params.bc.fork.p1, params.bc.fork.p2, params.bc.fork.p3) &&
-        node_number != last_node_no_fork
+        (node_number < 2 || node_number != last_node_no_fork)
     );
     if(separate_fork) {
         auto fork_solv = vi_separator_fork(g, sol_from_cplex.sol, env, x, params, data);
