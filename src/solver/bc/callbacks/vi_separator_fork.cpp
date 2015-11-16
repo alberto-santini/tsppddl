@@ -341,7 +341,7 @@ vi_separator_fork::lhs_info vi_separator_fork::calculate_lifted_lhs_in(const std
 void vi_separator_fork::extend_path(const std::vector<int>& path, std::vector<std::vector<int>>& paths_to_check) const {
     auto n = g.g[graph_bundle].n;
     
-    if(path.size() < 6) {
+    if(path.size() < 5) {
         auto last_node_in_path = path.back();
         
         if(last_node_in_path != 2 * n + 1) {
