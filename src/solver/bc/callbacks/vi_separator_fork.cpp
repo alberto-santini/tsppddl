@@ -1,16 +1,31 @@
 #include <solver/bc/callbacks/vi_separator_fork.h>
 
+#include <chrono>
 #include <stdexcept>
 
 std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
+    using namespace std::chrono;
+    
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
     
+    auto start_time = high_resolution_clock::now();
+    
     for(auto cur_node = 1; cur_node <= 2*n; ++cur_node) {
+        auto current_time_at_node_start = high_resolution_clock::now();
+        auto elapsed_time = duration_cast<duration<double>>(current_time_at_node_start - start_time);
+        
+        if(elapsed_time.count() > 5) { break; }
+        
         auto paths_to_check = std::vector<std::vector<int>>();                
         paths_to_check.push_back({cur_node});
         
         while(!paths_to_check.empty()) {
+            auto current_time_at_path_start = high_resolution_clock::now();
+            auto elapsed_time_at_node = duration_cast<duration<double>>(current_time_at_path_start - current_time_at_node_start);
+            
+            if(elapsed_time_at_node.count() > 1) { break; }
+            
             auto path = paths_to_check.back();
             paths_to_check.pop_back();
             
