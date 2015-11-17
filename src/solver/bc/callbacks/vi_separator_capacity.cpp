@@ -1,8 +1,20 @@
 #include <solver/bc/callbacks/vi_separator_capacity.h>
 
+#include <chrono>
 #include <algorithm>
 
-vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x) : g{g}, sol{sol}, env{env}, x{x} {
+vi_separator_capacity::vi_separator_capacity(
+    const tsp_graph& g,
+    const program_params& params,
+    const ch::solution& sol,
+    const IloEnv& env,
+    const IloNumVarArray& x) :
+    g{g},
+    params{params},
+    sol{sol},
+    env{env},
+    x{x}
+{
     auto n = g.g[graph_bundle].n;
     
     S = std::vector<int>();
@@ -13,11 +25,19 @@ vi_separator_capacity::vi_separator_capacity(const tsp_graph& g, const ch::solut
 }
 
 std::vector<IloRange> vi_separator_capacity::separate_valid_cuts() {
+    using namespace std::chrono;
+    
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
+    auto start_time = high_resolution_clock::now();
     
     for(auto i = 1; i <= n; i++) {
         for(auto j = n+1; j <= 2*n; j++) {
+            auto current_time = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<duration<double>>(current_time - start_time);
+        
+            if(elapsed_time.count() > params.bc.capacity.tilim) { break; }
+            
             S = {i};
             T = {j};
             

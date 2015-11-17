@@ -21,7 +21,7 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
         auto current_time_at_node_start = high_resolution_clock::now();
         auto elapsed_time = duration_cast<duration<double>>(current_time_at_node_start - start_time);
         
-        if(elapsed_time.count() > 5) { break; }
+        if(elapsed_time.count() > params.bc.fork.tilim) { break; }
         
         auto paths_to_check = std::vector<std::vector<int>>();                
         paths_to_check.push_back({cur_node});
@@ -30,7 +30,8 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
             auto current_time_at_path_start = high_resolution_clock::now();
             auto elapsed_time_at_node = duration_cast<duration<double>>(current_time_at_path_start - current_time_at_node_start);
             
-            if(elapsed_time_at_node.count() > 1) { break; }
+            // Each node can take at most 2 * avg_tilim_per_node
+            if(elapsed_time_at_node.count() > params.bc.fork.tilim / n) { break; }
             
             auto path = paths_to_check.back();
             paths_to_check.pop_back();

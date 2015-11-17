@@ -1,5 +1,7 @@
 #include <solver/bc/callbacks/vi_separator_subtour_elimination.h>
 
+#include <chrono>
+
 bool vi_separator_subtour_elimination::sets_info::is_in_S(int i) const {
     if(i == 0 || i == 2*n + 1) {
         return false;
@@ -40,7 +42,19 @@ int vi_separator_subtour_elimination::sets_info::first_non_tabu() const {
     return (boost::find(in_tabu, false) - boost::begin(in_tabu));
 }
 
-vi_separator_subtour_elimination::vi_separator_subtour_elimination(const tsp_graph& g, const program_params& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x) : g{g}, params{params}, sol{sol}, env{env}, x{x}, n{g.g[graph_bundle].n} {
+vi_separator_subtour_elimination::vi_separator_subtour_elimination(
+    const tsp_graph& g,
+    const program_params& params,
+    const ch::solution& sol,
+    const IloEnv& env,
+    const IloNumVarArray& x) :
+    g{g},
+    params{params},
+    sol{sol},
+    env{env},
+    x{x},
+    n{g.g[graph_bundle].n}
+{
     pi = sets_info(n,
             bvec(2*n+2, false),
             bvec(2*n+2, false),
@@ -74,11 +88,19 @@ bool operator==(const vi_separator_subtour_elimination::sets_info& l, const vi_s
 }
 
 std::vector<IloRange> vi_separator_subtour_elimination::separate_valid_cuts() {
+    using namespace std::chrono;
+    
     auto cuts = std::vector<IloRange>();
     auto cuts_memory_pi = mem();
     auto cuts_memory_sigma = mem();
+    auto start_time = high_resolution_clock::now();
         
     for(auto iter = 1; iter <= tot_number_of_iterations; iter++) {
+        auto current_time = high_resolution_clock::now();
+        auto elapsed_time = duration_cast<duration<double>>(current_time - start_time);
+    
+        if(elapsed_time.count() > params.bc.subtour_elim.tilim) { break; }
+        
         auto best_pi = pi, best_sigma = sigma;
         auto bn_pi = -1, bn_sigma = -1; // Best node \in (1...2n)
         

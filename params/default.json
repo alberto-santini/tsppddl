@@ -13,6 +13,7 @@
 			"p1":						0.9,
 			"p2":						0.125,
 			"p3":						0.025,
+			"tilim":					5,
             "enabled":                  true,
             "memory":                   true
         },
@@ -22,6 +23,7 @@
 			"p1":						1.0,
 			"p2":						1.0,
 			"p3":						1.0,
+			"tilim":					5,
             "enabled":                  true
         },
         "capacity_valid_ineq": {
@@ -30,6 +32,7 @@
 			"p1":						0.9,
 			"p2":						0.125,
 			"p3":						0.025,
+			"tilim":					5,
             "enabled":                  true
         },
         "fork_valid_ineq": {
@@ -38,6 +41,7 @@
 			"p1":						0.75,
 			"p2":						0.02,
 			"p3":						0.005,
+			"tilim":					5,
             "enabled":                  true,
             "lifted_version_enabled":   true
         }

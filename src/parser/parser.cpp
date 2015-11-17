@@ -128,6 +128,7 @@ program_params  parser::read_program_params() const {
                 pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p1"),
                 pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p2"),
                 pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.p3"),
+                pt.get<double>("branch_and_cut.subtour_elim_valid_ineq.tilim"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.enabled"),
                 pt.get<bool>("branch_and_cut.subtour_elim_valid_ineq.memory")
             ),
@@ -137,6 +138,7 @@ program_params  parser::read_program_params() const {
                 pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p1"),
                 pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p2"),
                 pt.get<double>("branch_and_cut.generalised_order_valid_ineq.p3"),
+                pt.get<double>("branch_and_cut.generalised_order_valid_ineq.tilim"),
                 pt.get<bool>("branch_and_cut.generalised_order_valid_ineq.enabled")
             ),
             branch_and_cut_params::valid_inequality_info(
@@ -145,6 +147,7 @@ program_params  parser::read_program_params() const {
                 pt.get<double>("branch_and_cut.capacity_valid_ineq.p1"),
                 pt.get<double>("branch_and_cut.capacity_valid_ineq.p2"),
                 pt.get<double>("branch_and_cut.capacity_valid_ineq.p3"),
+                pt.get<double>("branch_and_cut.capacity_valid_ineq.tilim"),
                 pt.get<bool>("branch_and_cut.capacity_valid_ineq.enabled")
             ),
             branch_and_cut_params::valid_inequality_with_lifted_version_info(
@@ -153,6 +156,7 @@ program_params  parser::read_program_params() const {
                 pt.get<double>("branch_and_cut.fork_valid_ineq.p1"),
                 pt.get<double>("branch_and_cut.fork_valid_ineq.p2"),
                 pt.get<double>("branch_and_cut.fork_valid_ineq.p3"),
+                pt.get<double>("branch_and_cut.fork_valid_ineq.tilim"),
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.enabled"),
                 pt.get<bool>("branch_and_cut.fork_valid_ineq.lifted_version_enabled")
             )

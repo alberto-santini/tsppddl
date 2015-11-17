@@ -18,26 +18,36 @@ struct branch_and_cut_params {
         double          p1;
         double          p2;
         double          p3;
+        double          tilim;
         bool            enabled;
         
         static const int unreachable_number_of_bb_nodes = 1e07;
     
         valid_inequality_info() {}
-        valid_inequality_info(int n1, int n2, double p1, double p2, double p3, bool enabled) : n1{n1}, n2{n2}, p1{p1}, p2{p2}, p3{p3}, enabled{enabled} {}
+        valid_inequality_info(  int n1, int n2,
+                                double p1, double p2, double p3,
+                                double tilim, bool enabled) :
+                                n1{n1}, n2{n2}, p1{p1}, p2{p2}, p3{p3}, tilim{tilim}, enabled{enabled} {}
     };
 
     struct valid_inequality_with_memory_info : public valid_inequality_info {
         bool memory;
     
         valid_inequality_with_memory_info() {}
-        valid_inequality_with_memory_info(int n1, int n2, double p1, double p2, double p3, bool enabled, bool memory) : valid_inequality_info{n1, n2, p1, p2, p3, enabled}, memory{memory} {}
+        valid_inequality_with_memory_info(  int n1, int n2,
+                                            double p1, double p2, double p3,
+                                            double tilim, bool enabled, bool memory) :
+                                            valid_inequality_info{n1, n2, p1, p2, p3, tilim, enabled}, memory{memory} {}
     };
     
     struct valid_inequality_with_lifted_version_info : public valid_inequality_info {
         bool lifted;
         
         valid_inequality_with_lifted_version_info() {}
-        valid_inequality_with_lifted_version_info(int n1, int n2, double p1, double p2, double p3, bool enabled, bool lifted) : valid_inequality_info{n1, n2, p1, p2, p3, enabled}, lifted{lifted} {}
+        valid_inequality_with_lifted_version_info(  int n1, int n2,
+                                                    double p1, double p2, double p3,
+                                                    double tilim, bool enabled, bool lifted) :
+                                                    valid_inequality_info{n1, n2, p1, p2, p3, tilim, enabled}, lifted{lifted} {}
     };
     
     valid_inequality_with_memory_info subtour_elim;

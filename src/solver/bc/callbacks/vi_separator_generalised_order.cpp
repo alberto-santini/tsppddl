@@ -1,10 +1,20 @@
 #include <solver/bc/callbacks/vi_separator_generalised_order.h>
 
+#include <chrono>
+
 std::vector<IloRange> vi_separator_generalised_order::separate_valid_cuts() const {
+    using namespace std::chrono;
+    
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
+    auto start_time = high_resolution_clock::now();
     
     for(auto i = 1; i <= n; i++) {
+        auto current_time = high_resolution_clock::now();
+        auto elapsed_time = duration_cast<duration<double>>(current_time - start_time);
+    
+        if(elapsed_time.count() > params.bc.generalised_order.tilim) { break; }
+        
         auto j1 = -1, j2 = -1;
         auto best_val_1 = 0.0, best_val_2 = 0.0;
         

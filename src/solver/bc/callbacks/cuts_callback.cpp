@@ -74,7 +74,7 @@ void cuts_callback::main() {
         (node_number < 2 || node_number != last_node_no_go)
     );
     if(separate_go) {
-        auto go_solv = vi_separator_generalised_order(g, sol_from_cplex.sol, env, x);
+        auto go_solv = vi_separator_generalised_order(g, params, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_2 = go_solv.separate_valid_cuts();
         auto end_time = high_resolution_clock::now();
@@ -101,7 +101,7 @@ void cuts_callback::main() {
         (node_number < 2 || node_number != last_node_no_cap)
     );
     if(separate_cap) {
-        auto cap_solv = vi_separator_capacity(g, sol_from_cplex.sol, env, x);
+        auto cap_solv = vi_separator_capacity(g, params, sol_from_cplex.sol, env, x);
         auto start_time = high_resolution_clock::now();
         auto valid_cuts_3 = cap_solv.separate_valid_cuts();
         auto end_time = high_resolution_clock::now();

@@ -2,6 +2,7 @@
 #define VI_SEPARATOR_CAPACITY_H
 
 #include <network/tsp_graph.h>
+#include <parser/program_params.h>
 #include <solver/bc/callbacks/callbacks_helper.h>
 
 #include <ilcplex/ilocplex.h>
@@ -12,13 +13,14 @@
 #include <vector>
 
 class vi_separator_capacity {
-    const tsp_graph&    g;
-    const ch::solution& sol;
-    IloEnv              env;
-    IloNumVarArray      x;
+    const tsp_graph&        g;
+    const program_params&   params;
+    const ch::solution&     sol;
+    IloEnv                  env;
+    IloNumVarArray          x;
     
-    std::vector<int>    S;
-    std::vector<int>    T;
+    std::vector<int>        S;
+    std::vector<int>        T;
     
     struct best_node {
         int     node_n;
@@ -36,7 +38,7 @@ class vi_separator_capacity {
     IloRange add_cut(double rhs_val) const;
     
 public:
-    vi_separator_capacity(const tsp_graph& g, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x);
+    vi_separator_capacity(const tsp_graph& g, const program_params& params, const ch::solution& sol, const IloEnv& env, const IloNumVarArray& x);
     std::vector<IloRange> separate_valid_cuts();
 };
 
