@@ -1,6 +1,9 @@
 #include <solver/bc/callbacks/vi_separator_fork.h>
 
 #include <chrono>
+#include <random>
+#include <numeric>
+#include <algorithm>
 #include <stdexcept>
 
 std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
@@ -8,10 +11,13 @@ std::vector<IloRange> vi_separator_fork::separate_valid_cuts() {
     
     auto n = g.g[graph_bundle].n;
     auto cuts = std::vector<IloRange>();
+    auto nodes = std::vector<int>(2*n);
+    std::iota(nodes.begin(), nodes.end(), 1);
+    std::shuffle(nodes.begin(), nodes.end(), std::mt19937{std::random_device{}()});
     
     auto start_time = high_resolution_clock::now();
     
-    for(auto cur_node = 1; cur_node <= 2*n; ++cur_node) {
+    for(auto cur_node : nodes) {
         auto current_time_at_node_start = high_resolution_clock::now();
         auto elapsed_time = duration_cast<duration<double>>(current_time_at_node_start - start_time);
         
