@@ -15,7 +15,7 @@ struct k_opt_params {
     k_opt_limits instance_size_limits;
     
     k_opt_params() {}
-    k_opt_params(k_opt_limits instance_size_limits) : instance_size_limits{std::move(instance_size_limits)} {}
+    k_opt_params(k_opt_limits instance_size_limits) : instance_size_limits{instance_size_limits} {}
 };
 
 #endif
