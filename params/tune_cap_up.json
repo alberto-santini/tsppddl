@@ -5,7 +5,7 @@
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "use_initial_solutions":        true,
-        "results_dir":                  "../results/branch_and_cut/default/",
+        "results_dir":                  "../results/branch_and_cut/tune_cap_up/",
         
         "subtour_elim_valid_ineq": {
             "n1":                       100,
