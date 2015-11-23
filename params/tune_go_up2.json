@@ -1,0 +1,81 @@
+{
+    "branch_and_cut": {
+        "two_cycles_elim":              true,
+        "subpath_elim":                 true,
+        "max_infeas_subpaths":          10000,
+        "print_relaxation_graph":       false,
+        "use_initial_solutions":        true,
+        "results_dir":                  "../results/branch_and_cut/tune_go_up/",
+        
+        "subtour_elim_valid_ineq": {
+            "n1":                       100,
+            "n2":                       20000,
+            "p1":                       0.9,
+            "p2":                       0.5,
+            "p3":                       0.05,
+            "tilim":                    5,
+            "enabled":                  true,
+            "memory":                   true
+        },
+        "generalised_order_valid_ineq": {
+            "n1":                       100,
+            "n2":                       20000,
+            "p1":                       1.0,
+            "p2":                       1.0,
+            "p3":                       1.0,
+            "tilim":                    5,
+            "enabled":                  true
+        },
+        "capacity_valid_ineq": {
+            "n1":                       100,
+            "n2":                       20000,
+            "p1":                       0.9,
+            "p2":                       0.5,
+            "p3":                       0.05,
+            "tilim":                    5,
+            "enabled":                  true
+        },
+        "fork_valid_ineq": {
+            "n1":                       100,
+            "n2":                       20000,
+            "p1":                       0.9,
+            "p2":                       0.5,
+            "p3":                       0.05,
+            "tilim":                    5,
+            "enabled":                  true,
+            "lifted_version_enabled":   true
+        }
+    },
+    
+    "k_opt": {
+        "instance_size_limit": [
+            {"k": 3, "n": 40},
+            {"k": 4, "n": 30},
+            {"k": 5, "n": 20},
+            {"k": 6, "n": 15}
+        ]
+    },
+    
+    "tabu_search": {
+        "tabu_list_size":               30,
+        "max_iter":                     50000,
+        "max_iter_without_improving":   500,
+        "max_parallel_searches":        1,
+        "results_dir":                  "../results/tabu_search/",
+        "track_progress":               false,
+        "progress_results_dir":         "../results/tabu_search_progress/"
+    },
+    
+    "tabu_tuning": {
+        "tabu_list_size":               [3, 5, 7, 10, 15, 30, 60, 100]
+    },
+    
+    "constructive_heuristics": {
+        "print_solutions":              false,
+        "results_dir":                  "../results/heur/",
+        "solutions_dir":                "../results/heur_solutions/"
+    },
+    
+    "cplex_threads":                    1,
+    "cplex_timeout":                    3600
+}
