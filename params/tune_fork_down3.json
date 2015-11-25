@@ -5,7 +5,7 @@
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "use_initial_solutions":        true,
-        "results_dir":                  "../results/branch_and_cut/tune_go_up2/",
+        "results_dir":                  "../results/branch_and_cut/tune_fork_down3/",
         
         "subtour_elim_valid_ineq": {
             "n1":                       100,
@@ -20,9 +20,9 @@
         "generalised_order_valid_ineq": {
             "n1":                       100,
             "n2":                       20000,
-            "p1":                       1.0,
-            "p2":                       1.0,
-            "p3":                       1.0,
+            "p1":                       0.9,
+            "p2":                       0.5,
+            "p3":                       0.05,
             "tilim":                    5,
             "enabled":                  true
         },
@@ -38,9 +38,9 @@
         "fork_valid_ineq": {
             "n1":                       100,
             "n2":                       20000,
-            "p1":                       0.9,
-            "p2":                       0.5,
-            "p3":                       0.05,
+            "p1":                       0.75,
+            "p2":                       0.0125,
+            "p3":                       0.00125,
             "tilim":                    5,
             "enabled":                  true,
             "lifted_version_enabled":   true

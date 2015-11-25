@@ -5,7 +5,7 @@
         "max_infeas_subpaths":          10000,
         "print_relaxation_graph":       false,
         "use_initial_solutions":        true,
-        "results_dir":                  "../results/branch_and_cut/tune_go_up2/",
+        "results_dir":                  "../results/branch_and_cut/tune_go_up3/",
         
         "subtour_elim_valid_ineq": {
             "n1":                       100,
@@ -21,8 +21,8 @@
             "n1":                       100,
             "n2":                       20000,
             "p1":                       1.0,
-            "p2":                       1.0,
-            "p3":                       1.0,
+            "p2":                       0.9,
+            "p3":                       0.15,
             "tilim":                    5,
             "enabled":                  true
         },
