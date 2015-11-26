@@ -19,24 +19,7 @@ else
     echo "Using params file $params_file"
 fi
 
-excluded_instances=(
-bayg29_10
-bayg29_14
-bayg29_22
-burma14_10
-burma14_18
-burma14_22
-fri26_14
-fri26_18
-fri26_22
-gr17_10
-gr17_14
-gr17_18
-gr21
-gr48
-ulysses16
-ulysses22
-)
+excluded_instances=()
 
 contains_element () {
     for element in "${@:2}"
