@@ -18,16 +18,16 @@ else
 fi
 
 excluded_instances=(
-"*_10_*_*.json"
-"*_14_*_*.json"
-"*_18_*_*.json"
-"*_22_*_*.json"
+".*_10_.*_.*\.json"
+".*_14_.*_.*\.json"
+".*_18_.*_.*\.json"
+".*_22_.*_.*\.json"
 )
 
 contains_element () {
     for element in "${@:2}"
     do
-      	[[ "$1" == *"$element"* ]] && return 0
+      	[[ "$1" =~ ${element} ]] && return 0
     done
 
     return 1
