@@ -1,4 +1,4 @@
-#!/Users/alberto/.rvm/rubies/ruby-2.1.5/bin/ruby
+#!/usr/bin/env ruby
 
 require 'json'
 require 'fileutils'
@@ -65,7 +65,8 @@ def generate_instances(input_data)
   depot         = (0..(input_data[:num_ports]-1)).to_a.sample
   normal_ports  = (0..(input_data[:num_ports]-1)).to_a - [depot]
 
-  [10, 14, 18, 22].each do |n|
+  #[10, 14, 18, 22].each do |n|
+  [5, 8, 12, 16, 20].each do |n|
     requests = Array.new
         
     0.upto(n-1) do |request|
@@ -137,15 +138,15 @@ def read_process_and_print(original_file_name)
   
   instances.each do |instance|
     new_file_name = "../data/new/"
-    if instance[:h] == 2
-      new_file_name += "tsppd/"
-    else
-      if instance[:k] == 1.0
-        new_file_name += "ctsppd/"
-      else
-        new_file_name += "tsppddl/"
-      end
-    end
+    # if instance[:h] == 2
+    #   new_file_name += "tsppd/"
+    # else
+    #   if instance[:k] == 1.0
+    #     new_file_name += "ctsppd/"
+    #   else
+    #     new_file_name += "tsppddl/"
+    #   end
+    # end
     new_file_name += "#{instance[:instance_name]}_#{instance[:n]}_#{instance[:h]}_#{instance[:k]}.json"
     
     dirname = File.dirname(new_file_name)
