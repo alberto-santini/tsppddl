@@ -1,8 +1,4 @@
-TSPPDDL
-============
-
-Intro
------
+#### TSPPDDL
 
 This is a solver for a generalisation of the Travelling Salesman Problem, namely the TSP with Pickups, Deliveries and Draught Limits.
 
@@ -18,7 +14,8 @@ This software includes:
 
 It also contains many test instances derived from the TSPLIB and a script to generate new ones. More info is contained in the other `README.md` files present in the subfolders.
 
-License
--------
+This code has been used in a paper by Malaguti, Martello and Santini.
+
+##### License
 
 This software is distributed under the GNU General Public License v3, as detailed in `LICENSE.txt`.
