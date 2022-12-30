@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Santini"
+  given-names: "Alberto"
+  orcid: "https://orcid.org/0000-0002-0440-0357"
+title: "Exact and heuristic methods for the TSP with Pickup, Deliveries, and Draught Limits"
+version: 1.0
+doi: 10.5281/zenodo.7494135
+date-released: 2022-12-30
+url: https://github.com/alberto-santini/tsppddl
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Malaguti"
+    given-names: "Enrico"
+  - family-names: "Martello"
+    given-names: "Silvano"
+  - family-names: "Santini"
+    given-names: "Alberto"
+    orcid: "https://orcid.org/0000-0002-0440-0357"
+  doi: 10.1016/j.omega.2017.01.005
+  journal: "Omega"
+  title: "The Traveling Salesman Problem with Pickups, Deliveries, and Draft Limits"
+  year: 2018
+  volume: 74
+  start: 50
+  end: 58
